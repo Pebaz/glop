@@ -23,3 +23,10 @@ efi_main:
 
 section '.data' data readable writeable
     string_hello: du "Hello World!", 0x0A
+
+
+; 16 Bit Natural Index: 1_010_00000100_1000
+1 Sign Bit -> 1
+3 Natural units size * 2 (since this is a 16 bit natural index)
+8 Natural bits (4 from above minus 12 bits left after initial 4 = 8)
+4 Constant bits (12 bits left minus 8 natural bits)
