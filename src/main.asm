@@ -17,6 +17,7 @@ efi_main:
     PUSHn  R1
     CALLEX @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
     MOV R0, R0(+2,0)
+    JMP efi_main
     RET
 
 

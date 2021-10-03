@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, shutil
 from pathlib import Path
 
 sys.argv.pop(0)
@@ -15,9 +15,13 @@ cwd = os.getcwd()
 
 try:
     os.chdir('C:/soft/uefi-vm-bc-asm')
-
     os.system(f'make {full_path}')
-except:
-    pass
+    os.chdir(cwd)
+    shutil.move(
+        Path(full_path).with_suffix('.efi'),
+        'drive/EFI/BOOT/BOOTX64.efi'
+    )
+except Exception as e:
+    print(e)
 finally:
     os.chdir(cwd)
