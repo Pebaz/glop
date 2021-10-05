@@ -1,6 +1,7 @@
 import sys
 
 MACHINE_ARCHITECTURE = 64  # * Assuming 64-bit here
+SIZE_OF_VOID_PTR = MACHINE_ARCHITECTURE // 8
 S_BITS = 1  # Sign bits
 W_BITS = 3  # Natural bit length
 HEADER_SIZE = S_BITS + W_BITS
@@ -24,7 +25,6 @@ def encode(natural, constant):
     ), 'Natural and constant index components must have same sign.'
 
     bits = []
-
     bits.append(int(natural < 0))
 
     natural, constant = abs(natural), abs(constant)
@@ -63,6 +63,8 @@ def encode(natural, constant):
 
     nat_bits = [0] * (a - len(nat_bits)) + nat_bits
     bits.extend(nat_bits)
+    sign = -1 if bits[0] else 1
+    offset = sign * (constant + natural * (SIZE_OF_VOID_PTR))
     col = 16
 
     print(' ' * (col // 2) + '- Encoded Natural Index -')
@@ -75,8 +77,15 @@ def encode(natural, constant):
         f'(x{index_size}) = {a}'
     )
     print('Constant:'.rjust(col), constant)
+    print(
+        'Natural Units:'.rjust(col),
+        natural,
+        f'({natural * SIZE_OF_VOID_PTR} bytes, '
+        f'{natural * SIZE_OF_VOID_PTR * 8} bits)'
+    )
     print('Natural Units:'.rjust(col), natural)
     print('Natural Index:'.rjust(col), _bit_int(bits))
+    print('Offset Bytes:'.rjust(col), offset)
     print()
 
     return _bit_int(bits)
@@ -84,28 +93,26 @@ def encode(natural, constant):
 # https://uefi.org/sites/default/files/resources/UEFI_Spec_2_9_2021_03_18.pdf
 # Section 2.2.2.2.2.2.
 def decode(index, index_size):
-    assert index_size in NATURAL_INDEX_ENCODING_SIZES, (
-        'index_size must be one of: 16, 32, 64'
-    )
-
     # * Gotta pad the front with more zeros since this is coming in from
     # * Python. This won't happen in reality since it will just be an array of
     # * bytes for the UEFI VM to decode. At worst, 4 zeros will be added to the
     # * front since it could be a positive (0) offset with no natural units (0)
     # * which would result in 4 zeros added to the front: sign (1) + w (3).
     bits = [int(bit) for bit in bin(index)[2:]]
-    bits = [0] * (index_size - len(bits)) + bits
-    # print(bits)
-    # extra_bits = [0] * (index_size - len(bits))
-    # bits = bits[:HEADER_SIZE] + extra_bits + bits[HEADER_SIZE + 1:]
-    # print(bits)
+    index_size = 16
 
+    if len(bits) > index_size:
+        index_size = 32
+    if len(bits) > index_size:
+        index_size = 64
+
+    bits = [0] * (index_size - len(bits)) + bits
     sign = -1 if bits[0] else 1
     width_base = _bit_int(bits[1:4])
     actual_width = width_base * NATURAL_INDEX_ENCODING_SIZES[index_size]
     natural = _bit_int(bits[len(bits) - actual_width:])
     constant = _bit_int(bits[4:len(bits) - actual_width])
-    offset = sign * (constant + natural * (MACHINE_ARCHITECTURE // 8))
+    offset = sign * (constant + natural * (SIZE_OF_VOID_PTR))
     col = 16
 
     print(' ' * (col // 2) + '- Decoded Natural Index -')
@@ -118,7 +125,13 @@ def decode(index, index_size):
         f'(x{index_size}) = {actual_width}'
     )
     print('Constant:'.rjust(col), constant)
-    print('Natural Units:'.rjust(col), natural)
+    print(
+        'Natural Units:'.rjust(col),
+        natural,
+        f'({natural * SIZE_OF_VOID_PTR} bytes, '
+        f'{natural * SIZE_OF_VOID_PTR * 8} bits)'
+    )
+    print('Natural Index:'.rjust(col), index)
     print('Offset Bytes:'.rjust(col), offset)
     print()
 
@@ -136,15 +149,8 @@ if __name__ == '__main__':
     _, cmd, *args = sys.argv
 
     if cmd.upper() == 'ENCODE':
-        nat_ind = encode(*(int(i) for i in args))
-
-        ind_size = 16
-        if nat_ind.bit_length() >= ind_size - HEADER_SIZE:
-            ind_size = 32
-        if nat_ind.bit_length() >= ind_size - HEADER_SIZE:
-            ind_size = 64
-
-        decode(nat_ind, ind_size)
+        # * Index size arg is ignored to keep same CLI
+        decode(encode(*(int(i) for i in args)), None)
 
     elif cmd.upper() == 'DECODE':
         decode(*(int(i) for i in args))
