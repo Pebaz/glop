@@ -1,3 +1,10 @@
+"""
+UEFI Spec:
+https://uefi.org/sites/default/files/resources/UEFI_Spec_2_9_2021_03_18.pdf
+
+UEFI Bytecode Virtual Machine Natural Indexing Section: 22.4
+"""
+
 import sys
 
 MACHINE_ARCHITECTURE = 64  # * Assuming 64-bit here
@@ -90,9 +97,8 @@ def encode(natural, constant):
 
     return _bit_int(bits)
 
-# https://uefi.org/sites/default/files/resources/UEFI_Spec_2_9_2021_03_18.pdf
-# Section 2.2.2.2.2.2.
-def decode(index, index_size):
+
+def decode(index):
     # * Gotta pad the front with more zeros since this is coming in from
     # * Python. This won't happen in reality since it will just be an array of
     # * bytes for the UEFI VM to decode. At worst, 4 zeros will be added to the
@@ -137,20 +143,27 @@ def decode(index, index_size):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    if len(sys.argv) == 3:
+        _, const, nat = sys.argv
+        decode(encode(int(const), int(nat)))
+
+    elif len(sys.argv) == 2:
+        _, nat_ind = sys.argv
+        decode(int(nat_ind))
+
+    else:
         sys.exit(
             print(
+                'natural_indexing - UEFI en/de-coding of natural indices\n\n'
                 'Usage:\n'
-                '  natural_indexing ENCODE <CONSTANT> <NATURAL>\n'
-                '  natural_indexing DECODE <NATURAL INDEX> <INDEX SIZE>'
+                '  natural_indexing <CONSTANT> <NATURAL>\n'
+                '  natural_indexing <NATURAL INDEX>\n\n'
+                'Examples:\n'
+                '  natural_indexing 1 0\n'
+                '  natural_indexing 1 1\n'
+                '  natural_indexing 1 2\n'
+                '  natural_indexing 0 1\n'
+                '  natural_indexing 10000 0\n'
+                '  natural_indexing 0 100000\n'
             )
         )
-
-    _, cmd, *args = sys.argv
-
-    if cmd.upper() == 'ENCODE':
-        # * Index size arg is ignored to keep same CLI
-        decode(encode(*(int(i) for i in args)), None)
-
-    elif cmd.upper() == 'DECODE':
-        decode(*(int(i) for i in args))
