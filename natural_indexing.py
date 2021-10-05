@@ -3,6 +3,8 @@ import sys
 HEADER_SIZE = 4  # Sign bit + natural bits size
 
 def _bit_int(bits):
+    if not bits:
+        return 0
     return int(''.join(str(i) for i in bits), base=2)
 
 # 0xA048 = 41032
@@ -15,6 +17,8 @@ def encode(natural, constant):
     bits = []
 
     bits.append(int(natural < 0))
+
+    natural, constant = abs(natural), abs(constant)
 
     nat_bits = [int(bit) for bit in bin(natural)[2:]]
     const_bits = [int(bit) for bit in bin(constant)[2:]]
@@ -54,6 +58,7 @@ def encode(natural, constant):
     print(bits)
     bits = [*reversed(bits)]
     print('Encoded Offset:', _bit_int(bits))
+    return _bit_int(bits)
 
 
 
@@ -67,14 +72,46 @@ def decode(index, index_size):
     MACHINE_ARCHITECTURE = 64  # * Assuming 64-bit here
 
     bits = [int(bit) for bit in bin(index)[2:]]
-    sign = bits[0]
-    nat_bits = _bit_int(bits[1:4])
-    nat_size = nat_bits * natural_index_encoding_sizes[index_size]
-    const_size = index_size - HEADER_SIZE - nat_size
-    constant = _bit_int(bits[HEADER_SIZE:HEADER_SIZE + const_size])
-    natural = _bit_int(bits[-nat_size:])
+    bits = [0] * (index_size - len(bits)) + bits
+
+    # s = 0
+    # w = 000
+    # a = w * 2 (from 16)
+    # n = last a bits
+    # c = rest of middle bits
+
+    # bits = list(range(16))
+
+    sign = -1 if bits[0] else 1
+    width_base = _bit_int(bits[1:4])
+    actual_width = width_base * natural_index_encoding_sizes[index_size]
+    natural = _bit_int(bits[len(bits) - actual_width:])
+    constant = _bit_int(bits[4:len(bits) - actual_width])
     offset = sign * (constant + natural * (MACHINE_ARCHITECTURE // 8))
+
+    # sign = bits[0]
+    # nat_bits = _bit_int(bits[1:4])
+    # nat_size = nat_bits * natural_index_encoding_sizes[index_size]
+    # const_size = index_size - HEADER_SIZE - nat_size
+    # constant = _bit_int(bits[HEADER_SIZE:HEADER_SIZE + const_size])
+    # natural = _bit_int(bits[-nat_size:])
+    # offset = sign * (constant + natural * (MACHINE_ARCHITECTURE // 8))
+
     col = 16
+
+    print('Bits:'.rjust(col), bits)
+    print('Sign:'.rjust(col), 'negative' if sign else 'positive')
+    print('W:'.rjust(col), width_base)
+    print(
+        'A:'.rjust(col),
+        f'{width_base} * {natural_index_encoding_sizes[index_size]}'
+        f'(x{index_size}) = {actual_width}'
+    )
+    print('Constant:'.rjust(col), constant)
+    print('Natural Units:'.rjust(col), natural)
+    print('Offset Bytes:'.rjust(col), offset)
+
+    return
 
     print('Sign:'.rjust(col), 'negative' if sign else 'positive')
     print('Constant:'.rjust(col), constant)
@@ -95,7 +132,7 @@ if __name__ == '__main__':
     _, cmd, *args = sys.argv
 
     if cmd.upper() == 'ENCODE':
-        encode(*(int(i) for i in args))
+        decode(encode(*(int(i) for i in args)), 64)
 
     elif cmd.upper() == 'DECODE':
         decode(*(int(i) for i in args))
