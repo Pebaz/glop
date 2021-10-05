@@ -10,3 +10,7 @@ Programming language that compiles to UEFI Bytecode.
 # Note that drive/UEFI/BOOT/BOOT64.efi must exist for this to boot into it
 $ qemu-system-x86_64 -bios OVMF.fd -net none -drive format=raw,file=fat:rw:drive/ -nographic
 ```
+
+### Natural Indexing CLI Tool
+
+<img src="misc/Natural Indexing.png">
