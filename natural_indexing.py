@@ -1,6 +1,10 @@
 import sys
 
-HEADER_SIZE = 4  # Sign bit + natural bits size
+MACHINE_ARCHITECTURE = 64  # * Assuming 64-bit here
+S_BITS = 1  # Sign bits
+W_BITS = 3  # Natural bit length
+HEADER_SIZE = S_BITS + W_BITS
+NATURAL_INDEX_ENCODING_SIZES = {16: 2, 32: 4, 64: 8}
 
 def _bit_int(bits):
     if not bits:
@@ -9,11 +13,16 @@ def _bit_int(bits):
 
 # 0xA048 = 41032
 def encode(natural, constant):
+    # s = 0
+    # w = 000
+    # a = w * 2 (from 16)
+    # n = last a bits
+    # c = rest of middle bits
+
     assert (
         natural >= 0 and constant >= 0) or (natural < 0 and constant < 0
     ), 'Natural and constant index components must have same sign.'
 
-    print(natural, constant)
     bits = []
 
     bits.append(int(natural < 0))
@@ -21,102 +30,97 @@ def encode(natural, constant):
     natural, constant = abs(natural), abs(constant)
 
     nat_bits = [int(bit) for bit in bin(natural)[2:]]
+    if nat_bits == [0]:
+        nat_bits = []
+
     const_bits = [int(bit) for bit in bin(constant)[2:]]
+    if const_bits == [0]:
+        const_bits = []
 
-    print([1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0])
-    print(nat_bits)
-    print(const_bits)
+    index_size = 16
+    if (len(nat_bits) + len(const_bits)) >= index_size - HEADER_SIZE:
+        index_size = 32
+    if (len(nat_bits) + len(const_bits)) >= index_size - HEADER_SIZE:
+        index_size = 64
 
-    # ? Just use 64 bit every single time
-    nat_ind_enc_size = 2  # x64
+    index_sizer = NATURAL_INDEX_ENCODING_SIZES[index_size]
 
-    num_natural_bits = 0
-    while num_natural_bits * nat_ind_enc_size < len(nat_bits):
-        num_natural_bits += 1
-    num = bin(num_natural_bits)[2:]
-    if len(num) < 3:
-        for _ in range(3 - len(num)):
-            num = '0' + num
-    nat_size = [int(bit) for bit in num]
-    bits.extend(nat_size)
-    actual_nat_bits = num_natural_bits * nat_ind_enc_size
+    # Find size of natural index
+    for w in range(7):
+        a = w * index_sizer
+        if a >= len(nat_bits):
+            break
+    else:
+        raise Exception('Did not find enough room to store natural index')
 
-    # Goal: Add natural bits exactly and then pad only constant bits
+    w_bits = [int(bit) for bit in bin(w)[2:]]
+    w_bits = [0] * (W_BITS - len(w_bits)) + w_bits
+    bits.extend(w_bits)
 
-    # Add nat bits exactly equal to actual (that 3 bit field)
-    while len(nat_bits) < actual_nat_bits:
-        nat_bits.insert(0, 0)
-
-    # Now pad constant bits to fill space
-    nat_index_width = 16
-    while len(const_bits) < nat_index_width - HEADER_SIZE - actual_nat_bits:
-        const_bits.insert(0, 0)
-
+    constant_bits_left = index_size - HEADER_SIZE - a
+    const_bits = [0] * (constant_bits_left - len(const_bits)) + const_bits
     bits.extend(const_bits)
-    bits.extend(nat_bits)
 
-    print(bits)
-    bits = [*reversed(bits)]
-    print('Encoded Offset:', _bit_int(bits))
+    nat_bits = [0] * (a - len(nat_bits)) + nat_bits
+    bits.extend(nat_bits)
+    col = 16
+
+    print(' ' * (col // 2) + '- Encoded Natural Index -')
+    print('Bits:'.rjust(col), bits)
+    print('Sign:'.rjust(col), 'negative' if bits[0] else 'positive')
+    print('W:'.rjust(col), w)
+    print(
+        'A:'.rjust(col),
+        f'{w} * {NATURAL_INDEX_ENCODING_SIZES[index_size]}'
+        f'(x{index_size}) = {a}'
+    )
+    print('Constant:'.rjust(col), constant)
+    print('Natural Units:'.rjust(col), natural)
+    print('Natural Index:'.rjust(col), _bit_int(bits))
+    print()
+
     return _bit_int(bits)
 
-
-
+# https://uefi.org/sites/default/files/resources/UEFI_Spec_2_9_2021_03_18.pdf
+# Section 2.2.2.2.2.2.
 def decode(index, index_size):
-    natural_index_encoding_sizes = {16: 2, 32: 4, 64: 8}
-
-    assert index_size in natural_index_encoding_sizes, (
+    assert index_size in NATURAL_INDEX_ENCODING_SIZES, (
         'index_size must be one of: 16, 32, 64'
     )
 
-    MACHINE_ARCHITECTURE = 64  # * Assuming 64-bit here
-
+    # * Gotta pad the front with more zeros since this is coming in from
+    # * Python. This won't happen in reality since it will just be an array of
+    # * bytes for the UEFI VM to decode. At worst, 4 zeros will be added to the
+    # * front since it could be a positive (0) offset with no natural units (0)
+    # * which would result in 4 zeros added to the front: sign (1) + w (3).
     bits = [int(bit) for bit in bin(index)[2:]]
     bits = [0] * (index_size - len(bits)) + bits
-
-    # s = 0
-    # w = 000
-    # a = w * 2 (from 16)
-    # n = last a bits
-    # c = rest of middle bits
-
-    # bits = list(range(16))
+    # print(bits)
+    # extra_bits = [0] * (index_size - len(bits))
+    # bits = bits[:HEADER_SIZE] + extra_bits + bits[HEADER_SIZE + 1:]
+    # print(bits)
 
     sign = -1 if bits[0] else 1
     width_base = _bit_int(bits[1:4])
-    actual_width = width_base * natural_index_encoding_sizes[index_size]
+    actual_width = width_base * NATURAL_INDEX_ENCODING_SIZES[index_size]
     natural = _bit_int(bits[len(bits) - actual_width:])
     constant = _bit_int(bits[4:len(bits) - actual_width])
     offset = sign * (constant + natural * (MACHINE_ARCHITECTURE // 8))
-
-    # sign = bits[0]
-    # nat_bits = _bit_int(bits[1:4])
-    # nat_size = nat_bits * natural_index_encoding_sizes[index_size]
-    # const_size = index_size - HEADER_SIZE - nat_size
-    # constant = _bit_int(bits[HEADER_SIZE:HEADER_SIZE + const_size])
-    # natural = _bit_int(bits[-nat_size:])
-    # offset = sign * (constant + natural * (MACHINE_ARCHITECTURE // 8))
-
     col = 16
 
+    print(' ' * (col // 2) + '- Decoded Natural Index -')
     print('Bits:'.rjust(col), bits)
-    print('Sign:'.rjust(col), 'negative' if sign else 'positive')
+    print('Sign:'.rjust(col), 'negative' if sign < 0 else 'positive')
     print('W:'.rjust(col), width_base)
     print(
         'A:'.rjust(col),
-        f'{width_base} * {natural_index_encoding_sizes[index_size]}'
+        f'{width_base} * {NATURAL_INDEX_ENCODING_SIZES[index_size]}'
         f'(x{index_size}) = {actual_width}'
     )
     print('Constant:'.rjust(col), constant)
     print('Natural Units:'.rjust(col), natural)
     print('Offset Bytes:'.rjust(col), offset)
-
-    return
-
-    print('Sign:'.rjust(col), 'negative' if sign else 'positive')
-    print('Constant:'.rjust(col), constant)
-    print('Natural Units:'.rjust(col), natural)
-    print('Offset Bytes:'.rjust(col), offset)
+    print()
 
 
 if __name__ == '__main__':
@@ -132,7 +136,15 @@ if __name__ == '__main__':
     _, cmd, *args = sys.argv
 
     if cmd.upper() == 'ENCODE':
-        decode(encode(*(int(i) for i in args)), 64)
+        nat_ind = encode(*(int(i) for i in args))
+
+        ind_size = 16
+        if nat_ind.bit_length() >= ind_size - HEADER_SIZE:
+            ind_size = 32
+        if nat_ind.bit_length() >= ind_size - HEADER_SIZE:
+            ind_size = 64
+
+        decode(nat_ind, ind_size)
 
     elif cmd.upper() == 'DECODE':
         decode(*(int(i) for i in args))
