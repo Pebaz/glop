@@ -20,6 +20,11 @@ efi_main:
     JMP efi_main
     RET
 
+fn_add:
+    MOVEIww R1, 123
+    MOVEIww R1, 1
+    ADD64 R1 R2
+
 
 section '.data' data readable writeable
     string_hello: du "Hello World!", 0x0A
