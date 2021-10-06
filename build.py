@@ -17,10 +17,9 @@ try:
     os.chdir('C:/soft/uefi-vm-bc-asm')
     os.system(f'make {full_path}')
     os.chdir(cwd)
-    shutil.move(
-        Path(full_path).with_suffix('.efi'),
-        'drive/EFI/BOOT/BOOTX64.efi'
-    )
+    artifact = Path(full_path).with_suffix('.efi')
+    if artifact.exists():
+        shutil.move(artifact, 'drive/EFI/BOOT/BOOTX64.efi')
 except Exception as e:
     print(e)
 finally:
