@@ -16,9 +16,19 @@ efi_main:
     PUSHn  R2
     PUSHn  R1
     CALLEX @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
-    MOV R0, R0(+2,0)
+
+    ;; This also works. It means "pop 2 items off the stack"
+    ;; I believe the + here is because the stack is in the higher address space
+    ;; MOV R0, R0(+2,0)
+
+    ;; This pops the 2 arguments used to call OutputString off the stack
+    POPn R4  ;; Storing in R4 just for no reason. Better way to do this?
+    POPn R4
+
     JMP efi_main
-    RET
+
+    ;; Never return
+    ;; RET
 
 section '.data' data readable writeable
     string_hello: du "Hello World!", 0x0A, 0x0
