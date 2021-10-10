@@ -149,8 +149,9 @@ impl OpCode
         {
             return None;
         };
-        let byte0_bits = bits(byte0);
-        let op = bits_to_byte(&byte0_bits[0 ..= 5]);
+        let byte0_bits = bits_rev(byte0);
+        println!("{:?} bytes", &byte0_bits[0 ..= 5]);
+        let op = bits_to_byte_rev(&byte0_bits[0 ..= 5]);
 
         println!("OpCode: {}", op);
         return None;
@@ -321,6 +322,22 @@ fn bits_to_byte(bits: &[bool]) -> u8
     byte
 }
 
+/// Converts a slice of bits sorted in reverse to a byte.
+fn bits_to_byte_rev(bits: &[bool]) -> u8
+{
+    let mut byte = 0;
+
+    for (i, bit) in bits.iter().enumerate()
+    {
+        if *bit
+        {
+            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+            byte += 2u8.pow((i) as u32);
+        }
+    }
+    byte
+}
+
 /// Reads in an EFI Bytecode file from STDIN and prints the disassembly.
 fn main()
 {
@@ -328,10 +345,11 @@ fn main()
     {
         println!("{}", bytecode_file);
 
-        let mut file = std::fs::File::open(bytecode_file.clone())
-            .expect(format!("File {} does not exist", bytecode_file).as_str());
+        let mut file = std::fs::File::open(bytecode_file.clone()).expect(
+            format!("File {} does not exist", bytecode_file).as_str()
+        );
         let mut bytes = file.bytes().map(|b| b.unwrap());
-        let mut instruction = [0; 4];
+        // let mut instruction = [0; 4];
 
         loop
         {
