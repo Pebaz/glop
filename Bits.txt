@@ -1,0 +1,13 @@
+:: Bytes are read from left to right
+:: Bits are read from right to left
+
+114      239      191      189
+01110010 11101111 10111111 10111101
+
+
+114
+76543210 <- Least impactful bit
+01110010
+
+LE    BE
+48575 49085

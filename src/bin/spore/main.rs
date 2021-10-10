@@ -149,12 +149,18 @@ impl OpCode
         {
             return None;
         };
+
+        println!("BYTE: {}", byte0);
+
+        // * Using reverse number parsing to make indexing the individual bits
+        // * easier since the UEFI spec specifies them in reverse.
+
         let byte0_bits = bits_rev(byte0);
-        println!("{:?} bytes", &byte0_bits[0 ..= 5]);
         let op = bits_to_byte_rev(&byte0_bits[0 ..= 5]);
 
-        println!("OpCode: {}", op);
-        return None;
+        // println!("{:?} bytes", &byte0_bits[0 ..= 5]);
+        // println!("OpCode: {}", op);
+        // return None;
 
         match op
         {
@@ -163,8 +169,92 @@ impl OpCode
                 println!("ADD");
             }
 
+            op if op == OpCode::MOVnw as u8 =>
+            {
+                let operand1_index_present = byte0_bits[7];
+                let operand2_index_present = byte0_bits[6];
+
+                let byte1 = bytes.next().expect("Unexpected end of bytes");
+                let byte1_bits = bits_rev(byte1);
+                let operand2_is_indirect = byte1_bits[7];
+                let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+                let operand1_is_indirect = byte1_bits[3];
+                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+
+                let op1_x16_index_or_immediate =
+                {
+                    if operand1_index_present
+                    {
+                        let mut value = [0u8; 2];
+
+                        value[0] = bytes.next().unwrap();
+                        value[1] = bytes.next().unwrap();
+
+                        Some(value)
+                    }
+                    else
+                    {
+                        None
+                    }
+                };
+
+                let op2_x16_index_or_immediate =
+                {
+                    if operand2_index_present
+                    {
+                        let mut value = [0u8; 2];
+
+                        value[0] = bytes.next().unwrap();
+                        value[1] = bytes.next().unwrap();
+
+                        Some(value)
+                    }
+                    else
+                    {
+                        None
+                    }
+                };
+
+                print!("    {} ", OpCode::MOVnw);
+
+                // Operand 1
+                if operand1_is_indirect
+                {
+                    print!("@");
+                }
+
+                let operand1 = Register::from_u8(operand1_value);
+
+                print!("{}", operand1);
+
+                if let Some(value) = op1_x16_index_or_immediate
+                {
+                    print!("({})", u16::from_le_bytes(value));
+                }
+
+                print!(", ");
+
+                // Operand 2
+                if operand2_is_indirect
+                {
+                    print!("@");
+                }
+
+                let operand2 = Register::from_u8(operand2_value);
+
+                print!("{}", operand2);
+
+                if let Some(value) = op2_x16_index_or_immediate
+                {
+                    print!("({})", u16::from_le_bytes(value));
+                }
+
+                println!("");
+            }
+
             op if op == OpCode::MOD as u8 =>
             {
+                // TODO(pbz): Not done yet
                 // println!("{:?}", OpCode::MOD);
 
                 // let index_or_immediate_present = byte0_bits[7];
@@ -179,91 +269,91 @@ impl OpCode
                 // let operand2 = bits_to_byte(&byte1_bits[4 ..= 6]);
                 // let operand1_is_indirect = byte1_bits[3];
                 // let operand1 = bits_to_byte(&byte1_bits[0 ..= 2]);
-                // TODO(pbz): Not done yet
             }
 
             // MOVsn{d} {@}R1 {Index32}, {@}R2 {Index32|Immed32}
             op if op == OpCode::MOVsnd as u8 =>
             {
-                let operand1_index_present = byte0_bits[7];
-                let operand2_index_present = byte0_bits[6];
+                // TODO(pbz): Not done yet
+                // let operand1_index_present = byte0_bits[7];
+                // let operand2_index_present = byte0_bits[6];
 
-                let byte1 = bytes.next().expect("Unexpected end of bytes");
-                let byte1_bits = bits(byte1);
-                let operand2_is_indirect = byte1_bits[7];
-                let operand2_value = bits_to_byte(&byte1_bits[4 ..= 6]);
-                let operand1_is_indirect = byte1_bits[3];
-                let operand1_value = bits_to_byte(&byte1_bits[0 ..= 2]);
+                // let byte1 = bytes.next().expect("Unexpected end of bytes");
+                // let byte1_bits = bits(byte1);
+                // let operand2_is_indirect = byte1_bits[7];
+                // let operand2_value = bits_to_byte(&byte1_bits[4 ..= 6]);
+                // let operand1_is_indirect = byte1_bits[3];
+                // let operand1_value = bits_to_byte(&byte1_bits[0 ..= 2]);
 
-                let op1_x32_index_or_immediate =
-                {
-                    if operand1_index_present
-                    {
-                        let mut value = [0u8; 4];
+                // let op1_x32_index_or_immediate =
+                // {
+                //     if operand1_index_present
+                //     {
+                //         let mut value = [0u8; 4];
 
-                        value[0] = bytes.next().unwrap();
-                        value[1] = bytes.next().unwrap();
-                        value[2] = bytes.next().unwrap();
-                        value[3] = bytes.next().unwrap();
+                //         value[0] = bytes.next().unwrap();
+                //         value[1] = bytes.next().unwrap();
+                //         value[2] = bytes.next().unwrap();
+                //         value[3] = bytes.next().unwrap();
 
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
+                //         Some(value)
+                //     }
+                //     else
+                //     {
+                //         None
+                //     }
+                // };
 
-                let op2_x32_index_or_immediate =
-                {
-                    if operand2_index_present
-                    {
-                        let mut value = [0u8; 4];
+                // let op2_x32_index_or_immediate =
+                // {
+                //     if operand2_index_present
+                //     {
+                //         let mut value = [0u8; 4];
 
-                        value[0] = bytes.next().unwrap();
-                        value[1] = bytes.next().unwrap();
-                        value[2] = bytes.next().unwrap();
-                        value[3] = bytes.next().unwrap();
+                //         value[0] = bytes.next().unwrap();
+                //         value[1] = bytes.next().unwrap();
+                //         value[2] = bytes.next().unwrap();
+                //         value[3] = bytes.next().unwrap();
 
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
+                //         Some(value)
+                //     }
+                //     else
+                //     {
+                //         None
+                //     }
+                // };
 
-                print!("    {} ", OpCode::MOVsnd);
+                // print!("    {} ", OpCode::MOVsnd);
 
-                if operand1_is_indirect
-                {
-                    print!("@");
-                }
+                // if operand1_is_indirect
+                // {
+                //     print!("@");
+                // }
 
-                // let operand1 = Register::from_u8(operand1_value);
+                // // let operand1 = Register::from_u8(operand1_value);
 
-                print!("{} ", operand1_value);
+                // print!("{} ", operand1_value);
 
-                if operand2_is_indirect
-                {
-                    print!("@");
-                }
+                // if operand2_is_indirect
+                // {
+                //     print!("@");
+                // }
 
-                print!("{} ", operand2_value);
+                // print!("{} ", operand2_value);
 
-                if let Some(value) = op1_x32_index_or_immediate
-                {
-                    // ! ASSMUING U32 FOR NOW. READ THE SPECIFICATION
-                    print!("({}) ", u32::from_le_bytes(value));
-                }
+                // if let Some(value) = op1_x32_index_or_immediate
+                // {
+                //     // ! ASSMUING U32 FOR NOW. READ THE SPECIFICATION
+                //     print!("({}) ", u32::from_le_bytes(value));
+                // }
 
-                if let Some(value) = op2_x32_index_or_immediate
-                {
-                    // ! ASSMUING U32 FOR NOW. READ THE SPECIFICATION
-                    print!("({}) ", u32::from_le_bytes(value));
-                }
+                // if let Some(value) = op2_x32_index_or_immediate
+                // {
+                //     // ! ASSMUING U32 FOR NOW. READ THE SPECIFICATION
+                //     print!("({}) ", u32::from_le_bytes(value));
+                // }
 
-                println!("");
+                // println!("");
             }
 
             _ =>
@@ -275,6 +365,36 @@ impl OpCode
         Some(())
     }
 }
+
+// fn bits(byte: u8) -> [bool; 8]
+// {
+//     let mut bits = [false; 8];
+
+//     for i in 0 .. 8
+//     {
+//         if byte & 2u8.pow(i) > 0
+//         {
+//             bits[(bits.len() - 1) - i as usize] = true;
+//         }
+//     }
+
+//     bits
+// }
+
+// fn bits_to_byte(bits: &[bool]) -> u8
+// {
+//     let mut byte = 0;
+
+//     for (i, bit) in bits.iter().rev().enumerate()
+//     {
+//         if *bit
+//         {
+//             // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+//             byte += 2u8.pow((i) as u32);
+//         }
+//     }
+//     byte
+// }
 
 /// Returns the bits of a byte in reverse so that indexing works as expected.
 fn bits_rev(byte: u8) -> [bool; 8]
@@ -290,36 +410,6 @@ fn bits_rev(byte: u8) -> [bool; 8]
     }
 
     bits
-}
-
-fn bits(byte: u8) -> [bool; 8]
-{
-    let mut bits = [false; 8];
-
-    for i in 0 .. 8
-    {
-        if byte & 2u8.pow(i) > 0
-        {
-            bits[(bits.len() - 1) - i as usize] = true;
-        }
-    }
-
-    bits
-}
-
-fn bits_to_byte(bits: &[bool]) -> u8
-{
-    let mut byte = 0;
-
-    for (i, bit) in bits.iter().rev().enumerate()
-    {
-        if *bit
-        {
-            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
-            byte += 2u8.pow((i) as u32);
-        }
-    }
-    byte
 }
 
 /// Converts a slice of bits sorted in reverse to a byte.
