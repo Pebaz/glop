@@ -12,7 +12,9 @@ use std::io::prelude::*;
 // Make structs for each instruction that can parse themselves
 
 
-enum Opcodes
+// #[repr(u8)]
+#[derive(Debug)]
+enum OpCode
 {
     ADD = 0x0C,
     AND = 0x14,
@@ -72,10 +74,136 @@ enum Opcodes
     XOR = 0x16
 }
 
-impl Instruction
+/// Needed since stringifying the OpCode is part of application functionality.
+impl std::fmt::Display for OpCode
 {
-    fn disassemble(&self)
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
     {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl OpCode
+{
+    // parse from [u8] -> Result
+
+    // fn parse() -> Self
+    // {
+    //     match
+    // }
+
+    // fn parse;
+    // fn print;
+
+    fn disassemble<T: Iterator<Item=u8>>(bytes: &mut T) -> Option<()>
+    {
+        let byte0 = if let Some(byte) = bytes.next()
+        {
+            byte
+        }
+        else
+        {
+            return None;
+        };
+        let byte0_bits = bits(byte0);
+        let op = bits_to_byte(&byte0_bits[0 ..= 5]);
+
+        println!("OpCode: {}", op);
+
+        match op
+        {
+            op if op == OpCode::ADD as u8 =>
+            {
+                println!("ADD");
+            }
+
+            op if op == OpCode::MOD as u8 =>
+            {
+                // println!("{:?}", OpCode::MOD);
+
+                // let index_or_immediate_present = byte0_bits[7];
+                // let is_64_bit = byte0_bits[6];
+
+                // println!("  Index/Immediate: {}", index_or_immediate_present);
+                // println!("  x64: {}", is_64_bit);
+
+                // let byte1 = bytes.next().expect("Unexpected end of bytes");
+                // let byte1_bits = bits(byte1);
+                // let operand2_is_indirect = byte1_bits[7];
+                // let operand2 = bits_to_byte(&byte1_bits[4 ..= 6]);
+                // let operand1_is_indirect = byte1_bits[3];
+                // let operand1 = bits_to_byte(&byte1_bits[0 ..= 2]);
+                // TODO(pbz): Not done yet
+            }
+
+            // MOVsn{d} {@}R1 {Index32}, {@}R2 {Index32|Immed32}
+            op if op == OpCode::MOVsnd as u8 =>
+            {
+                let operand1_index_present = byte0_bits[7];
+                let operand2_index_present = byte0_bits[6];
+
+                let byte1 = bytes.next().expect("Unexpected end of bytes");
+                let byte1_bits = bits(byte1);
+                let operand2_is_indirect = byte1_bits[7];
+                let operand2 = bits_to_byte(&byte1_bits[4 ..= 6]);
+                let operand1_is_indirect = byte1_bits[3];
+                let operand1 = bits_to_byte(&byte1_bits[0 ..= 2]);
+
+                let op1_x32_index_or_immediate =
+                {
+                    if operand1_index_present
+                    {
+                        let mut value = [0u8; 4];
+
+                        value[0] = bytes.next().unwrap();
+                        value[1] = bytes.next().unwrap();
+                        value[2] = bytes.next().unwrap();
+                        value[3] = bytes.next().unwrap();
+
+                        Some(value)
+                    }
+                    else
+                    {
+                        None
+                    }
+                };
+
+                let op2_x32_index_or_immediate =
+                {
+                    if operand2_index_present
+                    {
+                        let mut value = [0u8; 4];
+
+                        value[0] = bytes.next().unwrap();
+                        value[1] = bytes.next().unwrap();
+                        value[2] = bytes.next().unwrap();
+                        value[3] = bytes.next().unwrap();
+
+                        Some(value)
+                    }
+                    else
+                    {
+                        None
+                    }
+                };
+
+                if let Some(value) = op1_x32_index_or_immediate
+                {
+                    println!("op1_x32_index_or_immediate")
+                }
+
+                if let Some(value) = op2_x32_index_or_immediate
+                {
+                    println!("op2_x32_index_or_immediate")
+                }
+
+                println!("{}", OpCode::MOVsnd);
+            }
+
+            _ => ()
+        }
+
+        Some(())
     }
 }
 
@@ -120,18 +248,36 @@ fn main()
         let mut bytes = file.bytes().map(|b| b.unwrap());
         let mut instruction = [0; 4];
 
+        loop
+        {
+            if OpCode::disassemble(&mut bytes).is_none()
+            {
+                break;
+            }
+        }
+
+        /*
         for (i, byte) in bytes.enumerate()
         {
             instruction[i % 4] = byte;
 
             let bits = bits(byte);
             let instruction_type_bits = &bits[0 .. 5];
+            let op = bits_to_byte(instruction_type_bits);
 
-            let instruction_type = bits_to_byte(instruction_type_bits);
-
-            if instruction_type > 0
+            if op > 0
             {
-                println!("{:?}", instruction_type);
+                println!("{:?}", op);
+            }
+
+            match op
+            {
+                op if op == OpCode::MOD as u8 =>
+                {
+                    println!("MOD: {:?}", OpCode::MOD);
+                }
+
+                _ => ()
             }
 
             // if i % 4 == 0 && i > 0
@@ -140,6 +286,7 @@ fn main()
             //     instruction = [0; 4];
             // }
         }
+        */
 
         // TODO(pbz): Bytes can be left over in the instruction. Process them.
 
