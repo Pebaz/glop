@@ -11,6 +11,50 @@ use std::io::prelude::*;
 // Make Instruction trait
 // Make structs for each instruction that can parse themselves
 
+/// As noted in UEFI.22.3, these registers are only to be interpreted as
+/// "general purpose" when using normal instructions. Specialized instructions
+/// such as CMP can reference these same indices, but they refer to registers
+/// like FLAGS, IP, and some reserved registers.
+#[derive(Debug)]
+enum Register
+{
+    R0 = 0,
+    R1 = 1,
+    R2 = 2,
+    R3 = 3,
+    R4 = 4,
+    R5 = 5,
+    R6 = 6,
+    R7 = 7
+}
+
+/// Needed since stringifying the OpCode is part of application functionality.
+impl std::fmt::Display for Register
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl Register
+{
+    fn from_u8(value: u8) -> Self
+    {
+        match value
+        {
+            0 => Self::R0,
+            1 => Self::R1,
+            2 => Self::R2,
+            3 => Self::R3,
+            4 => Self::R4,
+            5 => Self::R5,
+            6 => Self::R6,
+            7 => Self::R7,
+            _ => unreachable!(),
+        }
+    }
+}
 
 // #[repr(u8)]
 #[derive(Debug)]
@@ -109,6 +153,7 @@ impl OpCode
         let op = bits_to_byte(&byte0_bits[0 ..= 5]);
 
         println!("OpCode: {}", op);
+        return None;
 
         match op
         {
@@ -145,9 +190,9 @@ impl OpCode
                 let byte1 = bytes.next().expect("Unexpected end of bytes");
                 let byte1_bits = bits(byte1);
                 let operand2_is_indirect = byte1_bits[7];
-                let operand2 = bits_to_byte(&byte1_bits[4 ..= 6]);
+                let operand2_value = bits_to_byte(&byte1_bits[4 ..= 6]);
                 let operand1_is_indirect = byte1_bits[3];
-                let operand1 = bits_to_byte(&byte1_bits[0 ..= 2]);
+                let operand1_value = bits_to_byte(&byte1_bits[0 ..= 2]);
 
                 let op1_x32_index_or_immediate =
                 {
@@ -187,27 +232,51 @@ impl OpCode
                     }
                 };
 
+                print!("    {} ", OpCode::MOVsnd);
+
+                if operand1_is_indirect
+                {
+                    print!("@");
+                }
+
+                // let operand1 = Register::from_u8(operand1_value);
+
+                print!("{} ", operand1_value);
+
+                if operand2_is_indirect
+                {
+                    print!("@");
+                }
+
+                print!("{} ", operand2_value);
+
                 if let Some(value) = op1_x32_index_or_immediate
                 {
-                    println!("op1_x32_index_or_immediate")
+                    // ! ASSMUING U32 FOR NOW. READ THE SPECIFICATION
+                    print!("({}) ", u32::from_le_bytes(value));
                 }
 
                 if let Some(value) = op2_x32_index_or_immediate
                 {
-                    println!("op2_x32_index_or_immediate")
+                    // ! ASSMUING U32 FOR NOW. READ THE SPECIFICATION
+                    print!("({}) ", u32::from_le_bytes(value));
                 }
 
-                println!("{}", OpCode::MOVsnd);
+                println!("");
             }
 
-            _ => ()
+            _ =>
+            {
+                println!("OpCode: {}", op);
+            }
         }
 
         Some(())
     }
 }
 
-fn bits(byte: u8) -> [bool; 8]
+/// Returns the bits of a byte in reverse so that indexing works as expected.
+fn bits_rev(byte: u8) -> [bool; 8]
 {
     let mut bits = [false; 8];
 
@@ -222,15 +291,31 @@ fn bits(byte: u8) -> [bool; 8]
     bits
 }
 
+fn bits(byte: u8) -> [bool; 8]
+{
+    let mut bits = [false; 8];
+
+    for i in 0 .. 8
+    {
+        if byte & 2u8.pow(i) > 0
+        {
+            bits[(bits.len() - 1) - i as usize] = true;
+        }
+    }
+
+    bits
+}
+
 fn bits_to_byte(bits: &[bool]) -> u8
 {
     let mut byte = 0;
 
-    for (i, bit) in bits.iter().enumerate()
+    for (i, bit) in bits.iter().rev().enumerate()
     {
         if *bit
         {
-            byte += 2u8.pow((bits.len() - i) as u32);
+            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+            byte += 2u8.pow((i) as u32);
         }
     }
     byte
@@ -297,5 +382,40 @@ fn main()
 
         //     println!("{:?}", byte.unwrap());
         // }
+    }
+}
+
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+
+    #[test]
+    fn test_bits_to_byte()
+    {
+        assert_eq!(bits_to_byte(&[true, false]), 2u8);
+        assert_eq!(bits_to_byte(&[true, false, false]), 4u8);
+        assert_eq!(bits_to_byte(&[true, false, false, false]), 8u8);
+        assert_eq!(bits_to_byte(&[true, false, false, true]), 9u8);
+        assert_eq!(bits_to_byte(&[true, false, true, true]), 11u8);
+    }
+
+    #[test]
+    fn test_bits()
+    {
+        assert_eq!(
+            bits(2u8),
+            [false, false, false, false, false, false, true, false]
+        );
+
+        assert_eq!(
+            bits(4u8),
+            [false, false, false, false, false, true, false, false]
+        );
+
+        assert_eq!(
+            bits(0x32u8),
+            [false, false, true, true, false, false, true, false]
+        );
     }
 }
