@@ -56,6 +56,71 @@ impl Register
     }
 }
 
+struct NaturalIndex
+{
+    value: u64,
+    sign: i8,
+    constant: u64,
+    natural: u64,
+    offset: i64,
+}
+
+const SIZE_OF_VOID_PTR: u16 = 8;
+const HEADER_SIZE: usize = 4;
+
+impl NaturalIndex
+{
+
+    fn from_u16(value: u16) -> Self
+    {
+        const ENCODING_SIZE: u16 = 2;
+
+        let bits = bits_u16(value);
+        let sign = if bits[0] { -1i64 } else { 1i64 };
+        let width_base = bits_to_byte_u16(&bits[1 .. 4]);
+        let actual_width = width_base * ENCODING_SIZE;
+        let natural = bits_to_byte_u16(&bits[bits.len() - actual_width as usize ..]);
+        let constant = bits_to_byte_u16(&bits[HEADER_SIZE .. bits.len() - actual_width as usize]);
+        let offset = sign * (constant + natural * SIZE_OF_VOID_PTR) as i64;
+
+        Self
+        {
+            value: value as u64,
+            sign: sign as i8,
+            constant: constant as u64,
+            natural: natural as u64,
+            offset: offset as i64
+        }
+    }
+
+    fn from_u32(value: u32) -> Self
+    {
+        const ENCODING_SIZE: u32 = 2;
+
+        let bits = bits_u32(value);
+        let sign = if bits[0] { -1i64 } else { 1i64 };
+        let width_base = bits_to_byte_u32(&bits[1 .. 4]);
+        let actual_width = width_base * ENCODING_SIZE;
+        let natural = bits_to_byte_u32(&bits[bits.len() - actual_width as usize ..]);
+        let constant = bits_to_byte_u32(&bits[HEADER_SIZE .. bits.len() - actual_width as usize]);
+        let offset = sign * (constant + natural * SIZE_OF_VOID_PTR as u32) as i64;
+
+        Self
+        {
+            value: value as u64,
+            sign: sign as i8,
+            constant: constant as u64,
+            natural: natural as u64,
+            offset: offset as i64
+        }
+    }
+
+    // fn from_u64(value: u64) -> Self
+    // {
+
+    // }
+}
+
 // #[repr(u8)]
 #[derive(Debug)]
 enum OpCode
@@ -151,7 +216,7 @@ impl OpCode
             return None;
         };
 
-        println!("BYTE: {}", byte0);
+        // println!("BYTE: {}", byte0);
 
         // * Using reverse number parsing to make indexing the individual bits
         // * easier since the UEFI spec specifies them in reverse.
@@ -382,20 +447,96 @@ impl OpCode
 //     bits
 // }
 
-// fn bits_to_byte(bits: &[bool]) -> u8
-// {
-//     let mut byte = 0;
 
-//     for (i, bit) in bits.iter().rev().enumerate()
-//     {
-//         if *bit
-//         {
-//             // byte += 2u8.pow((bits.len() - 1 - i) as u32);
-//             byte += 2u8.pow((i) as u32);
-//         }
-//     }
-//     byte
-// }
+fn bits_u8(byte: u8) -> [bool; 8]
+{
+    let mut bits = [false; 8];
+
+    for i in 0 .. 8
+    {
+        if byte & 2u8.pow(i) > 0
+        {
+            bits[(bits.len() - 1) - i as usize] = true;
+        }
+    }
+
+    bits
+}
+
+fn bits_to_byte_u8(bits: &[bool]) -> u8
+{
+    let mut byte = 0;
+
+    for (i, bit) in bits.iter().rev().enumerate()
+    {
+        if *bit
+        {
+            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+            byte += 2u8.pow((i) as u32);
+        }
+    }
+    byte
+}
+
+fn bits_u16(byte: u16) -> [bool; 16]
+{
+    let mut bits = [false; 16];
+
+    for i in 0 .. 16
+    {
+        if byte & 2u16.pow(i) > 0
+        {
+            bits[(bits.len() - 1) - i as usize] = true;
+        }
+    }
+
+    bits
+}
+
+fn bits_to_byte_u16(bits: &[bool]) -> u16
+{
+    let mut byte = 0;
+
+    for (i, bit) in bits.iter().rev().enumerate()
+    {
+        if *bit
+        {
+            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+            byte += 2u16.pow((i) as u32);
+        }
+    }
+    byte
+}
+
+fn bits_u32(byte: u32) -> [bool; 32]
+{
+    let mut bits = [false; 32];
+
+    for i in 0 .. 32
+    {
+        if byte & 2u32.pow(i) > 0
+        {
+            bits[(bits.len() - 1) - i as usize] = true;
+        }
+    }
+
+    bits
+}
+
+fn bits_to_byte_u32(bits: &[bool]) -> u32
+{
+    let mut byte = 0;
+
+    for (i, bit) in bits.iter().rev().enumerate()
+    {
+        if *bit
+        {
+            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+            byte += 2u32.pow((i) as u32);
+        }
+    }
+    byte
+}
 
 /// Returns the bits of a byte in reverse so that indexing works as expected.
 fn bits_rev(byte: u8) -> [bool; 8]
@@ -432,8 +573,10 @@ fn bits_to_byte_rev(bits: &[bool]) -> u8
 /// Reads in an EFI Bytecode file from STDIN and prints the disassembly.
 fn main()
 {
+    let mut show_help = true;
     for bytecode_file in std::env::args().skip(1).take(1)
     {
+        show_help = false;
         println!("{}", bytecode_file);
 
         let mut file = std::fs::File::open(bytecode_file.clone()).expect(
@@ -492,6 +635,13 @@ fn main()
         //     println!("{:?}", byte.unwrap());
         // }
     }
+
+    if show_help
+    {
+        println!(
+            "Spore - Disassembler for UEFI Bytecode\nUsage: spore <FILENAME>"
+        );
+    }
 }
 
 #[cfg(test)]
@@ -502,29 +652,48 @@ mod tests
     #[test]
     fn test_bits_to_byte()
     {
-        assert_eq!(bits_to_byte(&[true, false]), 2u8);
-        assert_eq!(bits_to_byte(&[true, false, false]), 4u8);
-        assert_eq!(bits_to_byte(&[true, false, false, false]), 8u8);
-        assert_eq!(bits_to_byte(&[true, false, false, true]), 9u8);
-        assert_eq!(bits_to_byte(&[true, false, true, true]), 11u8);
+        assert_eq!(bits_to_byte_u8(&[true, false]), 2u8);
+        assert_eq!(bits_to_byte_u8(&[true, false, false]), 4u8);
+        assert_eq!(bits_to_byte_u8(&[true, false, false, false]), 8u8);
+        assert_eq!(bits_to_byte_u8(&[true, false, false, true]), 9u8);
+        assert_eq!(bits_to_byte_u8(&[true, false, true, true]), 11u8);
     }
 
     #[test]
     fn test_bits()
     {
         assert_eq!(
-            bits(2u8),
+            bits_u8(2u8),
             [false, false, false, false, false, false, true, false]
         );
 
         assert_eq!(
-            bits(4u8),
+            bits_u8(4u8),
             [false, false, false, false, false, true, false, false]
         );
 
         assert_eq!(
-            bits(0x32u8),
+            bits_u8(0x32u8),
             [false, false, true, true, false, false, true, false]
         );
+    }
+
+    #[test]
+    fn test_natural_indexing()
+    {
+        let index = NaturalIndex::from_u16(4161);
+        assert_eq!(index.constant, 16u64);
+        assert_eq!(index.natural, 1u64);
+        assert_eq!(index.offset, 24i64);
+
+        let index = NaturalIndex::from_u16(8581);
+        assert_eq!(index.constant, 24u64);
+        assert_eq!(index.natural, 5u64);
+        assert_eq!(index.offset, 64i64);
+
+        let index = NaturalIndex::from_u32(111111);
+        assert_eq!(index.constant, 111111u64);
+        assert_eq!(index.natural, 0u64);
+        assert_eq!(index.offset, 111111i64);
     }
 }
