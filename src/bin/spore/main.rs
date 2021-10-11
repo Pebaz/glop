@@ -70,7 +70,8 @@ const HEADER_SIZE: usize = 4;
 
 impl NaturalIndex
 {
-
+    /// It is critical that the right method be selected per index size.
+    /// Do not use `from_u64()` for a 16 bit value.
     fn from_u16(value: u16) -> Self
     {
         const ENCODING_SIZE: u16 = 2;
@@ -93,6 +94,8 @@ impl NaturalIndex
         }
     }
 
+    /// It is critical that the right method be selected per index size.
+    /// Do not use `from_u64()` for a 16 bit value.
     fn from_u32(value: u32) -> Self
     {
         const ENCODING_SIZE: u32 = 4;
@@ -115,6 +118,8 @@ impl NaturalIndex
         }
     }
 
+    /// It is critical that the right method be selected per index size.
+    /// Do not use `from_u64()` for a 16 bit value.
     fn from_u64(value: u64) -> Self
     {
         const ENCODING_SIZE: u64 = 8;
