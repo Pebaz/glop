@@ -30,7 +30,8 @@ for section in pe.sections:
 		# 	bytes_[bytecode_at:bytecode_at + num_bytecode_bytes]
 		# )
 
+		bits = bytes_[bytecode_at:bytecode_at + num_bytecode_bytes]
+
 		with open('bc.bin', 'wb') as bytecode_file:
-			bytecode_file.write(
-				bytes_[bytecode_at:bytecode_at + num_bytecode_bytes]
-			)
+			bytecode_file.write(bits)
+			break

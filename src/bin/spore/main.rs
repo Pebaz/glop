@@ -139,6 +139,7 @@ impl OpCode
     // fn parse;
     // fn print;
 
+    /// Bytes are read from left to right. Bits are read from right to left.
     fn disassemble<T: Iterator<Item=u8>>(bytes: &mut T) -> Option<()>
     {
         let byte0 = if let Some(byte) = bytes.next()
