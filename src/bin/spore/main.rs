@@ -138,6 +138,21 @@ impl NaturalIndex
     }
 }
 
+impl std::fmt::Display for NaturalIndex
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        write!(
+            f,
+            "({}{}, {}{})",
+            if self.sign < 0 { "-" } else { "+" },
+            self.natural,
+            if self.sign < 0 { "-" } else { "+" },
+            self.constant
+        )
+    }
+}
+
 // #[repr(u8)]
 #[derive(Debug)]
 enum OpCode
@@ -329,7 +344,9 @@ impl OpCode
 
                 if let Some(value) = op2_x16_index_or_immediate
                 {
-                    print!("({})", u16::from_le_bytes(value));
+                    let index = u16::from_le_bytes(value);
+                    let natural_index = NaturalIndex::from_u16(index);
+                    print!("{}", natural_index);
                 }
 
                 println!("");
