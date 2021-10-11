@@ -115,10 +115,27 @@ impl NaturalIndex
         }
     }
 
-    // fn from_u64(value: u64) -> Self
-    // {
+    fn from_u64(value: u64) -> Self
+    {
+        const ENCODING_SIZE: u64 = 2;
 
-    // }
+        let bits = bits_u64(value);
+        let sign = if bits[0] { -1i64 } else { 1i64 };
+        let width_base = bits_to_byte_u64(&bits[1 .. 4]);
+        let actual_width = width_base * ENCODING_SIZE;
+        let natural = bits_to_byte_u64(&bits[bits.len() - actual_width as usize ..]);
+        let constant = bits_to_byte_u64(&bits[HEADER_SIZE .. bits.len() - actual_width as usize]);
+        let offset = sign * (constant + natural * SIZE_OF_VOID_PTR as u64) as i64;
+
+        Self
+        {
+            value: value,
+            sign: sign as i8,
+            constant: constant,
+            natural: natural,
+            offset: offset as i64
+        }
+    }
 }
 
 // #[repr(u8)]
@@ -538,6 +555,36 @@ fn bits_to_byte_u32(bits: &[bool]) -> u32
     byte
 }
 
+fn bits_u64(byte: u64) -> [bool; 64]
+{
+    let mut bits = [false; 64];
+
+    for i in 0 .. 64
+    {
+        if byte & 2u64.pow(i) > 0
+        {
+            bits[(bits.len() - 1) - i as usize] = true;
+        }
+    }
+
+    bits
+}
+
+fn bits_to_byte_u64(bits: &[bool]) -> u64
+{
+    let mut byte = 0;
+
+    for (i, bit) in bits.iter().rev().enumerate()
+    {
+        if *bit
+        {
+            // byte += 2u8.pow((bits.len() - 1 - i) as u64);
+            byte += 2u64.pow((i) as u32);
+        }
+    }
+    byte
+}
+
 /// Returns the bits of a byte in reverse so that indexing works as expected.
 fn bits_rev(byte: u8) -> [bool; 8]
 {
@@ -695,5 +742,10 @@ mod tests
         assert_eq!(index.constant, 111111u64);
         assert_eq!(index.natural, 0u64);
         assert_eq!(index.offset, 111111i64);
+
+        let index = NaturalIndex::from_u64(591751049);
+        assert_eq!(index.constant, 214375u64);
+        assert_eq!(index.natural, 137u64);
+        assert_eq!(index.offset, 215471i64);
     }
 }
