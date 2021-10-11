@@ -95,7 +95,7 @@ impl NaturalIndex
 
     fn from_u32(value: u32) -> Self
     {
-        const ENCODING_SIZE: u32 = 2;
+        const ENCODING_SIZE: u32 = 4;
 
         let bits = bits_u32(value);
         let sign = if bits[0] { -1i64 } else { 1i64 };
@@ -117,7 +117,7 @@ impl NaturalIndex
 
     fn from_u64(value: u64) -> Self
     {
-        const ENCODING_SIZE: u64 = 2;
+        const ENCODING_SIZE: u64 = 8;
 
         let bits = bits_u64(value);
         let sign = if bits[0] { -1i64 } else { 1i64 };
@@ -157,62 +157,62 @@ impl std::fmt::Display for NaturalIndex
 #[derive(Debug)]
 enum OpCode
 {
-    ADD = 0x0C,
-    AND = 0x14,
-    ASHR = 0x19,
-    BREAK = 0x00,
-    CALL = 0x03,
-    CMPeq = 0x05,
-    CMPlte = 0x06,
-    CMPgte = 0x07,
-    CMPulte = 0x08,
-    CMPugte = 0x09,
-    CMPIeq = 0x2D,
-    CMPIlte = 0x2E,
-    CMPIgte = 0x2F,
-    CMPIulte = 0x30,
-    CMPIugte = 0x31,
-    DIV = 0x10,
-    DIVU = 0x11,
-    EXTNDB = 0x1A,
-    EXTNDD = 0x1C,
-    EXTNDW = 0x1B,
-    JMP = 0x01,
-    JMP8 = 0x02,
-    LOADSP = 0x29,
+    // ADD = 0x0C,
+    // AND = 0x14,
+    // ASHR = 0x19,
+    // BREAK = 0x00,
+    // CALL = 0x03,
+    // CMPeq = 0x05,
+    // CMPlte = 0x06,
+    // CMPgte = 0x07,
+    // CMPulte = 0x08,
+    // CMPugte = 0x09,
+    // CMPIeq = 0x2D,
+    // CMPIlte = 0x2E,
+    // CMPIgte = 0x2F,
+    // CMPIulte = 0x30,
+    // CMPIugte = 0x31,
+    // DIV = 0x10,
+    // DIVU = 0x11,
+    // EXTNDB = 0x1A,
+    // EXTNDD = 0x1C,
+    // EXTNDW = 0x1B,
+    // JMP = 0x01,
+    // JMP8 = 0x02,
+    // LOADSP = 0x29,
     MOD = 0x12,
-    MODU = 0x13,
-    MOVbw = 0x1D,
-    MOVww = 0x1E,
-    MOVdw = 0x1F,
-    MOVqw = 0x20,
-    MOVbd = 0x21,
-    MOVwd = 0x22,
-    MOVdd = 0x23,
-    MOVqd = 0x24,
-    MOVqq = 0x28,
-    MOVI = 0x37,
-    MOVIn = 0x38,
+    // MODU = 0x13,
+    // MOVbw = 0x1D,
+    // MOVww = 0x1E,
+    // MOVdw = 0x1F,
+    // MOVqw = 0x20,
+    // MOVbd = 0x21,
+    // MOVwd = 0x22,
+    // MOVdd = 0x23,
+    // MOVqd = 0x24,
+    // MOVqq = 0x28,
+    // MOVI = 0x37,
+    // MOVIn = 0x38,
     MOVnw = 0x32,
-    MOVnd = 0x33,
+    // MOVnd = 0x33,
     MOVREL = 0x39,
-    MOVsnw = 0x25,
+    // MOVsnw = 0x25,
     MOVsnd = 0x26,
-    MUL = 0x0E,
-    MULU = 0x0F,
-    NEG = 0x0B,
-    NOT = 0x0A,
-    OR = 0x15,
-    POP = 0x2C,
-    POPn = 0x36,
-    PUSH = 0x2B,
-    PUSHn = 0x35,
-    RET = 0x04,
-    SHL = 0x17,
-    SHR = 0x18,
-    STORESP = 0x2A,
-    SUB = 0x0D,
-    XOR = 0x16
+    // MUL = 0x0E,
+    // MULU = 0x0F,
+    // NEG = 0x0B,
+    // NOT = 0x0A,
+    // OR = 0x15,
+    // POP = 0x2C,
+    // POPn = 0x36,
+    // PUSH = 0x2B,
+    // PUSHn = 0x35,
+    // RET = 0x04,
+    // SHL = 0x17,
+    // SHR = 0x18,
+    // STORESP = 0x2A,
+    // SUB = 0x0D,
+    // XOR = 0x16
 }
 
 /// Needed since stringifying the OpCode is part of application functionality.
@@ -262,11 +262,6 @@ impl OpCode
 
         match op
         {
-            op if op == OpCode::ADD as u8 =>
-            {
-                println!("ADD");
-            }
-
             op if op == OpCode::MOVnw as u8 =>
             {
                 let operand1_index_present = byte0_bits[7];
@@ -347,6 +342,133 @@ impl OpCode
                     let index = u16::from_le_bytes(value);
                     let natural_index = NaturalIndex::from_u16(index);
                     print!("{}", natural_index);
+                }
+
+                println!("");
+            }
+
+            op if op == OpCode::MOVREL as u8 =>
+            {
+                let size_of_immediate_data = bits_to_byte_rev(
+                    &byte0_bits[6 ..= 7]
+                );
+
+                let byte1 = bytes.next().expect("Unexpected end of bytes");
+                let byte1_bits = bits_rev(byte1);
+                let operand1_index_present = byte1_bits[6];
+                let operand1_is_indirect = byte1_bits[3];
+                println!("BYTES: {:?}", byte1_bits);
+                println!("BYTES: {:?}", &byte1_bits[0 ..= 2]);
+                println!("BYTES: {:?}", bits_to_byte_rev(&byte1_bits[0 ..= 2]));
+                let operand1_value = bits_to_byte_rev(&byte0_bits[0 ..= 2]);
+                println!("BYTES: {:?}", operand1_value);
+
+                return None;
+
+                println!(" op1 val{:?}", operand1_value);
+
+                let op1_x16_index_or_immediate =
+                {
+                    if operand1_index_present
+                    {
+                        let mut value = [0u8; 2];
+
+                        value[0] = bytes.next().unwrap();
+                        value[1] = bytes.next().unwrap();
+
+                        Some(value)
+                    }
+                    else
+                    {
+                        None
+                    }
+                };
+
+                // This is a signed integer of size 16, 32, or 64 bits
+                let immediate_offset =
+                {
+                    // Store enough for 64 bits and then just match on output
+                    let mut value = [0u8; 8];
+
+                    match size_of_immediate_data
+                    {
+                        1 =>
+                        {
+                            value[0] = bytes.next().unwrap();
+                            value[1] = bytes.next().unwrap();
+                        }
+
+                        2 =>
+                        {
+                            value[0] = bytes.next().unwrap();
+                            value[1] = bytes.next().unwrap();
+                            value[2] = bytes.next().unwrap();
+                            value[3] = bytes.next().unwrap();
+                        }
+
+                        3 =>
+                        {
+                            value[0] = bytes.next().unwrap();
+                            value[1] = bytes.next().unwrap();
+                            value[2] = bytes.next().unwrap();
+                            value[3] = bytes.next().unwrap();
+                            value[4] = bytes.next().unwrap();
+                            value[5] = bytes.next().unwrap();
+                        }
+                        _ => unreachable!()
+                    }
+
+                    value
+                };
+
+                println!("-> {:?}", immediate_offset);
+                println!("-> {:?}", i64::from_le_bytes(immediate_offset));
+
+                print!("    {} ", OpCode::MOVREL);
+
+                // Operand 1
+                if operand1_is_indirect
+                {
+                    print!("@");
+                }
+
+                let operand1 = Register::from_u8(operand1_value);
+
+                print!("{}", operand1);
+
+                if let Some(value) = op1_x16_index_or_immediate
+                {
+                    print!("({})", u16::from_le_bytes(value));
+                }
+
+                print!(", ");
+
+                // Operand 2
+                match size_of_immediate_data
+                {
+                    1 =>
+                    {
+                        let mut value = [0u8; 2];
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = immediate_offset[i];
+                        }
+                        print!("{}", i16::from_le_bytes(value));
+                    }
+
+                    2 =>
+                    {
+                        let mut value = [0u8; 4];
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = immediate_offset[i];
+                        }
+                        print!("{}", i32::from_le_bytes(value));
+                    }
+
+                    3 => print!("{}", i64::from_le_bytes(immediate_offset)),
+
+                    _ => unreachable!()
                 }
 
                 println!("");
@@ -717,10 +839,25 @@ mod tests
     fn test_bits_to_byte()
     {
         assert_eq!(bits_to_byte_u8(&[true, false]), 2u8);
+        assert_eq!(bits_to_byte_u8(&[false, true, false]), 2u8);
         assert_eq!(bits_to_byte_u8(&[true, false, false]), 4u8);
         assert_eq!(bits_to_byte_u8(&[true, false, false, false]), 8u8);
         assert_eq!(bits_to_byte_u8(&[true, false, false, true]), 9u8);
         assert_eq!(bits_to_byte_u8(&[true, false, true, true]), 11u8);
+
+        assert_eq!(bits_to_byte_u32(&[true, false]), 2u32);
+        assert_eq!(bits_to_byte_u32(&[false, true, false]), 2u32);
+        assert_eq!(bits_to_byte_u32(&[true, false, false]), 4u32);
+        assert_eq!(bits_to_byte_u32(&[true, false, false, false]), 8u32);
+        assert_eq!(bits_to_byte_u32(&[true, false, false, true]), 9u32);
+        assert_eq!(bits_to_byte_u32(&[true, false, true, true]), 11u32);
+
+        assert_eq!(bits_to_byte_u64(&[true, false]), 2u64);
+        assert_eq!(bits_to_byte_u64(&[false, true, false]), 2u64);
+        assert_eq!(bits_to_byte_u64(&[true, false, false]), 4u64);
+        assert_eq!(bits_to_byte_u64(&[true, false, false, false]), 8u64);
+        assert_eq!(bits_to_byte_u64(&[true, false, false, true]), 9u64);
+        assert_eq!(bits_to_byte_u64(&[true, false, true, true]), 11u64);
     }
 
     #[test]
@@ -750,19 +887,40 @@ mod tests
         assert_eq!(index.natural, 1u64);
         assert_eq!(index.offset, 24i64);
 
+        let index = NaturalIndex::from_u16(4114);
+        assert_eq!(index.constant, 4u64);
+        assert_eq!(index.natural, 2u64);
+        assert_eq!(index.offset, 20i64);
+
         let index = NaturalIndex::from_u16(8581);
         assert_eq!(index.constant, 24u64);
         assert_eq!(index.natural, 5u64);
         assert_eq!(index.offset, 64i64);
+
+        let index = NaturalIndex::from_u32(805324752);
+        assert_eq!(index.constant, 4u64);
+        assert_eq!(index.natural, 2000u64);
+        assert_eq!(index.offset, 16004i64);
 
         let index = NaturalIndex::from_u32(111111);
         assert_eq!(index.constant, 111111u64);
         assert_eq!(index.natural, 0u64);
         assert_eq!(index.offset, 111111i64);
 
-        let index = NaturalIndex::from_u64(591751049);
+        let index = NaturalIndex::from_u64(2305843035428095952);
+        assert_eq!(index.constant, 400000u64);
+        assert_eq!(index.natural, 2000u64);
+        assert_eq!(index.offset, 416000i64);
+
+        let index = NaturalIndex::from_u32(591751049);
         assert_eq!(index.constant, 214375u64);
         assert_eq!(index.natural, 137u64);
         assert_eq!(index.offset, 215471i64);
+
+        let index = NaturalIndex::from_u64(11529215072282871760);
+        assert_eq!(index.sign, -1i8);
+        assert_eq!(index.constant, 400000u64);
+        assert_eq!(index.natural, 2000u64);
+        assert_eq!(index.offset, -416000i64);
     }
 }
