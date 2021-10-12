@@ -386,7 +386,7 @@ impl OpCode
                     }
                 };
 
-                print!("    {} ", OpCode::MOVnw);
+                print!("    {} ", op);
 
                 // Operand 1
                 if operand1_is_indirect
@@ -491,7 +491,7 @@ impl OpCode
                     value
                 };
 
-                print!("    {} ", OpCode::MOVREL);
+                print!("    {} ", op);
 
                 // Operand 1
                 if operand1_is_indirect
@@ -576,7 +576,7 @@ impl OpCode
                     }
                 };
 
-                print!("    {} ", OpCode::PUSHn);
+                print!("    {} ", op);
 
                 // Operand 1
                 if operand1_is_indirect
@@ -607,9 +607,95 @@ impl OpCode
                 println!("");
             }
 
-            OpCode::BREAK => return None,
+            OpCode::CALL =>
+            {
+                let operand1_index_present = byte0_bits[7];
+                let operand1_index_is_x64 = byte0_bits[6];
 
-            _ =>
+                let byte1 = bytes.next().expect("Unexpected end of bytes");
+                let byte1_bits = bits_rev(byte1);
+                let is_native_call = byte1_bits[5];
+                let is_relative_address = byte1_bits[4];
+                let operand1_is_indirect = byte1_bits[3];
+                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+
+                let op1_index_or_immediate =
+                {
+                    if operand1_index_present
+                    {
+                        let mut value = [0u8; 8];
+
+                        if operand1_index_is_x64
+                        {
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+                        }
+                        else
+                        {
+                            value[0] = bytes.next().unwrap();
+                            value[1] = bytes.next().unwrap();
+                        }
+
+                        Some(value)
+                    }
+                    else
+                    {
+                        None
+                    }
+                };
+
+                print!("    CALL");
+                print!("{}", if operand1_index_is_x64 { "64" } else { "32" });
+
+                if is_native_call
+                {
+                    print!("EX");
+                }
+
+                // // Operand 1
+                // if operand1_is_indirect
+                // {
+                //     print!("@");
+                // }
+
+                // let operand1 = Register::from_u8(operand1_value);
+
+                // print!("{}", operand1);
+
+                // if let Some(value) = op1_index_or_immediate
+                // {
+                //     if operand1_index_is_x64
+                //     {
+                //         let offset = i64::from_le_bytes(value);
+                //         print!("{}", if offset < 0 { '-' } else { '+' });
+                //         print!("({})", offset);
+                //     }
+
+                //     if operand1_is_indirect
+                //     {
+                //         let offset = i16::from_le_bytes(value);
+                //         print!("{}", if offset < 0 { '-' } else { '+' });
+                //         print!("({})", offset);
+                //     }
+                //     else
+                //     {
+                //         let index = u16::from_le_bytes(value);
+                //         let natural_index = NaturalIndex::from_u16(index);
+                //         print!("{}", natural_index);
+                //     }
+                // }
+
+                println!("");
+            }
+
+            OpCode::BREAK =>
+            {
+                return None;  // TODO(pbz): This is just temporary
+            }
+
+            _ =>  // TODO(pbz): Remove this once all instructions are covered
             {
                 println!("OpCode: {}", op);
             }
