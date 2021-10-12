@@ -362,15 +362,7 @@ impl OpCode
                 let byte1_bits = bits_rev(byte1);
                 let operand1_index_present = byte1_bits[6];
                 let operand1_is_indirect = byte1_bits[3];
-                println!("BYTES: {:?}", byte1_bits);
-                println!("BYTES: {:?}", &byte1_bits[0 ..= 2]);
-                println!("BYTES: {:?}", bits_to_byte_rev(&byte1_bits[0 ..= 2]));
-                let operand1_value = bits_to_byte_rev(&byte0_bits[0 ..= 2]);
-                println!("BYTES: {:?}", operand1_value);
-
-                return None;
-
-                println!(" op1 val{:?}", operand1_value);
+                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
 
                 let op1_x16_index_or_immediate =
                 {
@@ -426,9 +418,6 @@ impl OpCode
                     value
                 };
 
-                println!("-> {:?}", immediate_offset);
-                println!("-> {:?}", i64::from_le_bytes(immediate_offset));
-
                 print!("    {} ", OpCode::MOVREL);
 
                 // Operand 1
@@ -458,7 +447,9 @@ impl OpCode
                         {
                             value[i] = immediate_offset[i];
                         }
-                        print!("{}", i16::from_le_bytes(value));
+                        let offset = i16::from_le_bytes(value);
+                        print!("{}", if offset < 0 { "-" } else { "+" });
+                        print!("{}", offset);
                     }
 
                     2 =>
@@ -468,10 +459,17 @@ impl OpCode
                         {
                             value[i] = immediate_offset[i];
                         }
-                        print!("{}", i32::from_le_bytes(value));
+                        let offset = i32::from_le_bytes(value);
+                        print!("{}", if offset < 0 { "-" } else { "+" });
+                        print!("{}", offset);
                     }
 
-                    3 => print!("{}", i64::from_le_bytes(immediate_offset)),
+                    3 =>
+                    {
+                        let offset = i64::from_le_bytes(immediate_offset);
+                        print!("{}", if offset < 0 { "-" } else { "+" });
+                        print!("{}", offset);
+                    }
 
                     _ => unreachable!()
                 }
