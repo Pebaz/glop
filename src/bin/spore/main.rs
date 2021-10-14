@@ -654,15 +654,28 @@ impl OpCode
                     print!("EX");
                 }
 
-                // // Operand 1
-                // if operand1_is_indirect
-                // {
-                //     print!("@");
-                // }
+                if !is_relative_address
+                {
+                    print!("a");
+                }
 
-                // let operand1 = Register::from_u8(operand1_value);
+                print!(" ");
 
-                // print!("{}", operand1);
+                // !!!!!!!!!!!!!!!!!!! There are only a finite number of ways to print out instructions
+                // !!!!!!!!!!!!!!!!!!! Perhaps there are only a finite number of ways to parse them also?
+                // See section 22.7 because it shows you the variants!
+
+
+                // Operand 1
+                if operand1_is_indirect
+                {
+                    print!("@");
+                }
+
+                let operand1 = Register::from_u8(operand1_value);
+
+                print!("{}", operand1);
+
 
                 // if let Some(value) = op1_index_or_immediate
                 // {
