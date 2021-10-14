@@ -619,7 +619,7 @@ impl OpCode
                 let operand1_is_indirect = byte1_bits[3];
                 let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
 
-                let op1_index_or_immediate =
+                let op1_x32_index_or_immediate =
                 {
                     if operand1_index_present
                     {
@@ -664,6 +664,17 @@ impl OpCode
                 // !!!!!!!!!!!!!!!!!!! There are only a finite number of ways to print out instructions
                 // !!!!!!!!!!!!!!!!!!! Perhaps there are only a finite number of ways to parse them also?
                 // See section 22.7 because it shows you the variants!
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!! Please take the time to hand-translate
+                // !!!!!!!!!!!!!!!!!!! the bytecode into assembly
+                // !!!!!!!!!!!!!!!!!!! It will be worth it
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!!
+                // !!!!!!!!!!!!!!!!!!!
 
 
                 // Operand 1
@@ -675,6 +686,42 @@ impl OpCode
                 let operand1 = Register::from_u8(operand1_value);
 
                 print!("{}", operand1);
+
+                // TODO(pbz): This is the easy one. Always treat it as immed
+                if operand1_index_is_x64
+                {
+                    let value = op1_x32_index_or_immediate.expect(
+                        "Expected 64-bit immediate data"
+                    );
+
+                    let offset = i64::from_le_bytes(value);
+                    print!("{}", if offset < 0 { '-' } else { '+' });
+                    print!("offset");
+                }
+                else
+                {
+                    if let Some(immediate_offset) = op1_x32_index_or_immediate
+                    {
+                        let mut value = [0u8; 4];
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = immediate_offset[i];
+                        }
+
+                        if operand1_is_indirect
+                        {
+                            let index = u32::from_le_bytes(value);
+                            let natural_index = NaturalIndex::from_u32(index);
+                            print!("{}", natural_index);
+                        }
+                        else
+                        {
+                            let offset = i32::from_le_bytes(value);
+                            print!("{}", if offset < 0 { '-' } else { '+' });
+                            print!("({})", offset);
+                        }
+                    }
+                }
 
 
                 // if let Some(value) = op1_index_or_immediate
