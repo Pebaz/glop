@@ -320,6 +320,50 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
     Some(())
 }
 
+fn parse_instruction7<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    let mut name = format!("{}", op);
+
+    name += if byte0_bits[6]
+    {
+        "64"
+    }
+    else
+    {
+        "32"
+    };
+
+    disassemble_instruction(name, None, None, None, None);
+
+    Some(())
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 fn disassemble_instruction(
     instruction: String,  // Must concatenate postfixes manually
@@ -705,6 +749,39 @@ impl OpCode
 
         match op
         {
+            OpCode::ADD
+            | OpCode::AND
+            | OpCode::ASHR
+            | OpCode::CMPeq
+            | OpCode::CMPlte
+            | OpCode::CMPgte
+            | OpCode::CMPulte
+            | OpCode::CMPugte
+            | OpCode::CMPIeq
+            | OpCode::CMPIlte
+            | OpCode::CMPIgte
+            | OpCode::CMPIulte
+            | OpCode::CMPIugte
+            | OpCode::DIV
+            | OpCode::DIVU
+            | OpCode::EXTNDB
+            | OpCode::EXTNDD
+            | OpCode::EXTNDW
+            | OpCode::MOD
+            | OpCode::MODU
+            | OpCode::MUL
+            | OpCode::MULU
+            | OpCode::NEG
+            | OpCode::NOT
+            | OpCode::OR
+            | OpCode::SHL
+            | OpCode::SHR
+            | OpCode::SUB
+            | OpCode::XOR =>
+            {
+                parse_instruction7(bytes, byte0_bits, op_value, op)
+            }
+
             OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
 
             OpCode::BREAK => None,  // TODO(pbz): This is just temporary
