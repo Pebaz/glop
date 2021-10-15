@@ -13,8 +13,9 @@ Bash. What if polyglot programs exposed same interface?
 
 use std::io::prelude::*;
 use std::convert::TryInto;
+use colored::*;
 
-
+const BLUE: (u8, u8, u8) = (98, 168, 209);
 
 
 
@@ -234,17 +235,36 @@ impl std::fmt::Display for Argument
 
 
 /*
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
-INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
-INSTRUCTION [INDIRECT]OP1 ARGUMENT
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-INSTRUCTION ARGUMENT
-INSTRUCTION
+8. INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
+7. INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
+6. INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+5. INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
+4. INSTRUCTION [INDIRECT]OP1 ARGUMENT
+3. INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+2. INSTRUCTION ARGUMENT
+1. INSTRUCTION
 */
 
-fn instruction1(
+fn parse_instruction1<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    disassemble_instruction(
+        "RET".truecolor(98, 168, 209).to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    Some(())
+}
+
+
+fn disassemble_instruction(
     instruction: String,  // Must concatenate postfixes manually
     operand1: Option<Operand>,
     argument1: Option<Argument>,
@@ -626,10 +646,25 @@ impl OpCode
             format!("Invalid OpCode: {}", op_value).as_str()
         );
 
+        match op
+        {
+            OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
+
+            OpCode::BREAK => None,  // TODO(pbz): This is just temporary
+
+            _ =>  // TODO(pbz): Remove this once all instructions are covered
+            {
+                println!("OpCode: {}", op);
+
+                Some(())
+            }
+        }
+
         // println!("{:?} bytes", &byte0_bits[0 ..= 5]);
         // println!("OpCode: {}", op);
         // return None;
 
+        /*
         match op
         {
             OpCode::MOVnw =>
@@ -1052,8 +1087,9 @@ impl OpCode
                 println!("OpCode: {}", op);
             }
         }
+        */
 
-        Some(())
+        // Some(())
     }
 }
 
@@ -1228,82 +1264,78 @@ fn bits_to_byte_rev(bits: &[bool]) -> u8
 /// Reads in an EFI Bytecode file from STDIN and prints the disassembly.
 fn main()
 {
-    use colored::*;
+    // disassemble_instruction(
+    //     "BREAK".yellow().to_string(),
+    //     None,
+    //     Some(Argument::ImmediateU64(1)),
+    //     None,
+    //     None
+    // );
 
-    instruction1(
-        "BREAK".yellow().to_string(),
-        None,
-        Some(Argument::ImmediateU64(1)),
-        None,
-        None
-    );
+    // disassemble_instruction(
+    //     "CMP32eq".on_blue().italic().to_string(),
+    //     Some(Operand::new_general_purpose(1, false)),
+    //     Some(Argument::ImmediateU64(1)),
+    //     Some(Operand::new_general_purpose(2, true)),
+    //     Some(Argument::ImmediateU16(2)),
+    // );
 
-    instruction1(
-        "CMP32eq".on_blue().italic().to_string(),
-        Some(Operand::new_general_purpose(1, false)),
-        Some(Argument::ImmediateU64(1)),
-        Some(Operand::new_general_purpose(2, true)),
-        Some(Argument::ImmediateU16(2)),
-    );
+    // disassemble_instruction(
+    //     "CMP32eq".blue().italic().to_string(),
+    //     Some(Operand::new_general_purpose(1, false)),
+    //     Some(Argument::ImmediateU64(1)),
+    //     Some(Operand::new_general_purpose(2, true)),
+    //     Some(Argument::ImmediateU16(2)),
+    // );
 
-    instruction1(
-        "CMP32eq".blue().italic().to_string(),
-        Some(Operand::new_general_purpose(1, false)),
-        Some(Argument::ImmediateU64(1)),
-        Some(Operand::new_general_purpose(2, true)),
-        Some(Argument::ImmediateU16(2)),
-    );
+    // disassemble_instruction(
+    //     "ADD32".purple().to_string(),
+    //     Some(Operand::new_general_purpose(1, false)),
+    //     None,
+    //     Some(Operand::new_general_purpose(2, true)),
+    //     None,
+    // );
 
-    instruction1(
-        "ADD32".purple().to_string(),
-        Some(Operand::new_general_purpose(1, false)),
-        None,
-        Some(Operand::new_general_purpose(2, true)),
-        None,
-    );
+    // disassemble_instruction(
+    //     "STORESP".red().to_string(),
+    //     Some(Operand::new_general_purpose(1, false)),
+    //     None,
+    //     Some(Operand::new_dedicated(0, false)),
+    //     None,
+    // );
 
-    instruction1(
-        "STORESP".red().to_string(),
-        Some(Operand::new_general_purpose(1, false)),
-        None,
-        Some(Operand::new_dedicated(0, false)),
-        None,
-    );
+    // disassemble_instruction(
+    //     "ADD64".purple().bold().to_string(),
+    //     Some(Operand::new_general_purpose(1, false)),
+    //     Some(Argument::Index16(0x1234)),
+    //     None,
+    //     None,
+    // );
 
-    instruction1(
-        "ADD64".purple().bold().to_string(),
-        Some(Operand::new_general_purpose(1, false)),
-        Some(Argument::Index16(0x1234)),
-        None,
-        None,
-    );
+    // disassemble_instruction(
+    //     "RET".red().bold().to_string(),
+    //     None,
+    //     None,
+    //     None,
+    //     None,
+    // );
 
-    instruction1(
-        "RET".red().bold().to_string(),
-        None,
-        None,
-        None,
-        None,
-    );
-
-    instruction1(
-        "SUPER LONG INSTRUCTION".truecolor(255, 200, 0).to_string(),
-        None,
-        Some(Argument::Index16(8564)),
-        None,
-        None,
-    );
+    // disassemble_instruction(
+    //     "SUPER LONG INSTRUCTION".truecolor(255, 200, 0).to_string(),
+    //     None,
+    //     Some(Argument::Index16(8564)),
+    //     None,
+    //     None,
+    // );
 
 
-    instruction1(
-        "SUPER LONG INSTRUCTION".truecolor(98, 209, 111).to_string(),
-        None,
-        Some(Argument::Index32(3352307477)),
-        Some(Operand::new_general_purpose(1, false)),
-        Some(Argument::Index64(3458764547375975133)),
-    );
-
-    return;
+    // disassemble_instruction(
+    //     "SUPER LONG INSTRUCTION".truecolor(98, 209, 111).to_string(),
+    //     None,
+    //     Some(Argument::Index32(3352307477)),
+    //     Some(Operand::new_general_purpose(1, false)),
+    //     Some(Argument::Index64(3458764547375975133)),
+    // );
 
     let mut show_help = true;
     for bytecode_file in std::env::args().skip(1).take(1)
