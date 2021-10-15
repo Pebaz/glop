@@ -130,6 +130,7 @@ impl std::fmt::Display for Operand
     }
 }
 
+// ? Should this be genric over T for i32/u32 etc.
 enum Argument
 {
     Index16,
@@ -140,18 +141,55 @@ enum Argument
     Immediate64,
 }
 
-fn instruction(
+/*
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
+INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
+INSTRUCTION [INDIRECT]OP1 ARGUMENT
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+INSTRUCTION ARGUMENT
+*/
+
+fn instruction1(
     instruction: String,  // Must concatenate postfixes manually
     operand1: Option<Operand>,
-    operand2: Option<Operand>,
     argument1: Option<Argument>,
+    operand2: Option<Operand>,
     argument2: Option<Argument>,
 )
 {
+    print!("{}", instruction);
 
+    if let Some(op1) = operand1
+    {
+        print!(" {}", op1);
+    }
+
+    if let Some(arg1) = argument1
+    {
+        // TODO(pbz): print!(" {}", arg1);
+        print!(" ARG1");
+    }
+
+    if operand2.is_some() || argument2.is_some()
+    {
+        print!(",");
+    }
+
+    if let Some(op2) = operand2
+    {
+        print!(" {}", op2);
+    }
+
+    if let Some(arg2) = argument2
+    {
+        // TODO(pbz): print!(" {}", arg2);
+        print!(" ARG2");
+    }
+
+    println!("");
 }
-
-
 
 
 
