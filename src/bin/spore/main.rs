@@ -28,21 +28,7 @@ const BLUE: (u8, u8, u8) = (98, 168, 209);
 
 
 /*
-INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
-    SHR
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
-    MOV
-INSTRUCTION [INDIRECT]OP1 ARGUMENT
-    CALL32
 INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-    MOVI
-INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
-    STORESP
-    LOADSP
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-INSTRUCTION ARGUMENT
-    BREAK
-    CALL64
 */
 
 
@@ -235,14 +221,66 @@ impl std::fmt::Display for Argument
 
 
 /*
-8. INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
-7. INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
-6. INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-5. INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
-4. INSTRUCTION [INDIRECT]OP1 ARGUMENT
-3. INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+8. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT
+    * GOTTA MATCH ON
+        MOV? (such as MOVqq. Technically they are all the same instruction)
+        MOV?, MOVn, MOVsn (these have overlap with MOV, but MOVqq is tricky)
+
+7. INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
+    ADD
+    AND
+    ASHR
+    CMP
+    DIV
+    DIVU
+    EXTENDB
+    EXTENDD
+    EXTENDW
+    MOD
+    MODU
+    MUL
+    MULU
+    NEG
+    NOT
+    OR
+    SHL
+    SHR
+    SUB
+    XOR
+
+6. INSTRUCTION OP1 ARGUMENT, ARGUMENT
+    * GOTTA MATCH ON
+        CMPI
+        MOVI
+        MOVIn
+        MOVREL <- Check these to make sure parsing is the same
+
+5. INSTRUCTION OP1, OP2
+    STORESP
+    LOADSP
+
+4. INSTRUCTION OP1 ARGUMENT
+    * GOTTA MATCH ON
+        CALL32
+        JMP32
+        PUSH
+        PUSHn
+        POP
+        POPn
+
+
+3. INSTRUCTION OP1 ARGUMENT, ARGUMENT
+    CMPI
+
 2. INSTRUCTION ARGUMENT
+    * GOTTA MATCH ON
+        JMP64
+        JMP8
+        BREAK
+        CALL64
+
 1. INSTRUCTION
+    RET
 */
 
 fn parse_instruction1<T: Iterator<Item=u8>>(
@@ -253,7 +291,26 @@ fn parse_instruction1<T: Iterator<Item=u8>>(
 ) -> Option<()>
 {
     disassemble_instruction(
-        "RET".truecolor(98, 168, 209).to_string(),
+        format!("{}", op).truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    Some(())
+}
+
+
+fn parse_instruction2<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    disassemble_instruction(
+        "RET".truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
         None,
         None,
         None,
