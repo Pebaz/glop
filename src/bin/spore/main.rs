@@ -328,7 +328,9 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
 ) -> Option<()>
 {
     let mut name = format!("{}", op);
+    let immediate_data_present = byte0_bits[7];
 
+    // TODO(pbz): Have postfixes colored differently? =)
     name += if byte0_bits[6]
     {
         "64"
@@ -338,7 +340,50 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
         "32"
     };
 
-    disassemble_instruction(name, None, None, None, None);
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+    let operand1_is_indirect = byte1_bits[3];
+    let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+    let operand2_is_indirect = byte1_bits[7];
+    let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+
+    let op1_x16_index_or_immediate =
+    {
+        if immediate_data_present
+        {
+            let mut value = [0u8; 2];
+
+            value[0] = bytes.next().unwrap();
+            value[1] = bytes.next().unwrap();
+
+            let arg = if operand2_is_indirect
+            {
+                Argument::Index16(u16::from_le_bytes(value))
+            }
+            else
+            {
+                Argument::ImmediateI16(i16::from_le_bytes(value))
+            };
+
+            Some(arg)
+        }
+        else
+        {
+            None
+        }
+    };
+
+    disassemble_instruction(
+        name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        Some(
+            Operand::new_general_purpose(operand1_value, operand1_is_indirect)
+        ),
+        None,
+        Some(
+            Operand::new_general_purpose(operand2_value, operand2_is_indirect)
+        ),
+        op1_x16_index_or_immediate
+    );
 
     Some(())
 }
