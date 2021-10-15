@@ -153,65 +153,17 @@ impl std::fmt::Display for Argument
                 write!(f, "{}", natural_index)
             }
 
-            Self::ImmediateU16(immediate) =>
-            {
-                write!(
-                    f,
-                    "{}{}",
-                    if *immediate >= 0 { "+" } else { "-" },
-                    immediate
-                )
-            }
+            Self::ImmediateU16(immediate) => write!(f, "{}", immediate),
 
-            Self::ImmediateU32(immediate) =>
-            {
-                write!(
-                    f,
-                    "{}{}",
-                    if *immediate >= 0 { "+" } else { "-" },
-                    immediate
-                )
-            }
+            Self::ImmediateU32(immediate) => write!(f, "{}", immediate),
 
-            Self::ImmediateU64(immediate) =>
-            {
-                write!(
-                    f,
-                    "{}{}",
-                    if *immediate >= 0 { "+" } else { "-" },
-                    immediate
-                )
-            }
+            Self::ImmediateU64(immediate) => write!(f, "{}", immediate),
 
-            Self::ImmediateI16(immediate) =>
-            {
-                write!(
-                    f,
-                    "{}{}",
-                    if *immediate >= 0 { "+" } else { "-" },
-                    immediate
-                )
-            }
+            Self::ImmediateI16(immediate) => write!(f, "{}", immediate),
 
-            Self::ImmediateI32(immediate) =>
-            {
-                write!(
-                    f,
-                    "{}{}",
-                    if *immediate >= 0 { "+" } else { "-" },
-                    immediate
-                )
-            }
+            Self::ImmediateI32(immediate) => write!(f, "{}", immediate),
 
-            Self::ImmediateI64(immediate) =>
-            {
-                write!(
-                    f,
-                    "{}{}",
-                    if *immediate >= 0 { "+" } else { "-" },
-                    immediate
-                )
-            }
+            Self::ImmediateI64(immediate) => write!(f, "{}", immediate),
 
 
             _ => write!(f, "{}", "*"),
