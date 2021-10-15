@@ -361,7 +361,7 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
 
 
 
-
+// TODO(pbz): Invest in some left/right justification
 fn disassemble_instruction(
     instruction: String,  // Must concatenate postfixes manually
     operand1: Option<Operand>,
