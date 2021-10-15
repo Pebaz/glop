@@ -1128,8 +1128,10 @@ fn bits_to_byte_rev(bits: &[bool]) -> u8
 /// Reads in an EFI Bytecode file from STDIN and prints the disassembly.
 fn main()
 {
+    use colored::*;
+
     instruction1(
-        "BREAK".to_string(),
+        "BREAK".purple().to_string(),
         None,
         Some(Argument::ImmediateU64),
         None,
@@ -1138,7 +1140,7 @@ fn main()
 
 
     instruction1(
-        "CMP32eq".to_string(),
+        "CMP32eq".purple().to_string(),
         Some(Operand::new_general_purpose(1, false)),
         Some(Argument::ImmediateU64),
         Some(Operand::new_general_purpose(2, true)),
@@ -1146,10 +1148,26 @@ fn main()
     );
 
     instruction1(
-        "ADD32".to_string(),
+        "ADD32".purple().to_string(),
         Some(Operand::new_general_purpose(1, false)),
         None,
         Some(Operand::new_general_purpose(2, true)),
+        None,
+    );
+
+    instruction1(
+        "STORESP".purple().to_string(),
+        Some(Operand::new_general_purpose(1, false)),
+        None,
+        Some(Operand::new_dedicated(0, false)),
+        None,
+    );
+
+    instruction1(
+        "RET".purple().to_string(),
+        None,
+        None,
+        None,
         None,
     );
 
