@@ -6,11 +6,162 @@ Bash. What if polyglot programs exposed same interface?
 4. Do it right the first time. Don't forget to document each program.
 */
 
+// TODO(pbz): Remove these in the future
+#![allow(unused_variables)]
+#![allow(dead_code)]
+
 use std::io::prelude::*;
 use std::convert::TryInto;
 
-// Make Instruction trait
-// Make structs for each instruction that can parse themselves
+
+
+
+
+
+
+
+
+
+
+
+/*
+INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
+    SHR
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
+    MOV
+INSTRUCTION [INDIRECT]OP1 ARGUMENT
+    CALL32
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+    MOVI
+INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
+    STORESP
+    LOADSP
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+INSTRUCTION ARGUMENT
+    BREAK
+    CALL64
+
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
+INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
+INSTRUCTION [INDIRECT]OP1 ARGUMENT
+INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
+INSTRUCTION ARGUMENT
+*/
+
+
+
+
+enum Operand
+{
+    GeneralPurpose
+    {
+        register_index: u8,
+        indirect: bool,
+    },
+
+    Dedicated
+    {
+        register_index: u8,
+        indirect: bool,
+    },
+}
+
+impl Operand
+{
+    pub fn new_general_purpose(register_index: u8, indirect: bool) -> Self
+    {
+        assert!((0u8 ..= 7u8).contains(&register_index));
+
+        Self::GeneralPurpose
+        {
+            register_index,
+            indirect
+        }
+    }
+
+    pub fn new_dedicated(register_index: u8, indirect: bool) -> Self
+    {
+        assert!((0u8 ..= 1u8).contains(&register_index));
+
+        Self::Dedicated
+        {
+            register_index,
+            indirect
+        }
+    }
+}
+
+/// Needed since stringifying the OpCode is part of application functionality.
+impl std::fmt::Display for Operand
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        match self
+        {
+            Self::GeneralPurpose { register_index: index, indirect: at } =>
+            {
+                assert!((0u8 ..= 7u8).contains(&index));
+
+                write!(
+                    f,
+                    "{}R{}",
+                    if *at { "@" } else { "" },
+                    index
+                )
+            }
+
+            Self::Dedicated { register_index: index, indirect: at } =>
+            {
+                assert!((0u8 ..= 1u8).contains(&index));
+
+                if *index == 0
+                {
+                    write!(f, "{}FLAGS", if *at { "@" } else { "" })
+                }
+
+                else
+                {
+                    write!(f, "{}IP", if *at { "@" } else { "" })
+                }
+            }
+        }
+    }
+}
+
+enum Argument
+{
+    Index16,
+    Index32,
+    Index64,
+    Immediate16,
+    Immediate32,
+    Immediate64,
+}
+
+fn instruction(
+    instruction: String,  // Must concatenate postfixes manually
+    operand1: Option<Operand>,
+    operand2: Option<Operand>,
+    argument1: Option<Argument>,
+    argument2: Option<Argument>,
+)
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /// As noted in UEFI.22.3, these registers are only to be interpreted as
 /// "general purpose" when using normal instructions. Specialized instructions
@@ -21,7 +172,7 @@ enum Register
 {
     R0 = 0,
     R1 = 1,
-    R2 = 2,
+    R2 = 2,  // * Not valid from here down for Dedicated VM Register Indices
     R3 = 3,
     R4 = 4,
     R5 = 5,
@@ -942,7 +1093,7 @@ fn main()
         show_help = false;
         println!("{}", bytecode_file);
 
-        let mut file = std::fs::File::open(bytecode_file.clone()).expect(
+        let file = std::fs::File::open(bytecode_file.clone()).expect(
             format!("File {} does not exist", bytecode_file).as_str()
         );
         let mut bytes = file.bytes().map(|b| b.unwrap());
