@@ -1289,22 +1289,21 @@ fn main()
     instruction1(
         "SUPER LONG INSTRUCTION".truecolor(255, 200, 0).to_string(),
         None,
-        None,
+        Some(Argument::Index16(8564)),
         None,
         None,
     );
+
 
     instruction1(
         "SUPER LONG INSTRUCTION".truecolor(98, 209, 111).to_string(),
         None,
-        None,
-        None,
-        None,
+        Some(Argument::Index32(3352307477)),
+        Some(Operand::new_general_purpose(1, false)),
+        Some(Argument::Index64(3458764547375975133)),
     );
 
     return;
-
-
 
     let mut show_help = true;
     for bytecode_file in std::env::args().skip(1).take(1)
