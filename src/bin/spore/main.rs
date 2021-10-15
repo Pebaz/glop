@@ -6,12 +6,14 @@ Bash. What if polyglot programs exposed same interface?
 4. Do it right the first time. Don't forget to document each program.
 */
 
+
 // TODO(pbz): Remove these in the future
 #![allow(unused_variables)]
 #![allow(dead_code)]
 
 use std::io::prelude::*;
 use std::convert::TryInto;
+
 
 
 
@@ -40,14 +42,6 @@ INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
 INSTRUCTION ARGUMENT
     BREAK
     CALL64
-
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
-INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2 ARGUMENT
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
-INSTRUCTION [INDIRECT]OP1 ARGUMENT
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-INSTRUCTION ARGUMENT
 */
 
 
@@ -93,7 +87,6 @@ impl Operand
     }
 }
 
-/// Needed since stringifying the OpCode is part of application functionality.
 impl std::fmt::Display for Operand
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
@@ -133,16 +126,112 @@ impl std::fmt::Display for Operand
 // ? Should this be genric over T for i32/u32 etc.
 enum Argument
 {
-    Index16,
-    Index32,
-    Index64,
-    ImmediateU16,
-    ImmediateU32,
-    ImmediateU64,
-    ImmediateI16,
-    ImmediateI32,
-    ImmediateI64,
+    Index16(u16),
+    Index32(u32),
+    Index64(u64),
+    ImmediateU16(u16),
+    ImmediateU32(u32),
+    ImmediateU64(u64),
+    ImmediateI16(i16),
+    ImmediateI32(i32),
+    ImmediateI64(i64),
 }
+
+impl std::fmt::Display for Argument
+{
+    // TODO(pbz): May want to remove + from here and only use - because it
+    // TODO(pbz): doesn't make sense for BREAK CODE
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
+    {
+        match self
+        {
+            Self::Index16(index) =>
+            {
+                let natural_index = NaturalIndex::from_u16(*index);
+
+                write!(f, "{}", natural_index)
+            }
+
+            Self::Index32(index) =>
+            {
+                let natural_index = NaturalIndex::from_u32(*index);
+
+                write!(f, "{}", natural_index)
+            }
+
+            Self::Index64(index) =>
+            {
+                let natural_index = NaturalIndex::from_u64(*index);
+
+                write!(f, "{}", natural_index)
+            }
+
+            Self::ImmediateU16(immediate) =>
+            {
+                write!(
+                    f,
+                    "{}{}",
+                    if *immediate >= 0 { "+" } else { "-" },
+                    immediate
+                )
+            }
+
+            Self::ImmediateU32(immediate) =>
+            {
+                write!(
+                    f,
+                    "{}{}",
+                    if *immediate >= 0 { "+" } else { "-" },
+                    immediate
+                )
+            }
+
+            Self::ImmediateU64(immediate) =>
+            {
+                write!(
+                    f,
+                    "{}{}",
+                    if *immediate >= 0 { "+" } else { "-" },
+                    immediate
+                )
+            }
+
+            Self::ImmediateI16(immediate) =>
+            {
+                write!(
+                    f,
+                    "{}{}",
+                    if *immediate >= 0 { "+" } else { "-" },
+                    immediate
+                )
+            }
+
+            Self::ImmediateI32(immediate) =>
+            {
+                write!(
+                    f,
+                    "{}{}",
+                    if *immediate >= 0 { "+" } else { "-" },
+                    immediate
+                )
+            }
+
+            Self::ImmediateI64(immediate) =>
+            {
+                write!(
+                    f,
+                    "{}{}",
+                    if *immediate >= 0 { "+" } else { "-" },
+                    immediate
+                )
+            }
+
+
+            _ => write!(f, "{}", "*"),
+        }
+    }
+}
+
 
 /*
 INSTRUCTION [INDIRECT]OP1 ARGUMENT, [INDIRECT]OP2 ARGUMENT
@@ -152,6 +241,7 @@ INSTRUCTION [INDIRECT]OP1, [INDIRECT]OP2
 INSTRUCTION [INDIRECT]OP1 ARGUMENT
 INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
 INSTRUCTION ARGUMENT
+INSTRUCTION
 */
 
 fn instruction1(
@@ -171,8 +261,13 @@ fn instruction1(
 
     if let Some(arg1) = argument1
     {
-        // TODO(pbz): print!(" {}", arg1);
-        print!(" ARG1");
+        match arg1
+        {
+            Argument::Index16(index) => print!("{}", arg1),
+            Argument::Index32(index) => print!("{}", arg1),
+            Argument::Index64(index) => print!("{}", arg1),
+            _ => print!(" {}", arg1),
+        }
     }
 
     if operand2.is_some() || argument2.is_some()
@@ -187,8 +282,13 @@ fn instruction1(
 
     if let Some(arg2) = argument2
     {
-        // TODO(pbz): print!(" {}", arg2);
-        print!(" ARG2");
+        match arg2
+        {
+            Argument::Index16(index) => print!("{}", arg2),
+            Argument::Index32(index) => print!("{}", arg2),
+            Argument::Index64(index) => print!("{}", arg2),
+            _ => print!(" {}", arg2),
+        }
     }
 
     println!("");
@@ -1131,20 +1231,27 @@ fn main()
     use colored::*;
 
     instruction1(
-        "BREAK".purple().to_string(),
+        "BREAK".yellow().to_string(),
         None,
-        Some(Argument::ImmediateU64),
+        Some(Argument::ImmediateU64(1)),
         None,
         None
     );
 
+    instruction1(
+        "CMP32eq".on_blue().italic().to_string(),
+        Some(Operand::new_general_purpose(1, false)),
+        Some(Argument::ImmediateU64(1)),
+        Some(Operand::new_general_purpose(2, true)),
+        Some(Argument::ImmediateU16(2)),
+    );
 
     instruction1(
-        "CMP32eq".purple().to_string(),
+        "CMP32eq".blue().italic().to_string(),
         Some(Operand::new_general_purpose(1, false)),
-        Some(Argument::ImmediateU64),
+        Some(Argument::ImmediateU64(1)),
         Some(Operand::new_general_purpose(2, true)),
-        Some(Argument::ImmediateU16),
+        Some(Argument::ImmediateU16(2)),
     );
 
     instruction1(
@@ -1156,7 +1263,7 @@ fn main()
     );
 
     instruction1(
-        "STORESP".purple().to_string(),
+        "STORESP".red().to_string(),
         Some(Operand::new_general_purpose(1, false)),
         None,
         Some(Operand::new_dedicated(0, false)),
@@ -1164,7 +1271,31 @@ fn main()
     );
 
     instruction1(
-        "RET".purple().to_string(),
+        "ADD64".purple().bold().to_string(),
+        Some(Operand::new_general_purpose(1, false)),
+        Some(Argument::Index16(0x1234)),
+        None,
+        None,
+    );
+
+    instruction1(
+        "RET".red().bold().to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    instruction1(
+        "SUPER LONG INSTRUCTION".truecolor(255, 200, 0).to_string(),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    instruction1(
+        "SUPER LONG INSTRUCTION".truecolor(98, 209, 111).to_string(),
         None,
         None,
         None,
