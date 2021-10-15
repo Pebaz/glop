@@ -136,9 +136,12 @@ enum Argument
     Index16,
     Index32,
     Index64,
-    Immediate16,
-    Immediate32,
-    Immediate64,
+    ImmediateU16,
+    ImmediateU32,
+    ImmediateU64,
+    ImmediateI16,
+    ImmediateI32,
+    ImmediateI64,
 }
 
 /*
@@ -1125,6 +1128,35 @@ fn bits_to_byte_rev(bits: &[bool]) -> u8
 /// Reads in an EFI Bytecode file from STDIN and prints the disassembly.
 fn main()
 {
+    instruction1(
+        "BREAK".to_string(),
+        None,
+        Some(Argument::ImmediateU64),
+        None,
+        None
+    );
+
+
+    instruction1(
+        "CMP32eq".to_string(),
+        Some(Operand::new_general_purpose(1, false)),
+        Some(Argument::ImmediateU64),
+        Some(Operand::new_general_purpose(2, true)),
+        Some(Argument::ImmediateU16),
+    );
+
+    instruction1(
+        "ADD32".to_string(),
+        Some(Operand::new_general_purpose(1, false)),
+        None,
+        Some(Operand::new_general_purpose(2, true)),
+        None,
+    );
+
+    return;
+
+
+
     let mut show_help = true;
     for bytecode_file in std::env::args().skip(1).take(1)
     {
