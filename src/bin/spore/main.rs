@@ -164,9 +164,6 @@ impl std::fmt::Display for Argument
             Self::ImmediateI32(immediate) => write!(f, "{}", immediate),
 
             Self::ImmediateI64(immediate) => write!(f, "{}", immediate),
-
-
-            _ => write!(f, "{}", "*"),
         }
     }
 }
@@ -178,7 +175,7 @@ impl std::fmt::Display for Argument
         MOV? (such as MOVqq. Technically they are all the same instruction)
         MOV?, MOVn, MOVsn (these have overlap with MOV, but MOVqq is tricky)
 
-7. INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
+7. ✅ INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
     ADD
     AND
     ASHR
@@ -207,7 +204,7 @@ impl std::fmt::Display for Argument
         MOVIn
         MOVREL <- Check these to make sure parsing is the same
 
-5. INSTRUCTION OP1, OP2
+5. ✅ INSTRUCTION OP1, OP2
     STORESP
     LOADSP
 
@@ -226,12 +223,14 @@ impl std::fmt::Display for Argument
 
 2. INSTRUCTION ARGUMENT
     * GOTTA MATCH ON
-        JMP64
         JMP8
         BREAK
+
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
+        JMP64
         CALL64
 
-1. INSTRUCTION
+1. ✅ INSTRUCTION
     RET
 */
 
@@ -248,11 +247,11 @@ fn parse_instruction1<T: Iterator<Item=u8>>(
         None,
         None,
         None,
+        None
     );
 
     Some(())
 }
-
 
 fn parse_instruction2<T: Iterator<Item=u8>>(
     bytes: &mut T,
@@ -261,12 +260,78 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
     op: OpCode,
 ) -> Option<()>
 {
+    let mut name = format!("{}", op);
+
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+
+    let arg1 = match op
+    {
+        OpCode::BREAK =>
+        {
+            if byte1 == 0
+            {
+                panic!(
+                    "Runaway program break (found 2 zeros in a row, BREAK 0)"
+                );
+            }
+
+            Argument::ImmediateU16(byte1 as u16)
+        }
+
+        OpCode::JMP8 =>
+        {
+            let conditional = byte1_bits[7];
+
+            if conditional
+            {
+                let condition_bit_set = byte1_bits[6];
+
+                name += if condition_bit_set
+                {
+                    "cs"
+                }
+                else
+                {
+                    "cc"
+                };
+            }
+
+            // TODO(pbz): Comments might not be the best idea.
+            // TODO(pbz): `JMP` means unconditional jump. `JMPcs` means conditional
+            // else
+            // {
+            //     comment = Some(String::from("Unconditional"));
+            // }
+
+            Argument::ImmediateI16((byte1 as i8) as i16)
+        }
+
+        _ => unreachable!(),
+    };
+
+    // let (op1, op2) = match op
+    // {
+    //     OpCode::STORESP => (
+    //         Operand::new_general_purpose(operand1_value, false),
+    //         Operand::new_dedicated(operand2_value, false)
+    //     ),
+
+    //     OpCode::LOADSP => (
+    //         Operand::new_dedicated(operand1_value, false),
+    //         Operand::new_general_purpose(operand2_value, false)
+    //     ),
+
+    //     _ => unreachable!(),
+    // };
+
     disassemble_instruction(
-        "RET".truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        None,
+        Some(arg1),
         None,
         None,
-        None,
-        None,
+        None
     );
 
     Some(())
@@ -279,8 +344,7 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
     op: OpCode,
 ) -> Option<()>
 {
-    let mut name = format!("{}", op);
-    let immediate_data_present = byte0_bits[7];
+    let name = format!("{}", op);
 
     let byte1 = bytes.next().expect("Unexpected end of bytes");
     let byte1_bits = bits_rev(byte1);
@@ -307,6 +371,7 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
         Some(op1),
         None,
         Some(op2),
+        None,
         None
     );
 
@@ -375,7 +440,8 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
         Some(
             Operand::new_general_purpose(operand2_value, operand2_is_indirect)
         ),
-        op1_x16_index_or_immediate
+        op1_x16_index_or_immediate,
+        None
     );
 
     Some(())
@@ -409,6 +475,7 @@ fn disassemble_instruction(
     argument1: Option<Argument>,
     operand2: Option<Operand>,
     argument2: Option<Argument>,
+    comment: Option<String>,
 )
 {
     print!("{}", instruction);
@@ -448,6 +515,12 @@ fn disassemble_instruction(
             Argument::Index64(index) => print!("{}", arg2),
             _ => print!(" {}", arg2),
         }
+    }
+
+    // TODO(pbz): Adhere to a column so they line up
+    if let Some(line_comment) = comment
+    {
+        print!("  ; {}", line_comment);
     }
 
     println!("");
@@ -785,6 +858,7 @@ impl OpCode
             format!("Invalid OpCode: {}", op_value).as_str()
         );
 
+        // TODO(pbz): Reorder these by 1-7
         match op
         {
             OpCode::ADD
@@ -826,9 +900,13 @@ impl OpCode
                 parse_instruction5(bytes, byte0_bits, op_value, op)
             }
 
-            OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
+            OpCode::JMP8
+            | OpCode::BREAK =>
+            {
+                parse_instruction2(bytes, byte0_bits, op_value, op)
+            }
 
-            OpCode::BREAK => None,  // TODO(pbz): This is just temporary
+            OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
 
             _ =>  // TODO(pbz): Remove this once all instructions are covered
             {

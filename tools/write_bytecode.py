@@ -16,11 +16,16 @@ def write_bytecode():
     with open('bc-example.bin', 'wb') as bc:
         bc.write(0b00000100.to_bytes(1, 'big'))  # RET
 
-        bc.write(0b00101010_00000001.to_bytes(2, 'big'))  # STORESP R1, FLAGS
-        bc.write(0b00101010_00010001.to_bytes(2, 'big'))  # STORESP R1, IP
+        # bc.write(0b00101010_00000001.to_bytes(2, 'big'))  # STORESP R1, FLAGS
+        # bc.write(0b00101010_00010001.to_bytes(2, 'big'))  # STORESP R1, IP
 
-        bc.write(0b00101001_00010000.to_bytes(2, 'big'))  # LOADSP FLAGS, R1
-        bc.write(0b00101001_00010001.to_bytes(2, 'big'))  # LOADSP IP, R1
+        # bc.write(0b00101001_00010000.to_bytes(2, 'big'))  # LOADSP FLAGS, R1
+        # bc.write(0b00101001_00010001.to_bytes(2, 'big'))  # LOADSP IP, R1
+
+        bc.write(0b00000000_00000011.to_bytes(2, 'big'))  # BREAK 3
+
+        bc.write(0b00000010.to_bytes(1, 'big'))  # JMP8cs -3
+        bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
 
         return
 
