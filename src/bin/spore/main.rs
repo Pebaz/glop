@@ -272,6 +272,47 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
     Some(())
 }
 
+fn parse_instruction5<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    let mut name = format!("{}", op);
+    let immediate_data_present = byte0_bits[7];
+
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+    let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+    let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+
+    let (op1, op2) = match op
+    {
+        OpCode::STORESP => (
+            Operand::new_general_purpose(operand1_value, false),
+            Operand::new_dedicated(operand2_value, false)
+        ),
+
+        OpCode::LOADSP => (
+            Operand::new_dedicated(operand1_value, false),
+            Operand::new_general_purpose(operand2_value, false)
+        ),
+
+        _ => unreachable!(),
+    };
+
+    disassemble_instruction(
+        name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        Some(op1),
+        None,
+        Some(op2),
+        None
+    );
+
+    Some(())
+}
+
 fn parse_instruction7<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
@@ -777,6 +818,12 @@ impl OpCode
             | OpCode::XOR =>
             {
                 parse_instruction7(bytes, byte0_bits, op_value, op)
+            }
+
+            OpCode::LOADSP
+            | OpCode::STORESP =>
+            {
+                parse_instruction5(bytes, byte0_bits, op_value, op)
             }
 
             OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
