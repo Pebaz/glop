@@ -20,7 +20,7 @@ def _bit_int(bits):
     return int(''.join(str(i) for i in bits), base=2)
 
 # 0xA048 = 41032
-def encode(natural, constant):
+def encode(natural, constant, display=True):
     # s = 0
     # w = 000
     # a = w * 2 (from 16)
@@ -74,31 +74,37 @@ def encode(natural, constant):
     offset = sign * (constant + natural * (SIZE_OF_VOID_PTR))
     col = 16
 
-    print(' ' * (col // 2) + '- Encoded Natural Index -')
-    print('Bits:'.rjust(col), bits)
-    print('Sign:'.rjust(col), 'negative' if bits[0] else 'positive')
-    print('W:'.rjust(col), w)
-    print(
-        'A:'.rjust(col),
-        f'{w} * {NATURAL_INDEX_ENCODING_SIZES[index_size]}'
-        f'(x{index_size}) = {a}'
-    )
-    print('Constant:'.rjust(col), constant)
-    print(
-        'Natural Units:'.rjust(col),
-        natural,
-        f'({natural * SIZE_OF_VOID_PTR} bytes, '
-        f'{natural * SIZE_OF_VOID_PTR * 8} bits)'
-    )
-    print('Natural Units:'.rjust(col), natural)
-    print('Natural Index:'.rjust(col), _bit_int(bits))
-    print('Offset Bytes:'.rjust(col), offset)
-    print()
+    if display:
+        print(' ' * (col // 2) + '- Encoded Natural Index -')
+        print('Bits:'.rjust(col), bits)
+        print('Sign:'.rjust(col), 'negative' if bits[0] else 'positive')
+        print('W:'.rjust(col), w)
+        print(
+            'A:'.rjust(col),
+            f'{w} * {NATURAL_INDEX_ENCODING_SIZES[index_size]}'
+            f'(x{index_size}) = {a}'
+        )
+        print('Constant:'.rjust(col), constant)
+        print(
+            'Natural Units:'.rjust(col),
+            natural,
+            f'({natural * SIZE_OF_VOID_PTR} bytes, '
+            f'{natural * SIZE_OF_VOID_PTR * 8} bits)'
+        )
+        print('Natural Units:'.rjust(col), natural)
+        print('Natural Index:'.rjust(col), _bit_int(bits))
+        print('Offset Bytes:'.rjust(col), offset)
+        sign_str = '-' if sign < 0 else '+'
+        print(
+            'Syntax:'.rjust(col),
+            f'({sign_str}{natural}, {sign_str}{constant})'
+        )
+        print()
 
     return _bit_int(bits)
 
 
-def decode(index):
+def decode(index, display=True):
     # * Gotta pad the front with more zeros since this is coming in from
     # * Python. This won't happen in reality since it will just be an array of
     # * bytes for the UEFI VM to decode. At worst, 4 zeros will be added to the
@@ -121,25 +127,33 @@ def decode(index):
     offset = sign * (constant + natural * (SIZE_OF_VOID_PTR))
     col = 16
 
-    print(' ' * (col // 2) + '- Decoded Natural Index -')
-    print('Bits:'.rjust(col), bits)
-    print('Sign:'.rjust(col), 'negative' if sign < 0 else 'positive')
-    print('W:'.rjust(col), width_base)
-    print(
-        'A:'.rjust(col),
-        f'{width_base} * {NATURAL_INDEX_ENCODING_SIZES[index_size]}'
-        f'(x{index_size}) = {actual_width}'
-    )
-    print('Constant:'.rjust(col), constant)
-    print(
-        'Natural Units:'.rjust(col),
-        natural,
-        f'({natural * SIZE_OF_VOID_PTR} bytes, '
-        f'{natural * SIZE_OF_VOID_PTR * 8} bits)'
-    )
-    print('Natural Index:'.rjust(col), index)
-    print('Offset Bytes:'.rjust(col), offset)
-    print()
+    if display:
+        print(' ' * (col // 2) + '- Decoded Natural Index -')
+        print('Bits:'.rjust(col), bits)
+        print('Sign:'.rjust(col), 'negative' if sign < 0 else 'positive')
+        print('W:'.rjust(col), width_base)
+        print(
+            'A:'.rjust(col),
+            f'{width_base} * {NATURAL_INDEX_ENCODING_SIZES[index_size]}'
+            f'(x{index_size}) = {actual_width}'
+        )
+        print('Constant:'.rjust(col), constant)
+        print(
+            'Natural Units:'.rjust(col),
+            natural,
+            f'({natural * SIZE_OF_VOID_PTR} bytes, '
+            f'{natural * SIZE_OF_VOID_PTR * 8} bits)'
+        )
+        print('Natural Index:'.rjust(col), index)
+        print('Offset Bytes:'.rjust(col), offset)
+        sign_str = '-' if sign < 0 else '+'
+        print(
+            'Syntax:'.rjust(col),
+            f'({sign_str}{natural}, {sign_str}{constant})'
+        )
+        print()
+
+    return sign, constant, natural
 
 
 if __name__ == '__main__':

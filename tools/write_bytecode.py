@@ -1,8 +1,12 @@
 import random
 from itertools import cycle
+from natural_indexing import encode
 
 RANDOM_SIGNED_NUMBERS_X16 = [random.randint(-32768, 32767) for i in range(100)]
 random_signed = cycle(iter(RANDOM_SIGNED_NUMBERS_X16))
+
+RANDOM_SIGNED_NUMBERS_20 = [random.randint(-20, 20) for i in range(100)]
+random_signed_20 = cycle(iter(i for i in RANDOM_SIGNED_NUMBERS_20 if i))
 
 
 def pad(width, string):
@@ -46,28 +50,74 @@ with open('bc-example.bin', 'wb') as bc:
     for op in ops.values():
         # print(str(op).ljust(3), bin(op)[2:].ljust(10), pad(6, bin(op)[2:]))
 
-        # <OPCODE>32 OP1, OP2
-        opcode = op
-        bc.write(opcode.to_bytes(1, 'little'))
-        bc.write(0b00100001.to_bytes(1, 'little'))
+        # # <OPCODE>32 OP1, OP2
+        # opcode = op
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b00100001.to_bytes(1, 'little'))
+
+        # # <OPCODE>32 @OP1, OP2
+        # opcode = op
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b00101001.to_bytes(1, 'little'))
+
+        # # <OPCODE>32 OP1, @OP2
+        # opcode = op
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b10100001.to_bytes(1, 'little'))
+
+        # # <OPCODE>32 @OP1, @OP2
+        # opcode = op
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b10101001.to_bytes(1, 'little'))
+
+        # # <OPCODE>32 OP1, OP2 IMMEDIATE
+        # opcode = op | (1 << 7)  # Set 8th bit
+        # opcode &= ~(1 << 6)  # Clear 7th bit
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b00100001.to_bytes(1, 'little'))
+        # bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
 
         # <OPCODE>32 OP1, OP2 IMMEDIATE
         opcode = op | (1 << 7)  # Set 8th bit
         opcode &= ~(1 << 6)  # Clear 7th bit
         bc.write(opcode.to_bytes(1, 'little'))
-        bc.write(0b00100001.to_bytes(1, 'little'))
-        bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
+        bc.write(0b10100001.to_bytes(1, 'little'))
+        natural = next(random_signed_20)
+        if natural < 0:
+            constant = -abs(next(random_signed_20))
+        else:
+            constant = abs(next(random_signed_20))
+        index = encode(natural, constant, False)
+        bc.write(index.to_bytes(2, 'little'))
 
-        # <OPCODE>64 OP1, OP2
-        opcode = op
-        opcode |= 1 << 6
-        bc.write(opcode.to_bytes(1, 'little'))
-        bc.write(0b00100001.to_bytes(1, 'little'))
+        # # <OPCODE>64 OP1, OP2
+        # opcode = op
+        # opcode |= 1 << 6
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b00100001.to_bytes(1, 'little'))
+
+        # # <OPCODE>64 OP1, OP2
+        # opcode = op
+        # opcode |= 1 << 6
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b00101001.to_bytes(1, 'little'))
+
+        # # <OPCODE>64 OP1, OP2 IMMEDIATE
+        # opcode = op | (1 << 7)  # Set 8th bit
+        # opcode |= 1 << 6  # Set 7th bit
+        # bc.write(opcode.to_bytes(1, 'little'))
+        # bc.write(0b00100001.to_bytes(1, 'little'))
+        # bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
 
         # <OPCODE>64 OP1, OP2 IMMEDIATE
         opcode = op | (1 << 7)  # Set 8th bit
         opcode |= 1 << 6  # Set 7th bit
-        print(bin(opcode))
         bc.write(opcode.to_bytes(1, 'little'))
-        bc.write(0b00100001.to_bytes(1, 'little'))
-        bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
+        bc.write(0b10100001.to_bytes(1, 'little'))
+        natural = next(random_signed_20)
+        if natural < 0:
+            constant = -abs(next(random_signed_20))
+        else:
+            constant = abs(next(random_signed_20))
+        index = encode(natural, constant, False)
+        bc.write(index.to_bytes(2, 'little'))
