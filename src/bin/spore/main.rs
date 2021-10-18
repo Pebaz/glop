@@ -281,11 +281,11 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
 
         OpCode::JMP8 =>
         {
-            let conditional = byte1_bits[7];
+            let conditional = byte0_bits[7];
 
             if conditional
             {
-                let condition_bit_set = byte1_bits[6];
+                let condition_bit_set = byte0_bits[6];
 
                 name += if condition_bit_set
                 {
