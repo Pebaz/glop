@@ -50,32 +50,32 @@ with open('bc-example.bin', 'wb') as bc:
     for op in ops.values():
         # print(str(op).ljust(3), bin(op)[2:].ljust(10), pad(6, bin(op)[2:]))
 
-        # # <OPCODE>32 OP1, OP2
-        # opcode = op
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b00100001.to_bytes(1, 'little'))
+        # <OPCODE>32 OP1, OP2
+        opcode = op
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b00100001.to_bytes(1, 'little'))
 
-        # # <OPCODE>32 @OP1, OP2
-        # opcode = op
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b00101001.to_bytes(1, 'little'))
+        # <OPCODE>32 @OP1, OP2
+        opcode = op
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b00101001.to_bytes(1, 'little'))
 
-        # # <OPCODE>32 OP1, @OP2
-        # opcode = op
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b10100001.to_bytes(1, 'little'))
+        # <OPCODE>32 OP1, @OP2
+        opcode = op
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b10100001.to_bytes(1, 'little'))
 
-        # # <OPCODE>32 @OP1, @OP2
-        # opcode = op
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b10101001.to_bytes(1, 'little'))
+        # <OPCODE>32 @OP1, @OP2
+        opcode = op
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b10101001.to_bytes(1, 'little'))
 
-        # # <OPCODE>32 OP1, OP2 IMMEDIATE
-        # opcode = op | (1 << 7)  # Set 8th bit
-        # opcode &= ~(1 << 6)  # Clear 7th bit
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b00100001.to_bytes(1, 'little'))
-        # bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
+        # <OPCODE>32 OP1, OP2 IMMEDIATE
+        opcode = op | (1 << 7)  # Set 8th bit
+        opcode &= ~(1 << 6)  # Clear 7th bit
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b00100001.to_bytes(1, 'little'))
+        bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
 
         # <OPCODE>32 OP1, OP2 IMMEDIATE
         opcode = op | (1 << 7)  # Set 8th bit
@@ -90,24 +90,24 @@ with open('bc-example.bin', 'wb') as bc:
         index = encode(natural, constant, False)
         bc.write(index.to_bytes(2, 'little'))
 
-        # # <OPCODE>64 OP1, OP2
-        # opcode = op
-        # opcode |= 1 << 6
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b00100001.to_bytes(1, 'little'))
+        # <OPCODE>64 OP1, OP2
+        opcode = op
+        opcode |= 1 << 6
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b00100001.to_bytes(1, 'little'))
 
-        # # <OPCODE>64 OP1, OP2
-        # opcode = op
-        # opcode |= 1 << 6
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b00101001.to_bytes(1, 'little'))
+        # <OPCODE>64 OP1, OP2
+        opcode = op
+        opcode |= 1 << 6
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b00101001.to_bytes(1, 'little'))
 
-        # # <OPCODE>64 OP1, OP2 IMMEDIATE
-        # opcode = op | (1 << 7)  # Set 8th bit
-        # opcode |= 1 << 6  # Set 7th bit
-        # bc.write(opcode.to_bytes(1, 'little'))
-        # bc.write(0b00100001.to_bytes(1, 'little'))
-        # bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
+        # <OPCODE>64 OP1, OP2 IMMEDIATE
+        opcode = op | (1 << 7)  # Set 8th bit
+        opcode |= 1 << 6  # Set 7th bit
+        bc.write(opcode.to_bytes(1, 'little'))
+        bc.write(0b00100001.to_bytes(1, 'little'))
+        bc.write(next(random_signed).to_bytes(2, 'big', signed=True))
 
         # <OPCODE>64 OP1, OP2 IMMEDIATE
         opcode = op | (1 << 7)  # Set 8th bit
