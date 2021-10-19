@@ -378,10 +378,10 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
         OpCode::CALL =>
         {
             let is_native_call = byte1_bits[5];
-            postfix +=  if is_native_call { "EX" } else { "" };
+            postfix += if is_native_call { "EX" } else { "" };
 
             let is_relative_address = byte1_bits[4];
-            postfix +=  if is_relative_address { "" } else { "a" };
+
 
             let operand1_is_indirect = byte1_bits[3];
             let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
@@ -401,6 +401,8 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
 
             let arg1 = if is_64_bit
             {
+                postfix += "a";  // CALL64 is always an absolute address
+
                 let mut value = [0u8; 8];
 
                 for i in 0 .. value.len()
@@ -412,6 +414,8 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
             }
             else
             {
+                postfix += if is_relative_address { "" } else { "a" };
+
                 let arg = if immediate_data_present
                 {
                     let mut value = [0u8; 4];

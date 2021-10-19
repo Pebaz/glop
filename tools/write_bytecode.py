@@ -105,6 +105,30 @@ def write_bytecode():
         bc.write(0b10000011_00001001.to_bytes(2, 'big'))  # CALL32a @R1(-3, -3)
         bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
+        bc.write(0b00000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1
+        bc.write(0b00000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1
+
+        bc.write(0b10000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1 -3
+        bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b10000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1 -3
+        bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        # CALL32EX @R1(-300, -300)
+        bc.write(0b10000011_00111001.to_bytes(2, 'big'))
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # CALL32EXa @R1(-300, -300)
+        bc.write(0b10000011_00101001.to_bytes(2, 'big'))
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # 64
+        bc.write(0b11000011_00110001.to_bytes(2, 'big'))  # CALL64EX -3
+        bc.write((-3).to_bytes(8, 'little', signed=True))  # ..
+
+        bc.write(0b11000011_00100001.to_bytes(2, 'big'))  # CALL64EXa -3
+        bc.write((-3).to_bytes(8, 'little', signed=True))  # ..
+
         return
 
         ops = dict(
