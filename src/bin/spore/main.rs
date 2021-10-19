@@ -9,6 +9,8 @@ Bash. What if polyglot programs exposed same interface?
 // TODO(pbz): Perhaps put all the "Behaviors and Restrictions" bullet points in
 // TODO(pbz): comments by each instruction so that you can read exact behavior.
 
+// TODO(pbz): Replace panics/unreachable code with better error messages.
+
 // TODO(pbz): Remove these in the future
 #![allow(unused_variables)]
 #![allow(dead_code)]
@@ -18,23 +20,6 @@ use std::convert::TryInto;
 use colored::*;
 
 const BLUE: (u8, u8, u8) = (98, 168, 209);
-
-
-
-
-
-
-
-
-
-
-
-/*
-INSTRUCTION [INDIRECT]OP1 ARGUMENT, ARGUMENT
-*/
-
-
-
 
 enum Operand
 {
@@ -172,12 +157,12 @@ impl std::fmt::Display for Argument
 
 
 /*
-8. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT
+7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT
     * GOTTA MATCH ON
         MOV? (such as MOVqq. Technically they are all the same instruction)
         MOV?, MOVn, MOVsn (these have overlap with MOV, but MOVqq is tricky)
 
-7. ✅ INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
+6. ✅ INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
     ADD
     AND
     ASHR
@@ -199,18 +184,18 @@ impl std::fmt::Display for Argument
     SUB
     XOR
 
-6. INSTRUCTION OP1 ARGUMENT, ARGUMENT
+5. INSTRUCTION OP1 ARGUMENT, ARGUMENT
     * GOTTA MATCH ON
         CMPI
         MOVI
         MOVIn
         MOVREL <- Check these to make sure parsing is the same
 
-5. ✅ INSTRUCTION OP1, OP2
+4. ✅ INSTRUCTION OP1, OP2
     STORESP
     LOADSP
 
-4. INSTRUCTION OP1 ARGUMENT
+3. ✅ INSTRUCTION OP1 ARGUMENT
     * GOTTA MATCH ON
         CALL32
         JMP32
@@ -219,20 +204,16 @@ impl std::fmt::Display for Argument
         POP
         POPn
 
-    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON ❌
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
         JMP64
         CALL64
-
-
-3. INSTRUCTION OP1 ARGUMENT, ARGUMENT
-    CMPI
 
 2. ✅ INSTRUCTION ARGUMENT
     * GOTTA MATCH ON
         JMP8
         BREAK
 
-    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON ❌
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
         JMP64
         CALL64
 
@@ -343,7 +324,7 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
     Some(())
 }
 
-fn parse_instruction4<T: Iterator<Item=u8>>(
+fn parse_instruction3<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
     op_value: u8,
@@ -586,6 +567,47 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
     Some(())
 }
 
+fn parse_instruction4<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    let name = format!("{}", op);
+
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+    let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+    let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+
+    let (op1, op2) = match op
+    {
+        OpCode::STORESP => (
+            Operand::new_general_purpose(operand1_value, false),
+            Operand::new_dedicated(operand2_value, false)
+        ),
+
+        OpCode::LOADSP => (
+            Operand::new_dedicated(operand1_value, false),
+            Operand::new_general_purpose(operand2_value, false)
+        ),
+
+        _ => unreachable!(),
+    };
+
+    disassemble_instruction(
+        name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        Some(op1),
+        None,
+        Some(op2),
+        None,
+        None
+    );
+
+    Some(())
+}
+
 fn parse_instruction5<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
@@ -627,7 +649,7 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
     Some(())
 }
 
-fn parse_instruction7<T: Iterator<Item=u8>>(
+fn parse_instruction6<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
     op_value: u8,
@@ -635,61 +657,126 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
 ) -> Option<()>
 {
     let mut name = format!("{}", op);
-    let immediate_data_present = byte0_bits[7];
-
     // TODO(pbz): Have postfixes colored differently? =)
-    name += if byte0_bits[6]
-    {
-        "64"
-    }
-    else
-    {
-        "32"
-    };
+    let mut postfixes = String::with_capacity(7);
 
-    let byte1 = bytes.next().expect("Unexpected end of bytes");
-    let byte1_bits = bits_rev(byte1);
-    let operand1_is_indirect = byte1_bits[3];
-    let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
-    let operand2_is_indirect = byte1_bits[7];
-    let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
 
-    let op1_x16_index_or_immediate =
+    let (op1, arg1, arg2) = match op
     {
-        if immediate_data_present
+        OpCode::MOVI =>
         {
-            let mut value = [0u8; 2];
+            let byte1 = bytes.next().expect("Unexpected end of bytes");
+            let byte1_bits = bits_rev(byte1);
 
-            value[0] = bytes.next().unwrap();
-            value[1] = bytes.next().unwrap();
-
-            let arg = if operand2_is_indirect
+            let move_width = bits_to_byte_rev(&byte1_bits[4 ..= 5]);
+            postfixes += match move_width
             {
-                Argument::Index16(u16::from_le_bytes(value))
+                0 => "b",  // 8 bit
+                1 => "w",  // 16 bit
+                2 => "d",  // 32 bit
+                3 => "q",  // 64 bit
+                _ => unreachable!(),
+            };
+
+            let immediate_data_width = bits_to_byte_rev(&byte0_bits[6 ..= 7]);
+            postfixes += match immediate_data_width
+            {
+                1 => "w",  // 16 bit
+                2 => "d",  // 32 bit
+                3 => "q",  // 64 bit
+                _ => unreachable!(),
+            };
+
+            let operand1_index_present = byte1_bits[6];
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+
+            let op1 = Some(
+                Operand::new_general_purpose(
+                    operand1_value, operand1_is_indirect
+                )
+            );
+
+            let arg1 = if operand1_index_present
+            {
+                let mut value = [0u8; 2];
+
+                value[0] = bytes.next().unwrap();
+                value[1] = bytes.next().unwrap();
+
+                let arg = if operand1_is_indirect
+                {
+                    Argument::Index16(u16::from_le_bytes(value))
+                }
+                else
+                {
+                    panic!("Immediate data not supported for CMPI");
+                };
+
+                Some(arg)
             }
             else
             {
-                Argument::ImmediateI16(i16::from_le_bytes(value))
+                None
             };
 
-            Some(arg)
+            let arg2 = {
+                match immediate_data_width
+                {
+                    1 =>  // 16 bit
+                    {
+                        let mut value = [0u8; 2];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::ImmediateI16(i16::from_le_bytes(value)))
+                    }
+
+                    2 =>  // 32 bit
+                    {
+                        let mut value = [0u8; 4];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::ImmediateI32(i32::from_le_bytes(value)))
+                    }
+
+                    3 =>  // 64 bit
+                    {
+                        let mut value = [0u8; 8];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::ImmediateI64(i64::from_le_bytes(value)))
+                    }
+
+                    _ => unreachable!(),
+                }
+            };
+
+            name += &postfixes;
+
+            (op1, arg1, arg2)
         }
-        else
-        {
-            None
-        }
+
+        _ => unreachable!(),
     };
 
     disassemble_instruction(
         name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
-        Some(
-            Operand::new_general_purpose(operand1_value, operand1_is_indirect)
-        ),
+        op1,
+        arg1,
         None,
-        Some(
-            Operand::new_general_purpose(operand2_value, operand2_is_indirect)
-        ),
-        op1_x16_index_or_immediate,
+        arg2,
         None
     );
 
@@ -1140,7 +1227,7 @@ impl OpCode
             | OpCode::SUB
             | OpCode::XOR =>
             {
-                parse_instruction7(bytes, byte0_bits, op_value, op)
+                parse_instruction6(bytes, byte0_bits, op_value, op)
             }
 
             OpCode::CALL
@@ -1152,13 +1239,25 @@ impl OpCode
             | OpCode::JMP
             | OpCode::CALL =>
             {
-                parse_instruction4(bytes, byte0_bits, op_value, op)
+                parse_instruction3(bytes, byte0_bits, op_value, op)
             }
 
             OpCode::LOADSP
             | OpCode::STORESP =>
             {
-                parse_instruction5(bytes, byte0_bits, op_value, op)
+                parse_instruction4(bytes, byte0_bits, op_value, op)
+            }
+
+            OpCode::CMPIeq
+            | OpCode::CMPIlte
+            | OpCode::CMPIgte
+            | OpCode::CMPIulte
+            | OpCode::CMPIugte
+            | OpCode::MOVI
+            | OpCode::MOVIn
+            | OpCode::MOVREL =>
+            {
+                parse_instruction6(bytes, byte0_bits, op_value, op)
             }
 
             OpCode::JMP8
