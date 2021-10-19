@@ -54,40 +54,56 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
 
         # 32
-        bc.write(0b00101100_00000001.to_bytes(2, 'big'))  # POP32 R1
-        bc.write(0b00101011_00000001.to_bytes(2, 'big'))  # PUSH32 R1
-        bc.write(0b00101100_00001001.to_bytes(2, 'big'))  # POP32 @R1
-        bc.write(0b00101011_00001001.to_bytes(2, 'big'))  # PUSH32 @R1
+        # bc.write(0b00101100_00000001.to_bytes(2, 'big'))  # POP32 R1
+        # bc.write(0b00101011_00000001.to_bytes(2, 'big'))  # PUSH32 R1
+        # bc.write(0b00101100_00001001.to_bytes(2, 'big'))  # POP32 @R1
+        # bc.write(0b00101011_00001001.to_bytes(2, 'big'))  # PUSH32 @R1
 
-        bc.write(0b10101100_00000001.to_bytes(2, 'big'))  # POP32 R1 -3
-        bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b10101100_00000001.to_bytes(2, 'big'))  # POP32 R1 -3
+        # bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b10101011_00000001.to_bytes(2, 'big'))  # PUSH32 R1 -3
-        bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b10101011_00000001.to_bytes(2, 'big'))  # PUSH32 R1 -3
+        # bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b10101100_00001001.to_bytes(2, 'big'))  # POP32 @R1(-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write(0b10101100_00001001.to_bytes(2, 'big'))  # POP32 @R1(-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b10101011_00001001.to_bytes(2, 'big'))  # PUSH32 @R1(-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write(0b10101011_00001001.to_bytes(2, 'big'))  # PUSH32 @R1(-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        # 64
-        bc.write(0b01101100_00000001.to_bytes(2, 'big'))  # POP64 R1
-        bc.write(0b01101011_00000001.to_bytes(2, 'big'))  # PUSH64 R1
-        bc.write(0b01101100_00001001.to_bytes(2, 'big'))  # POP64 @R1
-        bc.write(0b01101011_00001001.to_bytes(2, 'big'))  # PUSH64 @R1
+        # # 64
+        # bc.write(0b01101100_00000001.to_bytes(2, 'big'))  # POP64 R1
+        # bc.write(0b01101011_00000001.to_bytes(2, 'big'))  # PUSH64 R1
+        # bc.write(0b01101100_00001001.to_bytes(2, 'big'))  # POP64 @R1
+        # bc.write(0b01101011_00001001.to_bytes(2, 'big'))  # PUSH64 @R1
 
-        bc.write(0b11101100_00000001.to_bytes(2, 'big'))  # POP64 R1 -3
-        bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b11101100_00000001.to_bytes(2, 'big'))  # POP64 R1 -3
+        # bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b11101011_00000001.to_bytes(2, 'big'))  # PUSH64 R1 -3
-        bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b11101011_00000001.to_bytes(2, 'big'))  # PUSH64 R1 -3
+        # bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b11101100_00001001.to_bytes(2, 'big'))  # POP64 @R1(-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write(0b11101100_00001001.to_bytes(2, 'big'))  # POP64 @R1(-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b11101011_00001001.to_bytes(2, 'big'))  # PUSH64 @R1(-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write(0b11101011_00001001.to_bytes(2, 'big'))  # PUSH64 @R1(-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+
+        # 32
+        bc.write(0b00000011_00010001.to_bytes(2, 'big'))  # CALL32 R1
+        bc.write(0b00000011_00000001.to_bytes(2, 'big'))  # CALL32a R1
+
+        bc.write(0b10000011_00010001.to_bytes(2, 'big'))  # CALL32 R1 -3
+        bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b10000011_00000001.to_bytes(2, 'big'))  # CALL32a R1 -3
+        bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b10000011_00011001.to_bytes(2, 'big'))  # CALL32 @R1(-3, -3)
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        bc.write(0b10000011_00001001.to_bytes(2, 'big'))  # CALL32a @R1(-3, -3)
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
         return
 

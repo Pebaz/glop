@@ -358,7 +358,6 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
 
     match op
     {
-
         OpCode::CALL
         | OpCode::JMP
         | OpCode::PUSH
@@ -373,27 +372,79 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
     // TODO(pbz): Have postfixes colored differently? =)
     let (op1, arg1, op2, arg2, comment) = match op
     {
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // TODO(pbz): THIS IS VERY IMPORTANT. CHECK THIS VERY CAREFULLY
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         OpCode::CALL =>
         {
-            postfix += if is_64_bit { "64" } else { "32" };
+            let is_native_call = byte1_bits[5];
+            postfix +=  if is_native_call { "EX" } else { "" };
 
-            (None, None, None, None, None)
+            let is_relative_address = byte1_bits[4];
+            postfix +=  if is_relative_address { "" } else { "a" };
+
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+            let op1 = if !is_64_bit
+            {
+                Some(
+                    Operand::new_general_purpose(
+                        operand1_value,
+                        operand1_is_indirect
+                    )
+                )
+            }
+            else
+            {
+                None
+            };
+
+            let arg1 = if is_64_bit
+            {
+                let mut value = [0u8; 8];
+
+                for i in 0 .. value.len()
+                {
+                    value[i] = bytes.next().unwrap();
+                }
+
+                Some(Argument::ImmediateI64(i64::from_le_bytes(value)))
+            }
+            else
+            {
+                let arg = if immediate_data_present
+                {
+                    let mut value = [0u8; 4];
+
+                    for i in 0 .. value.len()
+                    {
+                        value[i] = bytes.next().unwrap();
+                    }
+
+                    if operand1_is_indirect
+                    {
+                        Some(Argument::Index32(u32::from_le_bytes(value)))
+                    }
+                    else
+                    {
+                        Some(Argument::ImmediateI32(i32::from_le_bytes(value)))
+                    }
+                }
+                else
+                {
+                    None
+                };
+
+                arg
+            };
+
+            (op1, arg1, None, None, None)
         }
 
         OpCode::JMP =>
         {
-            postfix += if is_64_bit { "64" } else { "32" };
-
             (None, None, None, None, None)
         }
-
-        // OpCode::PUSH
-        // | OpCode::POP =>
-        // {
-        //     postfix += if is_64_bit { "64" } else { "32" };
-
-        //     (None, None, None, None, None)
-        // }
 
         OpCode::PUSH
         | OpCode::POP

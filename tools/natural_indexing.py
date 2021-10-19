@@ -5,6 +5,9 @@ https://uefi.org/sites/default/files/resources/UEFI_Spec_2_9_2021_03_18.pdf
 UEFI Bytecode Virtual Machine Natural Indexing Section: 22.4
 """
 
+# TODO(pbz): Feature - Add way to specify natural index width (pad with zeroes
+# TODO(pbz): properly)
+
 import sys
 
 MACHINE_ARCHITECTURE = 64  # * Assuming 64-bit here
