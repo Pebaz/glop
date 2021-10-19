@@ -6,6 +6,8 @@ Bash. What if polyglot programs exposed same interface?
 4. Do it right the first time. Don't forget to document each program.
 */
 
+// TODO(pbz): Perhaps put all the "Behaviors and Restrictions" bullet points in
+// TODO(pbz): comments by each instruction so that you can read exact behavior.
 
 // TODO(pbz): Remove these in the future
 #![allow(unused_variables)]
@@ -381,8 +383,6 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
             postfix += if is_native_call { "EX" } else { "" };
 
             let is_relative_address = byte1_bits[4];
-
-
             let operand1_is_indirect = byte1_bits[3];
             let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
             let op1 = if !is_64_bit
@@ -410,6 +410,7 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
                     value[i] = bytes.next().unwrap();
                 }
 
+                // TODO(pbz): For absolute, display in hex
                 Some(Argument::ImmediateI64(i64::from_le_bytes(value)))
             }
             else
@@ -447,7 +448,81 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
 
         OpCode::JMP =>
         {
-            (None, None, None, None, None)
+            let conditional_jump = byte1_bits[7];
+            let jump_if_condition_bit_set = byte1_bits[6];
+
+            if conditional_jump
+            {
+                postfix += if jump_if_condition_bit_set { "cs" } else { "cc" };
+            }
+
+            let relative_address = byte1_bits[4];
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+            let op1 = if !is_64_bit
+            {
+                Some(
+                    Operand::new_general_purpose(
+                        operand1_value,
+                        operand1_is_indirect
+                    )
+                )
+            }
+            else
+            {
+                None
+            };
+
+            let arg1 = if is_64_bit
+            {
+                let mut value = [0u8; 8];
+
+                for i in 0 .. value.len()
+                {
+                    value[i] = bytes.next().unwrap();
+                }
+
+                // TODO(pbz): Check if absolute, then display in hex
+                Some(Argument::ImmediateI64(i64::from_le_bytes(value)))
+            }
+            else
+            {
+                let arg = if immediate_data_present
+                {
+                    let mut value = [0u8; 4];
+
+                    for i in 0 .. value.len()
+                    {
+                        value[i] = bytes.next().unwrap();
+                    }
+
+                    if operand1_is_indirect
+                    {
+                        Some(Argument::Index32(u32::from_le_bytes(value)))
+                    }
+                    else
+                    {
+                        Some(Argument::ImmediateI32(i32::from_le_bytes(value)))
+                    }
+                }
+                else
+                {
+                    None
+                };
+
+                arg
+            };
+
+            let comment = if relative_address
+            {
+                Some(String::from("Relative Address"))
+            }
+            else
+            {
+                Some(String::from("Absolute Address"))
+            };
+
+            (op1, arg1, None, None, comment)
         }
 
         OpCode::PUSH
@@ -694,7 +769,7 @@ fn disassemble_instruction(
     // TODO(pbz): Adhere to a column so they line up
     if let Some(line_comment) = comment
     {
-        print!("  ; {}", line_comment);
+        print!("  ;; {}", line_comment);
     }
 
     println!("");

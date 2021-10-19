@@ -90,44 +90,76 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
 
         # 32
-        bc.write(0b00000011_00010001.to_bytes(2, 'big'))  # CALL32 R1
-        bc.write(0b00000011_00000001.to_bytes(2, 'big'))  # CALL32a R1
+        # bc.write(0b00000011_00010001.to_bytes(2, 'big'))  # CALL32 R1
+        # bc.write(0b00000011_00000001.to_bytes(2, 'big'))  # CALL32a R1
 
-        bc.write(0b10000011_00010001.to_bytes(2, 'big'))  # CALL32 R1 -3
+        # bc.write(0b10000011_00010001.to_bytes(2, 'big'))  # CALL32 R1 -3
+        # bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b10000011_00000001.to_bytes(2, 'big'))  # CALL32a R1 -3
+        # bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        # CALL32 @R1(-300, -300)
+        # bc.write(0b10000011_00011001.to_bytes(2, 'big'))
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # CALL32a @R1(-300, -300)
+        # bc.write(0b10000011_00001001.to_bytes(2, 'big'))
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # bc.write(0b00000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1
+        # bc.write(0b00000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1
+
+        # bc.write(0b10000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1 -3
+        # bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b10000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1 -3
+        # bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
+
+        # # CALL32EX @R1(-300, -300)
+        # bc.write(0b10000011_00111001.to_bytes(2, 'big'))
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # # CALL32EXa @R1(-300, -300)
+        # bc.write(0b10000011_00101001.to_bytes(2, 'big'))
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # # 64
+        # bc.write(0b11000011_00110001.to_bytes(2, 'big'))  # CALL64EX -3
+        # bc.write((-3).to_bytes(8, 'little', signed=True))  # ..
+
+        # bc.write(0b11000011_00100001.to_bytes(2, 'big'))  # CALL64EXa -3
+        # bc.write((-3).to_bytes(8, 'little', signed=True))  # ..
+
+        # 32
+        bc.write(0b00000001_00000001.to_bytes(2, 'big'))  # JMP32 R1
+        bc.write(0b00000001_10000001.to_bytes(2, 'big'))  # JMP32cc R1
+        bc.write(0b00000001_11000001.to_bytes(2, 'big'))  # JMP32cs R1
+
+        bc.write(0b00000001_00010001.to_bytes(2, 'big'))  # JMP32 R1  ;; Rel
+        bc.write(0b00000001_10010001.to_bytes(2, 'big'))  # JMP32cc R1  ;; Rel
+        bc.write(0b00000001_11010001.to_bytes(2, 'big'))  # JMP32cs R1  ;; Rel
+
+        bc.write(0b10000001_00000001.to_bytes(2, 'big'))  # JMP32 R1 -3
         bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b10000011_00000001.to_bytes(2, 'big'))  # CALL32a R1 -3
+        bc.write(0b10000001_00010001.to_bytes(2, 'big'))  # JMP32 R1 -3  ;; Rel
         bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b10000011_00011001.to_bytes(2, 'big'))  # CALL32 @R1(-3, -3)
+        # JMP32 @R1(-300, -300)
+        bc.write(0b10000001_00001001.to_bytes(2, 'big'))
         bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b10000011_00001001.to_bytes(2, 'big'))  # CALL32a @R1(-3, -3)
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
-
-        bc.write(0b00000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1
-        bc.write(0b00000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1
-
-        bc.write(0b10000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1 -3
-        bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b10000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1 -3
-        bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
-
-        # CALL32EX @R1(-300, -300)
-        bc.write(0b10000011_00111001.to_bytes(2, 'big'))
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
-
-        # CALL32EXa @R1(-300, -300)
-        bc.write(0b10000011_00101001.to_bytes(2, 'big'))
+        # JMP32 @R1(-300, -300)  ;; Rel
+        bc.write(0b10000001_00011001.to_bytes(2, 'big'))
         bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
         # 64
-        bc.write(0b11000011_00110001.to_bytes(2, 'big'))  # CALL64EX -3
-        bc.write((-3).to_bytes(8, 'little', signed=True))  # ..
+        bc.write(0b01000001_00000001.to_bytes(2, 'big'))  # JMP64 1000
+        bc.write((1000).to_bytes(8, 'little'))  # ..
 
-        bc.write(0b11000011_00100001.to_bytes(2, 'big'))  # CALL64EXa -3
-        bc.write((-3).to_bytes(8, 'little', signed=True))  # ..
+        bc.write(0b01000001_00010001.to_bytes(2, 'big'))  # JMP64 1000  ;; Rel
+        bc.write((1000).to_bytes(8, 'little'))  # ..
 
         return
 
