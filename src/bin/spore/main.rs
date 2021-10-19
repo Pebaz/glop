@@ -356,6 +356,20 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
     let byte1 = bytes.next().expect("Unexpected end of bytes");
     let byte1_bits = bits_rev(byte1);
 
+    match op
+    {
+
+        OpCode::CALL
+        | OpCode::JMP
+        | OpCode::PUSH
+        | OpCode::POP =>
+        {
+            postfix += if is_64_bit { "64" } else { "32" };
+        }
+
+        _ => (),
+    }
+
     // TODO(pbz): Have postfixes colored differently? =)
     let (op1, arg1, op2, arg2, comment) = match op
     {
@@ -373,15 +387,17 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
             (None, None, None, None, None)
         }
 
+        // OpCode::PUSH
+        // | OpCode::POP =>
+        // {
+        //     postfix += if is_64_bit { "64" } else { "32" };
+
+        //     (None, None, None, None, None)
+        // }
+
         OpCode::PUSH
-        | OpCode::POP =>
-        {
-            postfix += if is_64_bit { "64" } else { "32" };
-
-            (None, None, None, None, None)
-        }
-
-        OpCode::PUSHn
+        | OpCode::POP
+        | OpCode::PUSHn
         | OpCode::POPn =>
         {
             let operand1_is_indirect = byte1_bits[3];
