@@ -24,17 +24,34 @@ def write_bytecode():
 
         # bc.write(0b00000000_00000011.to_bytes(2, 'big'))  # BREAK 3
 
-        bc.write(0b00000010.to_bytes(1, 'big'))  # JMP8 -3
-        bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
+        # bc.write(0b00000010.to_bytes(1, 'big'))  # JMP8 -3
+        # bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
 
-        bc.write(0b01000010.to_bytes(1, 'big'))  # JMP8 -3
-        bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
+        # bc.write(0b01000010.to_bytes(1, 'big'))  # JMP8 -3
+        # bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
 
-        bc.write(0b10000010.to_bytes(1, 'big'))  # JMP8cc -3
-        bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
+        # bc.write(0b10000010.to_bytes(1, 'big'))  # JMP8cc -3
+        # bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
 
-        bc.write(0b11000010.to_bytes(1, 'big'))  # JMP8cs -3
-        bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
+        # bc.write(0b11000010.to_bytes(1, 'big'))  # JMP8cs -3
+        # bc.write((-3).to_bytes(1, 'big', signed=True))  # ..
+
+        bc.write(0b00110110_00000001.to_bytes(2, 'big'))  # POPn R1
+        bc.write(0b00110101_00000001.to_bytes(2, 'big'))  # PUSHn R1
+        bc.write(0b00110110_00001001.to_bytes(2, 'big'))  # POPn @R1
+        bc.write(0b00110101_00001001.to_bytes(2, 'big'))  # PUSHn @R1
+
+        bc.write(0b10110110_00000001.to_bytes(2, 'big'))  # POPn R1 -3
+        bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
+
+        bc.write(0b10110101_00000001.to_bytes(2, 'big'))  # PUSHn R1 -3
+        bc.write((-3).to_bytes(2, 'little', signed=True))  # ..
+
+        bc.write(0b10110110_00001001.to_bytes(2, 'big'))  # POPn @R1(-3, -3)
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+
+        bc.write(0b10110101_00001001.to_bytes(2, 'big'))  # PUSHn @R1(-3, -3)
+        bc.write((36879).to_bytes(2, 'little'))  # ..
 
         return
 

@@ -217,16 +217,20 @@ impl std::fmt::Display for Argument
         POP
         POPn
 
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON ❌
+        JMP64
+        CALL64
+
 
 3. INSTRUCTION OP1 ARGUMENT, ARGUMENT
     CMPI
 
-2. INSTRUCTION ARGUMENT
+2. ✅ INSTRUCTION ARGUMENT
     * GOTTA MATCH ON
         JMP8
         BREAK
 
-    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON ❌
         JMP64
         CALL64
 
@@ -332,6 +336,105 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
         None,
         None,
         None
+    );
+
+    Some(())
+}
+
+fn parse_instruction4<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    let mut name = format!("{}", op);
+    let mut postfix = String::with_capacity(5);
+    let immediate_data_present = byte0_bits[7];
+    let is_64_bit = byte0_bits[6];  // Not used by PUSHn & POPn
+
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+
+    // TODO(pbz): Have postfixes colored differently? =)
+    let (op1, arg1, op2, arg2, comment) = match op
+    {
+        OpCode::CALL =>
+        {
+            postfix += if is_64_bit { "64" } else { "32" };
+
+            (None, None, None, None, None)
+        }
+
+        OpCode::JMP =>
+        {
+            postfix += if is_64_bit { "64" } else { "32" };
+
+            (None, None, None, None, None)
+        }
+
+        OpCode::PUSH
+        | OpCode::POP =>
+        {
+            postfix += if is_64_bit { "64" } else { "32" };
+
+            (None, None, None, None, None)
+        }
+
+        OpCode::PUSHn
+        | OpCode::POPn =>
+        {
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+            let arg1 = if immediate_data_present
+            {
+                let mut value = [0u8; 2];
+
+                value[0] = bytes.next().unwrap();
+                value[1] = bytes.next().unwrap();
+
+                let arg = if operand1_is_indirect
+                {
+                    Argument::Index16(u16::from_le_bytes(value))
+                }
+                else
+                {
+                    Argument::ImmediateI16(i16::from_le_bytes(value))
+                };
+
+                Some(arg)
+            }
+            else
+            {
+                None
+            };
+
+            (
+                Some(
+                    Operand::new_general_purpose(
+                        operand1_value,
+                        operand1_is_indirect
+                    )
+                ),
+                arg1,
+                None,
+                None,
+                None
+            )
+        }
+
+        _ => unreachable!(),
+    };
+
+    name += &postfix;
+
+    disassemble_instruction(
+        format!("{}", name).truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        op1,
+        arg1,
+        op2,
+        arg2,
+        comment
     );
 
     Some(())
@@ -892,6 +995,18 @@ impl OpCode
             | OpCode::XOR =>
             {
                 parse_instruction7(bytes, byte0_bits, op_value, op)
+            }
+
+            OpCode::CALL
+            | OpCode::JMP
+            | OpCode::PUSH
+            | OpCode::PUSHn
+            | OpCode::POP
+            | OpCode::POPn
+            | OpCode::JMP
+            | OpCode::CALL =>
+            {
+                parse_instruction4(bytes, byte0_bits, op_value, op)
             }
 
             OpCode::LOADSP
