@@ -9,26 +9,35 @@ RANDOM_SIGNED_NUMBERS_20 = [random.randint(-20, 20) for i in range(100)]
 random_signed_20 = cycle(iter(i for i in RANDOM_SIGNED_NUMBERS_20 if i))
 
 # TODO(pbz): Allow creation of any bit length natural indices
+NATIND16 = 36879
+NATIND32 = 2954019116
+NATIND64 = 11529215048034579760
+
 natural_indices = {
-    'w': (36879, 2),
-    'd': (2954019116, 4),
-    'q': (11529215048034579760, 8),
+    'w': (NATIND16, 2),
+    'd': (NATIND32, 4),
+    'q': (NATIND64, 8),
 }
 
 def pad(width, string):
     return '0' * (width - len(string)) + string
 
-def lower(bc, opcode, bit8=False, bit7=False, byte1=None):
+def lower(bc, op, bit8=False, bit7=False, byte1=None, arg1=None, arg2=None):
     if bit8:
-        opcode = opcode | (1 << 7)  # Set 8th bit
+        op = op | (1 << 7)  # Set 8th bit
 
     if bit7:
-        opcode = opcode | (1 << 6)  # Set 7th bit
+        op = op | (1 << 6)  # Set 7th bit
 
-    bc.write(opcode.to_bytes(1, 'big'))
+    bc.write(op.to_bytes(1, 'big'))
 
     if byte1:
         bc.write(byte1.to_bytes(1, 'big'))
+
+
+def arg(bc, value, width, endianness, signed=False):
+    bc.write(value.to_bytes(width, endianness, signed=signed))
+
 
 def write_bytecode():
     with open('bc-example.bin', 'wb') as bc:
@@ -419,6 +428,9 @@ def write_bytecode():
         # TODO(pbz): Take out all the loops. Then scrape out special symbol and
         # TODO(pbz): compare it against the actual assembly output
         # ! It can be indirect but not have immediate data :(
+        # ! DO VALIDATION SO THAT IF DIRECT + INDEX FOR OP1, THAT IS AN ERROR!
+        # !                                           v <- SHOULD HAVE @ HERE
+        # ! RIGHT NOW, IT JUST LOOKS LIKE THIS: MOVqw  R1(-3, -3), @R2(-3, -3)
 
         # MOV
 
@@ -454,20 +466,123 @@ def write_bytecode():
 
         lower(bc, 0x20, False, False, 0b10101001)  # MOVq @R1, @R2
 
-        # MOVbw @R1(-3, -3), R2
-        # MOVww @R1(-3, -3), R2
-        # MOVdw @R1(-3, -3), R2
-        # MOVqw @R1(-3, -3), R2
+        lower(bc, 0x1D, True, False, 0b00101001)  # MOVbw @R1(-3, -3), R2
+        arg(bc, NATIND16, 2, 'little')
 
-        # MOVbw R1, @R2(-3, -3)
-        # MOVww R1, @R2(-3, -3)
-        # MOVdw R1, @R2(-3, -3)
-        # MOVqw R1, @R2(-3, -3)
+        lower(bc, 0x1E, True, False, 0b00101001)  # MOVww @R1(-3, -3), R2
+        arg(bc, NATIND16, 2, 'little')
 
-        # MOVbw @R1(-3, -3), @R2(-3, -3)
-        # MOVww @R1(-3, -3), @R2(-3, -3)
-        # MOVdw @R1(-3, -3), @R2(-3, -3)
-        # MOVqw @R1(-3, -3), @R2(-3, -3)
+        lower(bc, 0x1F, True, False, 0b00101001)  # MOVdw @R1(-3, -3), R2
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x20, True, False, 0b00101001)  # MOVqw @R1(-3, -3), R2
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1D, True, False, 0b10101001)  # MOVbw @R1(-3, -3), @R2
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1E, True, False, 0b10101001)  # MOVww @R1(-3, -3), @R2
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1F, True, False, 0b10101001)  # MOVdw @R1(-3, -3), @R2
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x20, True, False, 0b10101001)  # MOVqw @R1(-3, -3), @R2
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1D, False, True, 0b10100001)  # MOVbw R1, @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1E, False, True, 0b10100001)  # MOVww R1, @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1F, False, True, 0b10100001)  # MOVdw R1, @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x20, False, True, 0b10100001)  # MOVqw R1, @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1D, True, True, 0b10101001)  # MOVbw @R1(-3, -3), @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1E, True, True, 0b10101001)  # MOVww @R1(-3, -3), @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x1F, True, True, 0b10101001)  # MOVdw @R1(-3, -3), @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x20, True, True, 0b10101001)  # MOVqw @R1(-3, -3), @R2(-3, -3)
+        arg(bc, NATIND16, 2, 'little')
+        arg(bc, NATIND16, 2, 'little')
+
+        lower(bc, 0x21, True, False, 0b00101001)  # MOVbd @R1(-300, -300), R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x22, True, False, 0b00101001)  # MOVwd @R1(-300, -300), R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x23, True, False, 0b00101001)  # MOVdd @R1(-300, -300), R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x24, True, False, 0b00101001)  # MOVqd @R1(-300, -300), R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x21, True, False, 0b10101001)  # MOVbd @R1(-300, -300), @R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x22, True, False, 0b10101001)  # MOVwd @R1(-300, -300), @R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x23, True, False, 0b10101001)  # MOVdd @R1(-300, -300), @R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x24, True, False, 0b10101001)  # MOVqd @R1(-300, -300), @R2
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x21, False, True, 0b10100001)  # MOVbd R1, @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x22, False, True, 0b10100001)  # MOVwd R1, @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x23, False, True, 0b10100001)  # MOVdd R1, @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x24, False, True, 0b10100001)  # MOVqd R1, @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x21, True, True, 0b10101001)  # MOVbd @R1(-300, -300), @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x22, True, True, 0b10101001)  # MOVwd @R1(-300, -300), @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x23, True, True, 0b10101001)  # MOVdd @R1(-300, -300), @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x24, True, True, 0b10101001)  # MOVqd @R1(-300, -300), @R2(-300, -300)
+        arg(bc, NATIND32, 4, 'little')
+        arg(bc, NATIND32, 4, 'little')
+
+        lower(bc, 0x28, True, False, 0b00101001)  # MOVqq @R1(-30000, -30000), R2
+        arg(bc, NATIND64, 8, 'little')
+
+        lower(bc, 0x28, True, False, 0b10101001)  # MOVqq @R1(-30000, -30000), @R2
+        arg(bc, NATIND64, 8, 'little')
+
+        lower(bc, 0x28, False, True, 0b10100001)  # MOVqq R1, @R2(-30000, -30000)
+        arg(bc, NATIND64, 8, 'little')
+
+        lower(bc, 0x28, True, True, 0b10101001)  # MOVqq @R1(-30000, -30000), @R2(-30000, -30000)
+        arg(bc, NATIND64, 8, 'little')
+        arg(bc, NATIND64, 8, 'little')
+
 
         # mov_ops = dict(
         #     MOVbw=0x1d,
