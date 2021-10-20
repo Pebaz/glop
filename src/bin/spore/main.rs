@@ -605,7 +605,6 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
     // TODO(pbz): Have postfixes colored differently? =)
     let mut postfixes = String::with_capacity(7);
 
-
     let (op1, arg1, arg2) = match op
     {
         OpCode::MOVI =>
@@ -720,14 +719,13 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
         | OpCode::CMPIulte
         | OpCode::CMPIugte =>
         {
-            name = String::from("CMPI");
-
             let immediate_data_is_32_bit = byte0_bits[7];
             let comparison_is_64_bit = byte0_bits[6];
 
+            // Have to obliterate name due to the reordering below:
+            name = String::from("CMPI");
             name += if comparison_is_64_bit { "64" } else { "32" };
             name += if immediate_data_is_32_bit { "d" } else { "w" };
-
             name += match op
             {
                 OpCode::CMPIeq => "eq",
@@ -823,7 +821,97 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
 
         OpCode::MOVIn =>
         {
-            panic!("MOVIn");
+            let operand2_index_width = bits_to_byte_rev(&byte0_bits[6 ..= 7]);
+            postfixes += match operand2_index_width
+            {
+                1 => "w",  // 16 bit
+                2 => "d",  // 32 bit
+                3 => "q",  // 64 bit
+                _ => unreachable!(),
+            };
+
+            let byte1 = bytes.next().expect("Unexpected end of bytes");
+            let byte1_bits = bits_rev(byte1);
+            let operand1_index_present = byte1_bits[6];
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+
+            let op1 = Some(
+                Operand::new_general_purpose(
+                    operand1_value,
+                    operand1_is_indirect
+                )
+            );
+
+            let arg1 = if operand1_index_present
+            {
+                let mut value = [0u8; 2];
+
+                value[0] = bytes.next().unwrap();
+                value[1] = bytes.next().unwrap();
+
+                let arg = if operand1_is_indirect
+                {
+                    Argument::Index16(u16::from_le_bytes(value))
+                }
+                else
+                {
+                    panic!("Immediate data not supported for CMPI");
+                };
+
+                Some(arg)
+            }
+            else
+            {
+                None
+            };
+
+            let arg2 = {
+                match operand2_index_width
+                {
+                    1 =>  // 16 bit
+                    {
+                        let mut value = [0u8; 2];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::Index16(u16::from_le_bytes(value)))
+                    }
+
+                    2 =>  // 32 bit
+                    {
+                        let mut value = [0u8; 4];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::Index32(u32::from_le_bytes(value)))
+                    }
+
+                    3 =>  // 64 bit
+                    {
+                        let mut value = [0u8; 8];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::Index64(u64::from_le_bytes(value)))
+                    }
+
+                    _ => unreachable!(),
+                }
+            };
+
+            name += &postfixes;
+
+            (op1, arg1, arg2)
         }
 
         OpCode::MOVREL =>
@@ -967,7 +1055,7 @@ fn disassemble_instruction(
         print!(",");
     }
 
-    if let Some(op2) = operand2
+    if let Some(ref op2) = operand2
     {
         print!(" {}", op2);
     }
@@ -976,9 +1064,24 @@ fn disassemble_instruction(
     {
         match arg2
         {
-            Argument::Index16(index) => print!("{}", arg2),
-            Argument::Index32(index) => print!("{}", arg2),
-            Argument::Index64(index) => print!("{}", arg2),
+            Argument::Index16(index) =>
+            {
+                if operand2.is_none() { print!(" "); }
+                print!("{}", arg2)
+            }
+
+            Argument::Index32(index) =>
+            {
+                if operand2.is_none() { print!(" "); }
+                print!("{}", arg2)
+            }
+
+            Argument::Index64(index) =>
+            {
+                if operand2.is_none() { print!(" "); }
+                print!("{}", arg2)
+            }
+
             _ => print!(" {}", arg2),
         }
     }

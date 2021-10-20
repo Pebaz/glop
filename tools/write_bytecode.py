@@ -201,150 +201,162 @@ def write_bytecode():
         # bc.write(0b11110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
         # bc.write((1000).to_bytes(8, 'little'))  # ..
 
-        # CMPI
-        # w
-        bc.write(0b00101101_00000001.to_bytes(2, 'big'))  # CMPI32weq R1 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # # CMPI
+        # # w
+        # bc.write(0b00101101_00000001.to_bytes(2, 'big'))  # CMPI32weq R1 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b01101101_00000001.to_bytes(2, 'big'))  # CMPI64weq R1 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b01101101_00000001.to_bytes(2, 'big'))  # CMPI64weq R1 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b00101110_00000001.to_bytes(2, 'big'))  # CMPI32wlte R1 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b00101110_00000001.to_bytes(2, 'big'))  # CMPI32wlte R1 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b01101110_00000001.to_bytes(2, 'big'))  # CMPI64wlte R1 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b01101110_00000001.to_bytes(2, 'big'))  # CMPI64wlte R1 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b00101111_00000001.to_bytes(2, 'big'))  # CMPI32wgte R1 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b00101111_00000001.to_bytes(2, 'big'))  # CMPI32wgte R1 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b01101111_00000001.to_bytes(2, 'big'))  # CMPI64wgte R1 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b01101111_00000001.to_bytes(2, 'big'))  # CMPI64wgte R1 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b00110000_00000001.to_bytes(2, 'big'))  # CMPI32wulte R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b00110000_00000001.to_bytes(2, 'big'))  # CMPI32wulte R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b01110000_00000001.to_bytes(2, 'big'))  # CMPI64wulte R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01110000_00000001.to_bytes(2, 'big'))  # CMPI64wulte R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b00110001_00000001.to_bytes(2, 'big'))  # CMPI32wugte R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b00110001_00000001.to_bytes(2, 'big'))  # CMPI32wugte R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b01110001_00000001.to_bytes(2, 'big'))  # CMPI64wugte R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01110001_00000001.to_bytes(2, 'big'))  # CMPI64wugte R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        # d
-        bc.write(0b10101101_00000001.to_bytes(2, 'big'))  # CMPI32deq R1 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # # d
+        # bc.write(0b10101101_00000001.to_bytes(2, 'big'))  # CMPI32deq R1 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b11101101_00000001.to_bytes(2, 'big'))  # CMPI64deq R1 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b11101101_00000001.to_bytes(2, 'big'))  # CMPI64deq R1 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b10101110_00000001.to_bytes(2, 'big'))  # CMPI32dlte R1 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b10101110_00000001.to_bytes(2, 'big'))  # CMPI32dlte R1 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b11101110_00000001.to_bytes(2, 'big'))  # CMPI64dlte R1 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b11101110_00000001.to_bytes(2, 'big'))  # CMPI64dlte R1 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b10101111_00000001.to_bytes(2, 'big'))  # CMPI32dgte R1 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b10101111_00000001.to_bytes(2, 'big'))  # CMPI32dgte R1 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b11101111_00000001.to_bytes(2, 'big'))  # CMPI64dgte R1 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b11101111_00000001.to_bytes(2, 'big'))  # CMPI64dgte R1 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b10110000_00000001.to_bytes(2, 'big'))  # CMPI32dulte R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b10110000_00000001.to_bytes(2, 'big'))  # CMPI32dulte R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b11110000_00000001.to_bytes(2, 'big'))  # CMPI64dulte R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b11110000_00000001.to_bytes(2, 'big'))  # CMPI64dulte R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b10110001_00000001.to_bytes(2, 'big'))  # CMPI32dugte R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b10110001_00000001.to_bytes(2, 'big'))  # CMPI32dugte R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b11110001_00000001.to_bytes(2, 'big'))  # CMPI64dugte R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b11110001_00000001.to_bytes(2, 'big'))  # CMPI64dugte R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        # w @
-        bc.write(0b00101101_00011001.to_bytes(2, 'big'))  # CMPI32weq @R1(-3, -3) -1000
+        # # w @
+        # bc.write(0b00101101_00011001.to_bytes(2, 'big'))  # CMPI32weq @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # bc.write(0b01101101_00011001.to_bytes(2, 'big'))  # CMPI64weq @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # bc.write(0b00101110_00011001.to_bytes(2, 'big'))  # CMPI32wlte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # bc.write(0b01101110_00011001.to_bytes(2, 'big'))  # CMPI64wlte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # bc.write(0b00101111_00011001.to_bytes(2, 'big'))  # CMPI32wgte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # bc.write(0b01101111_00011001.to_bytes(2, 'big'))  # CMPI64wgte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # bc.write(0b00110000_00011001.to_bytes(2, 'big'))  # CMPI32wulte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
+
+        # bc.write(0b01110000_00011001.to_bytes(2, 'big'))  # CMPI64wulte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
+
+        # bc.write(0b00110001_00011001.to_bytes(2, 'big'))  # CMPI32wugte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
+
+        # bc.write(0b01110001_00011001.to_bytes(2, 'big'))  # CMPI64wugte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
+
+        # # d @
+        # bc.write(0b10101101_00011001.to_bytes(2, 'big'))  # CMPI32deq @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b11101101_00011001.to_bytes(2, 'big'))  # CMPI64deq @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b10101110_00011001.to_bytes(2, 'big'))  # CMPI32dlte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b11101110_00011001.to_bytes(2, 'big'))  # CMPI64dlte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b10101111_00011001.to_bytes(2, 'big'))  # CMPI32dgte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b11101111_00011001.to_bytes(2, 'big'))  # CMPI64dgte @R1(-3, -3) -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # bc.write(0b10110000_00011001.to_bytes(2, 'big'))  # CMPI32dulte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
+
+        # bc.write(0b11110000_00011001.to_bytes(2, 'big'))  # CMPI64dulte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
+
+        # bc.write(0b10110001_00011001.to_bytes(2, 'big'))  # CMPI32dugte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
+
+        # bc.write(0b11110001_00011001.to_bytes(2, 'big'))  # CMPI64dugte @R1(-3, -3) 1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
+
+        # MOVIn
+        bc.write(0b01111000_00000001.to_bytes(2, 'big'))  # MOVInw R1, (-3, -3)
         bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b01101101_00011001.to_bytes(2, 'big'))  # CMPI64weq @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # MOVInd R1, (-300, -300)
+        bc.write(0b10111000_00000001.to_bytes(2, 'big'))
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b00101110_00011001.to_bytes(2, 'big'))  # CMPI32wlte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
-
-        bc.write(0b01101110_00011001.to_bytes(2, 'big'))  # CMPI64wlte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
-
-        bc.write(0b00101111_00011001.to_bytes(2, 'big'))  # CMPI32wgte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
-
-        bc.write(0b01101111_00011001.to_bytes(2, 'big'))  # CMPI64wgte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
-
-        bc.write(0b00110000_00011001.to_bytes(2, 'big'))  # CMPI32wulte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(2, 'little'))  # ..
-
-        bc.write(0b01110000_00011001.to_bytes(2, 'big'))  # CMPI64wulte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(2, 'little'))  # ..
-
-        bc.write(0b00110001_00011001.to_bytes(2, 'big'))  # CMPI32wugte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(2, 'little'))  # ..
-
-        bc.write(0b01110001_00011001.to_bytes(2, 'big'))  # CMPI64wugte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(2, 'little'))  # ..
-
-        # d @
-        bc.write(0b10101101_00011001.to_bytes(2, 'big'))  # CMPI32deq @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b11101101_00011001.to_bytes(2, 'big'))  # CMPI64deq @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b10101110_00011001.to_bytes(2, 'big'))  # CMPI32dlte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b11101110_00011001.to_bytes(2, 'big'))  # CMPI64dlte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b10101111_00011001.to_bytes(2, 'big'))  # CMPI32dgte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b11101111_00011001.to_bytes(2, 'big'))  # CMPI64dgte @R1(-3, -3) -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
-
-        bc.write(0b10110000_00011001.to_bytes(2, 'big'))  # CMPI32dulte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(4, 'little'))  # ..
-
-        bc.write(0b11110000_00011001.to_bytes(2, 'big'))  # CMPI64dulte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(4, 'little'))  # ..
-
-        bc.write(0b10110001_00011001.to_bytes(2, 'big'))  # CMPI32dugte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(4, 'little'))  # ..
-
-        bc.write(0b11110001_00011001.to_bytes(2, 'big'))  # CMPI64dugte @R1(-3, -3) 1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # MOVInd R1, (-30000, -30000)
+        bc.write(0b11111000_00000001.to_bytes(2, 'big'))
+        bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
 
         return
 
