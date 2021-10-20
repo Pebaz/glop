@@ -422,14 +422,22 @@ def write_bytecode():
             MOVqq=0x28
         )
 
-        for op in mov_ops.values():
+        for instr, op in mov_ops.items():
+            # Direct, Direct
             opcode = op
-            # opcode = op | (1 << 7)  # Set 8th bit
-            # opcode &= ~(1 << 6)  # Clear 7th bit
             bc.write(opcode.to_bytes(1, 'little'))
 
             # R1, R2
             bc.write(0b00100001.to_bytes(1, 'little'))
+
+            # Indirect, Direct
+            opcode = op
+            opcode = op | (1 << 7)  # Set 8th bit
+            bc.write(opcode.to_bytes(1, 'little'))
+
+            # @R1(-3, -3), R2
+            bc.write(0b00101001.to_bytes(1, 'little'))
+            bc.write((36879).to_bytes(2, 'little'))  # ..
 
 
         return

@@ -1101,7 +1101,9 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
     op: OpCode,
 ) -> Option<()>
 {
-    match op
+    let mut name = format!("{}", op);
+
+    let (op1, arg1, op2, arg2) = match op
     {
         // OpCode::MOVbw
         // | OpCode::MOVww
@@ -1123,6 +1125,37 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
         {
             let operand1_index_present = byte0_bits[7];
             let operand2_index_present = byte0_bits[6];
+
+            // TODO(pbz): Really need to color-code the bit widths (bwdq)
+
+            // Can't presume operands are indexed
+            if !(operand1_index_present || operand2_index_present)
+            {
+                name = name[.. name.len() - 1].to_string();
+            }
+
+            // // If they are indexed, add the appropriate postfix
+            // if operand1_index_present || operand2_index_present
+            // {
+            //     name += match op
+            //     {
+            //         // 16 bit index(es)
+            //         OpCode::MOVbw
+            //         | OpCode::MOVww
+            //         | OpCode::MOVdw
+            //         | OpCode::MOVqw => "w",
+
+            //         OpCode::MOVbd
+            //         | OpCode::MOVwd
+            //         | OpCode::MOVdd
+            //         | OpCode::MOVqd => "d",  // 32 bit index(es)
+
+            //         OpCode::MOVqq => "q",  // 64 bit index(es)
+
+            //         // _ => unreachable!(),
+            //         _ => {println!("OP: {}", op); panic!("asdf"); }
+            //     };
+            // }
 
             let byte1 = bytes.next().expect("Unexpected end of bytes");
             let byte1_bits = bits_rev(byte1);
@@ -1203,9 +1236,71 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
                     None
                 }
             };
-        }
-    }
 
+            let arg2 =
+            {
+                if operand2_index_present
+                {
+                    let arg = match op
+                    {
+                        OpCode::MOVbw
+                        | OpCode::MOVww
+                        | OpCode::MOVdw
+                        | OpCode::MOVqw =>  // 16 bit
+                        {
+                            let mut value = [0u8; 2];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index16(u16::from_le_bytes(value))
+                        }
+
+                        OpCode::MOVbd
+                        | OpCode::MOVwd
+                        | OpCode::MOVdd
+                        | OpCode::MOVqd =>  // 32 bit
+                        {
+                            let mut value = [0u8; 4];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index32(u32::from_le_bytes(value))
+                        }
+
+                        OpCode::MOVqq =>  //64 bit
+                        {
+                            let mut value = [0u8; 8];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index64(u64::from_le_bytes(value))
+                        }
+
+                        _ => unreachable!()
+                    };
+
+                    Some(arg)
+                }
+                else
+                {
+                    None
+                }
+            };
+
+            (op1, arg1, op2, arg2)
+        }
+    };
+
+    disassemble_instruction(name, op1, arg1, op2, arg2, None);
 
     Some(())
 }
@@ -1228,6 +1323,7 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
 
 
 // TODO(pbz): Invest in some left/right justification
+// TODO(pbz): Justify in columns maybe?
 fn disassemble_instruction(
     instruction: String,  // Must concatenate postfixes manually
     operand1: Option<Operand>,
