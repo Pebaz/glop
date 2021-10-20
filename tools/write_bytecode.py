@@ -8,6 +8,12 @@ random_signed = cycle(iter(RANDOM_SIGNED_NUMBERS_X16))
 RANDOM_SIGNED_NUMBERS_20 = [random.randint(-20, 20) for i in range(100)]
 random_signed_20 = cycle(iter(i for i in RANDOM_SIGNED_NUMBERS_20 if i))
 
+# TODO(pbz): Allow creation of any bit length natural indices
+natural_indices = {
+    'w': (36879, 2),
+    'd': (2954019116, 4),
+    'q': (11529215048034579760, 8),
+}
 
 def pad(width, string):
     return '0' * (width - len(string)) + string
@@ -398,80 +404,203 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
         # bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
 
-        # MOV
-        """
-        MOVbw 0x1d 0b011101
-        MOVww 0x1e 0b011110
-        MOVdw 0x1f 0b011111
-        MOVqw 0x20 0b100000
-        MOVbd 0x21 0b100001
-        MOVwd 0x22 0b100010
-        MOVdd 0x23 0b100011
-        MOVqd 0x24 0b100100
-        MOVqq 0x28 0b101000
-        """
-        mov_ops = dict(
-            MOVbw=0x1d,
-            MOVww=0x1e,
-            MOVdw=0x1f,
-            MOVqw=0x20,
-            MOVbd=0x21,
-            MOVwd=0x22,
-            MOVdd=0x23,
-            MOVqd=0x24,
-            MOVqq=0x28
+        # # MOV
+        # mov_ops = dict(
+        #     MOVbw=0x1d,
+        #     MOVww=0x1e,
+        #     MOVdw=0x1f,
+        #     MOVqw=0x20,
+        #     MOVbd=0x21,
+        #     MOVwd=0x22,
+        #     MOVdd=0x23,
+        #     MOVqd=0x24,
+        #     MOVqq=0x28
+        # )
+
+        # for instr, op in mov_ops.items():
+        #     # {{{{{{{{{{{{{{{{{{{
+        #     # Direct, Direct
+        #     opcode = op
+        #     bc.write(opcode.to_bytes(1, 'little'))
+
+        #     # R1, R2
+        #     bc.write(0b00100001.to_bytes(1, 'little'))
+        #     # }}}}}}}}}}}}}}}}}}}
+
+        #     # {{{{{{{{{{{{{{{{{{{
+        #     # Indirect, Direct
+        #     opcode = op
+        #     opcode = op | (1 << 7)  # Set 8th bit
+        #     bc.write(opcode.to_bytes(1, 'little'))
+
+        #     # @R1(<INDEX>), R2
+        #     bc.write(0b00101001.to_bytes(1, 'little'))
+
+        #     # TODO(pbz): Allow creation of any bit length natural indices
+        #     natural_indices = {
+        #         'w': (36879, 2),
+        #         'd': (2954019116, 4),
+        #         'q': (11529215048034579760, 8),
+        #     }
+
+        #     index, width = natural_indices[instr[-1]]
+        #     bc.write(index.to_bytes(width, 'little'))  # ..
+        #     # }}}}}}}}}}}}}}}}}}}
+
+        #     # {{{{{{{{{{{{{{{{{{{
+        #     # Direct, Indirect
+        #     opcode = op
+        #     opcode = op | (1 << 6)  # Set 7th bit
+        #     bc.write(opcode.to_bytes(1, 'little'))
+
+        #     # R1, @R2(<INDEX>)
+        #     bc.write(0b10100001.to_bytes(1, 'little'))
+
+        #     index, width = natural_indices[instr[-1]]
+        #     bc.write(index.to_bytes(width, 'little'))  # ..
+        #     # }}}}}}}}}}}}}}}}}}}
+
+        #     # {{{{{{{{{{{{{{{{{{{
+        #     # Indirect, Indirect
+        #     opcode = op
+        #     opcode = opcode | (1 << 7)  # Set 8th bit
+        #     opcode = opcode | (1 << 6)  # Set 7th bit
+        #     bc.write(opcode.to_bytes(1, 'little'))
+
+        #     # @R1(<INDEX>), @R2(<INDEX>)
+        #     bc.write(0b10101001.to_bytes(1, 'little'))
+
+        #     index, width = natural_indices[instr[-1]]
+        #     bc.write(index.to_bytes(width, 'little'))  # ..
+        #     bc.write(index.to_bytes(width, 'little'))  # ..
+        #     # }}}}}}}}}}}}}}}}}}}
+
+        # TODO(pbz): Take out all the loops. Then scrape out special symbol and
+        # TODO(pbz): compare it against the actual assembly output
+        # ! It can be indirect but not have immediate data :(
+
+        # MOVsn
+        bc.write(0b01100101_00100001.to_bytes(2, 'big'))  # MOVsnw R1, R2 -1000
+        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        bc.write(0b01100110_00100001.to_bytes(2, 'big'))  # MOVsnd R1, R2 -1000
+        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b01100101_00101001.to_bytes(2, 'big'))  # MOVsnw @R1, R2 -1000
+        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        bc.write(0b01100110_00101001.to_bytes(2, 'big'))  # MOVsnd @R1, R2 -1000
+        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b01100101_10101001.to_bytes(2, 'big'))  # MOVsnw @R1, @R2(-3, -3)
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+
+        bc.write(0b01100110_10101001.to_bytes(2, 'big'))  # MOVsnd @R1, @R2(-300, -300)
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        bc.write(0b11100101_00101001.to_bytes(2, 'big'))  # MOVsnw @R1(-3, -3), R2 -1000
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        bc.write(0b11100110_00101001.to_bytes(2, 'big'))  # MOVsnd @R1(-300, -300), R2 -1000
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b11100101_10101001.to_bytes(2, 'big'))  # MOVsnw @R1(-3, -3), @R2(-3, -3)
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+
+        bc.write(0b11100110_10101001.to_bytes(2, 'big'))  # MOVsnd @R1(-300, -300), @R2(-300, -300)
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+
+
+
+        # MOVsn
+        movsn_ops = dict(
+            MOVsnw=0x25,
+            MOVsnd=0x26,
         )
 
-        for instr, op in mov_ops.items():
-            # {{{{{{{{{{{{{{{{{{{
-            # Direct, Direct
-            opcode = op
-            bc.write(opcode.to_bytes(1, 'little'))
+        for instr, op in movsn_ops.items():
+            ""
+            # # {{{{{{{{{{{{{{{{{{{
+            # # Direct, Direct
+            # opcode = op
+            # bc.write(opcode.to_bytes(1, 'little'))
 
-            # R1, R2
-            bc.write(0b00100001.to_bytes(1, 'little'))
-            # }}}}}}}}}}}}}}}}}}}
+            # # R1, R2
+            # bc.write(0b00100001.to_bytes(1, 'little'))
+            # # }}}}}}}}}}}}}}}}}}}
 
-            # {{{{{{{{{{{{{{{{{{{
-            # Indirect, Direct
-            opcode = op
-            opcode = op | (1 << 7)  # Set 8th bit
-            bc.write(opcode.to_bytes(1, 'little'))
+            # # {{{{{{{{{{{{{{{{{{{
+            # # Indirect, Direct
+            # opcode = op
+            # opcode = op | (1 << 7)  # Set 8th bit
+            # bc.write(opcode.to_bytes(1, 'little'))
 
-            # @R1(<INDEX>), R2
-            bc.write(0b00101001.to_bytes(1, 'little'))
+            # # @R1(<INDEX>), R2
+            # bc.write(0b00101001.to_bytes(1, 'little'))
 
-            # TODO(pbz): Allow creation of any bit length natural indices
-            natural_indices = {
-                'w': (36879, 2),
-                'd': (2954019116, 4),
-                'q': (11529215048034579760, 8),
-            }
+            # index, width = natural_indices[instr[-1]]
+            # bc.write(index.to_bytes(width, 'little'))  # ..
+            # # }}}}}}}}}}}}}}}}}}}
 
-            index, width = natural_indices[instr[-1]]
-            bc.write(index.to_bytes(width, 'little'))  # ..
-            # }}}}}}}}}}}}}}}}}}}
+            # # {{{{{{{{{{{{{{{{{{{
+            # # Direct, Indirect
+            # opcode = op
+            # opcode = op | (1 << 6)  # Set 7th bit
+            # bc.write(opcode.to_bytes(1, 'little'))
 
-            # {{{{{{{{{{{{{{{{{{{
-            # Direct, Indirect
-            opcode = op
-            opcode = op | (1 << 6)  # Set 7th bit
-            bc.write(opcode.to_bytes(1, 'little'))
+            # # R1, @R2(<INDEX>)
+            # bc.write(0b10100001.to_bytes(1, 'little'))
 
-            # R1, @R2(<INDEX>)
-            bc.write(0b10100001.to_bytes(1, 'little'))
+            # index, width = natural_indices[instr[-1]]
+            # bc.write(index.to_bytes(width, 'little'))  # ..
+            # # }}}}}}}}}}}}}}}}}}}
 
-            # TODO(pbz): Allow creation of any bit length natural indices
-            natural_indices = {
-                'w': (36879, 2),
-                'd': (2954019116, 4),
-                'q': (11529215048034579760, 8),
-            }
+            # # {{{{{{{{{{{{{{{{{{{
+            # # Indirect, Indirect
+            # opcode = op
+            # opcode = opcode | (1 << 7)  # Set 8th bit
+            # opcode = opcode | (1 << 6)  # Set 7th bit
+            # bc.write(opcode.to_bytes(1, 'little'))
 
-            index, width = natural_indices[instr[-1]]
-            bc.write(index.to_bytes(width, 'little'))  # ..
-            # }}}}}}}}}}}}}}}}}}}
+            # # @R1(<INDEX>), @R2(<INDEX>)
+            # bc.write(0b10101001.to_bytes(1, 'little'))
 
+            # index, width = natural_indices[instr[-1]]
+            # bc.write(index.to_bytes(width, 'little'))  # ..
+
+            # index, width = natural_indices[instr[-1]]
+            # bc.write(index.to_bytes(width, 'little'))  # ..
+            # # }}}}}}}}}}}}}}}}}}}
+
+            # # {{{{{{{{{{{{{{{{{{{
+            # # Indirect, Indirect
+            # opcode = op
+            # # opcode = opcode | (1 << 7)  # Set 8th bit
+            # opcode = opcode | (1 << 6)  # Set 7th bit
+            # bc.write(opcode.to_bytes(1, 'little'))
+
+            # # @R1, @R2(<INDEX>)
+            # bc.write(0b10101001.to_bytes(1, 'little'))
+
+            # index, width = natural_indices[instr[-1]]
+            # bc.write(index.to_bytes(width, 'little'))  # ..
+            # # }}}}}}}}}}}}}}}}}}}
+
+            # # {{{{{{{{{{{{{{{{{{{
+            # # Indirect, Indirect
+            # opcode = op
+            # # opcode = opcode | (1 << 7)  # Set 8th bit
+            # # opcode = opcode | (1 << 6)  # Set 7th bit
+            # bc.write(opcode.to_bytes(1, 'little'))
+
+            # # @R1, @R2(<INDEX>)
+            # bc.write(0b10101001.to_bytes(1, 'little'))
+            # # }}}}}}}}}}}}}}}}}}}
 
         return
 

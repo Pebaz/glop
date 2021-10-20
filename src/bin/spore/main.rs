@@ -1102,59 +1102,148 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
 ) -> Option<()>
 {
     let mut name = format!("{}", op);
+    let operand1_index_present = byte0_bits[7];
+    let operand2_index_present = byte0_bits[6];
 
-    let (op1, arg1, op2, arg2) = match op
+    // TODO(pbz): Really need to color-code the bit widths (bwdq)
+
+    // Can't presume operands are indexed
+    if !(operand1_index_present || operand2_index_present)
     {
-        // OpCode::MOVbw
-        // | OpCode::MOVww
-        // | OpCode::MOVdw
-        // | OpCode::MOVqw
-        // | OpCode::MOVbd
-        // | OpCode::MOVwd
-        // | OpCode::MOVdd
-        // | OpCode::MOVqd
-        // | OpCode::MOVqq
+        name = name[.. name.len() - 1].to_string();
+    }
 
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+    let operand1_is_indirect = byte1_bits[3];
+    let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+    let operand2_is_indirect = byte1_bits[7];
+    let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+
+    let op1 = Some(
+        Operand::new_general_purpose(
+            operand1_value,
+            operand1_is_indirect
+        )
+    );
+
+    let op2 = Some(
+        Operand::new_general_purpose(
+            operand2_value,
+            operand2_is_indirect
+        )
+    );
+
+    let (arg1, arg2) = match op
+    {
         OpCode::MOVsnw
         | OpCode::MOVsnd =>
         {
-            panic!("MOVsn*");
+            let arg1 =
+            {
+                if operand1_index_present
+                {
+                    let arg = match op
+                    {
+                        OpCode::MOVsnw =>  // 16 bit
+                        {
+                            let mut value = [0u8; 2];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index16(u16::from_le_bytes(value))
+                        }
+
+                        OpCode::MOVsnd =>  // 32 bit
+                        {
+                            let mut value = [0u8; 4];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index32(u32::from_le_bytes(value))
+                        }
+
+                        _ => unreachable!()
+                    };
+
+                    Some(arg)
+                }
+                else
+                {
+                    None
+                }
+            };
+
+            let arg2 =
+            {
+                if operand2_index_present
+                {
+                    let arg = match op
+                    {
+                        OpCode::MOVsnw =>  // 16 bit
+                        {
+                            let mut value = [0u8; 2];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            if operand2_is_indirect
+                            {
+                                Argument::Index16(u16::from_le_bytes(value))
+                            }
+                            else
+                            {
+                                Argument::ImmediateI16(
+                                    i16::from_le_bytes(value)
+                                )
+                            }
+                        }
+
+                        OpCode::MOVsnd =>  // 32 bit
+                        {
+                            let mut value = [0u8; 4];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            if operand2_is_indirect
+                            {
+                                Argument::Index32(u32::from_le_bytes(value))
+                            }
+                            else
+                            {
+                                Argument::ImmediateI32(
+                                    i32::from_le_bytes(value)
+                                )
+                            }
+                        }
+
+                        _ => unreachable!()
+                    };
+
+                    Some(arg)
+                }
+                else
+                {
+                    None
+                }
+            };
+
+            (arg1, arg2)
         }
 
         _ =>  // MOV
         {
-            let operand1_index_present = byte0_bits[7];
-            let operand2_index_present = byte0_bits[6];
-
-            // TODO(pbz): Really need to color-code the bit widths (bwdq)
-
-            // Can't presume operands are indexed
-            if !(operand1_index_present || operand2_index_present)
-            {
-                name = name[.. name.len() - 1].to_string();
-            }
-
-            let byte1 = bytes.next().expect("Unexpected end of bytes");
-            let byte1_bits = bits_rev(byte1);
-            let operand1_is_indirect = byte1_bits[3];
-            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
-            let operand2_is_indirect = byte1_bits[7];
-            let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
-
-            let op1 = Some(
-                Operand::new_general_purpose(
-                    operand1_value,
-                    operand1_is_indirect
-                )
-            );
-
-            let op2 = Some(
-                Operand::new_general_purpose(
-                    operand2_value,
-                    operand2_is_indirect
-                )
-            );
-
             let arg1 =
             {
                 if operand1_index_present
@@ -1273,7 +1362,7 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
                 }
             };
 
-            (op1, arg1, op2, arg2)
+            (arg1, arg2)
         }
     };
 
@@ -1305,7 +1394,7 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
 
 
 
-
+// TODO(pbz): Only output text once. Build in buffer
 // TODO(pbz): Invest in some left/right justification
 // TODO(pbz): Justify in columns maybe?
 fn disassemble_instruction(
