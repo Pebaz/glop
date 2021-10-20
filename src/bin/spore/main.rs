@@ -1134,29 +1134,6 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
                 name = name[.. name.len() - 1].to_string();
             }
 
-            // // If they are indexed, add the appropriate postfix
-            // if operand1_index_present || operand2_index_present
-            // {
-            //     name += match op
-            //     {
-            //         // 16 bit index(es)
-            //         OpCode::MOVbw
-            //         | OpCode::MOVww
-            //         | OpCode::MOVdw
-            //         | OpCode::MOVqw => "w",
-
-            //         OpCode::MOVbd
-            //         | OpCode::MOVwd
-            //         | OpCode::MOVdd
-            //         | OpCode::MOVqd => "d",  // 32 bit index(es)
-
-            //         OpCode::MOVqq => "q",  // 64 bit index(es)
-
-            //         // _ => unreachable!(),
-            //         _ => {println!("OP: {}", op); panic!("asdf"); }
-            //     };
-            // }
-
             let byte1 = bytes.next().expect("Unexpected end of bytes");
             let byte1_bits = bits_rev(byte1);
             let operand1_is_indirect = byte1_bits[3];
@@ -1300,7 +1277,14 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
         }
     };
 
-    disassemble_instruction(name, op1, arg1, op2, arg2, None);
+    disassemble_instruction(
+        name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        op1,
+        arg1,
+        op2,
+        arg2,
+        None
+    );
 
     Some(())
 }
