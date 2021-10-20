@@ -916,7 +916,97 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
 
         OpCode::MOVREL =>
         {
-            panic!("MOVREL");
+            let immediate_data_width = bits_to_byte_rev(&byte0_bits[6 ..= 7]);
+            postfixes += match immediate_data_width
+            {
+                1 => "w",  // 16 bit
+                2 => "d",  // 32 bit
+                3 => "q",  // 64 bit
+                _ => unreachable!(),
+            };
+
+            let byte1 = bytes.next().expect("Unexpected end of bytes");
+            let byte1_bits = bits_rev(byte1);
+            let operand1_index_present = byte1_bits[6];
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+
+            let op1 = Some(
+                Operand::new_general_purpose(
+                    operand1_value,
+                    operand1_is_indirect
+                )
+            );
+
+            let arg1 = if operand1_index_present
+            {
+                let mut value = [0u8; 2];
+
+                value[0] = bytes.next().unwrap();
+                value[1] = bytes.next().unwrap();
+
+                let arg = if operand1_is_indirect
+                {
+                    Argument::Index16(u16::from_le_bytes(value))
+                }
+                else
+                {
+                    panic!("Immediate data not supported for CMPI");
+                };
+
+                Some(arg)
+            }
+            else
+            {
+                None
+            };
+
+            let arg2 = {
+                match immediate_data_width
+                {
+                    1 =>  // 16 bit
+                    {
+                        let mut value = [0u8; 2];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::ImmediateI16(i16::from_le_bytes(value)))
+                    }
+
+                    2 =>  // 32 bit
+                    {
+                        let mut value = [0u8; 4];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::ImmediateI32(i32::from_le_bytes(value)))
+                    }
+
+                    3 =>  // 64 bit
+                    {
+                        let mut value = [0u8; 8];
+
+                        for i in 0 .. value.len()
+                        {
+                            value[i] = bytes.next().unwrap();
+                        }
+
+                        Some(Argument::ImmediateI64(i64::from_le_bytes(value)))
+                    }
+
+                    _ => unreachable!(),
+                }
+            };
+
+            name += &postfixes;
+
+            (op1, arg1, arg2)
         }
 
         _ => unreachable!(),

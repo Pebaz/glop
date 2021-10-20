@@ -346,32 +346,58 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
         # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        # MOVIn
-        bc.write(0b01111000_00000001.to_bytes(2, 'big'))  # MOVInw R1, (-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # # MOVIn
+        # bc.write(0b01111000_00000001.to_bytes(2, 'big'))  # MOVInw R1, (-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        # MOVInd R1, (-300, -300)
-        bc.write(0b10111000_00000001.to_bytes(2, 'big'))
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        # # MOVInd R1, (-300, -300)
+        # bc.write(0b10111000_00000001.to_bytes(2, 'big'))
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
-        # MOVInd R1, (-30000, -30000)
-        bc.write(0b11111000_00000001.to_bytes(2, 'big'))
-        bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
+        # # MOVInd R1, (-30000, -30000)
+        # bc.write(0b11111000_00000001.to_bytes(2, 'big'))
+        # bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
 
-        # MOVInw @R1(-3, -3), (-3, -3)
-        bc.write(0b01111000_01001001.to_bytes(2, 'big'))
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # # MOVInw @R1(-3, -3), (-3, -3)
+        # bc.write(0b01111000_01001001.to_bytes(2, 'big'))
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        # MOVInd @R1(-3, -3), (-300, -300)
-        bc.write(0b10111000_01001001.to_bytes(2, 'big'))
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        # # MOVInd @R1(-3, -3), (-300, -300)
+        # bc.write(0b10111000_01001001.to_bytes(2, 'big'))
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
-        # MOVInd @R1(-3, -3), (-30000, -30000)
-        bc.write(0b11111000_01001001.to_bytes(2, 'big'))
+        # # MOVInd @R1(-3, -3), (-30000, -30000)
+        # bc.write(0b11111000_01001001.to_bytes(2, 'big'))
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
+
+        # MOVREL
+        bc.write(0b01111001_00000001.to_bytes(2, 'big'))  # MOVERELw R1, -1000
+        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        bc.write(0b10111001_00000001.to_bytes(2, 'big'))  # MOVERELd R1, -1000
+        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        bc.write(0b11111001_00000001.to_bytes(2, 'big'))  # MOVERELq R1, -1000
+        bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
+
+        # MOVERELw @R1(-3, -3), -1000
+        bc.write(0b01111001_01001001.to_bytes(2, 'big'))
         bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
+        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+
+        # MOVERELd @R1(-3, -3), -1000
+        bc.write(0b10111001_01001001.to_bytes(2, 'big'))
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+
+        # MOVERELq @R1(-3, -3), -1000
+        bc.write(0b11111001_01001001.to_bytes(2, 'big'))
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
+
 
         return
 
