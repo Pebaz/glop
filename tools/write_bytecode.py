@@ -373,30 +373,63 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
         # bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
 
-        # MOVREL
-        bc.write(0b01111001_00000001.to_bytes(2, 'big'))  # MOVERELw R1, -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # # MOVREL
+        # bc.write(0b01111001_00000001.to_bytes(2, 'big'))  # MOVERELw R1, -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b10111001_00000001.to_bytes(2, 'big'))  # MOVERELd R1, -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b10111001_00000001.to_bytes(2, 'big'))  # MOVERELd R1, -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b11111001_00000001.to_bytes(2, 'big'))  # MOVERELq R1, -1000
-        bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
+        # bc.write(0b11111001_00000001.to_bytes(2, 'big'))  # MOVERELq R1, -1000
+        # bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
 
-        # MOVERELw @R1(-3, -3), -1000
-        bc.write(0b01111001_01001001.to_bytes(2, 'big'))
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # # MOVERELw @R1(-3, -3), -1000
+        # bc.write(0b01111001_01001001.to_bytes(2, 'big'))
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        # MOVERELd @R1(-3, -3), -1000
-        bc.write(0b10111001_01001001.to_bytes(2, 'big'))
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # # MOVERELd @R1(-3, -3), -1000
+        # bc.write(0b10111001_01001001.to_bytes(2, 'big'))
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        # MOVERELq @R1(-3, -3), -1000
-        bc.write(0b11111001_01001001.to_bytes(2, 'big'))
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
+        # # MOVERELq @R1(-3, -3), -1000
+        # bc.write(0b11111001_01001001.to_bytes(2, 'big'))
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
+
+        # MOV
+        """
+        MOVbw 0x1d 0b011101
+        MOVww 0x1e 0b011110
+        MOVdw 0x1f 0b011111
+        MOVqw 0x20 0b100000
+        MOVbd 0x21 0b100001
+        MOVwd 0x22 0b100010
+        MOVdd 0x23 0b100011
+        MOVqd 0x24 0b100100
+        MOVqq 0x28 0b101000
+        """
+        mov_ops = dict(
+            MOVbw=0x1d,
+            MOVww=0x1e,
+            MOVdw=0x1f,
+            MOVqw=0x20,
+            MOVbd=0x21,
+            MOVwd=0x22,
+            MOVdd=0x23,
+            MOVqd=0x24,
+            MOVqq=0x28
+        )
+
+        for op in mov_ops.values():
+            opcode = op
+            # opcode = op | (1 << 7)  # Set 8th bit
+            # opcode &= ~(1 << 6)  # Clear 7th bit
+            bc.write(opcode.to_bytes(1, 'little'))
+
+            # R1, R2
+            bc.write(0b00100001.to_bytes(1, 'little'))
 
 
         return

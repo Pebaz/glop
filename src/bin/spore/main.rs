@@ -1,4 +1,71 @@
 /*
+Instruction Type Breakdown:
+
+7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT
+    * GOTTA MATCH ON
+        MOV? (such as MOVqq. Technically they are all the same instruction)
+        MOV?, MOVn, MOVsn (these have overlap with MOV, but MOVqq is tricky)
+
+6. ✅ INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
+    ADD
+    AND
+    ASHR
+    CMP
+    DIV
+    DIVU
+    EXTENDB
+    EXTENDD
+    EXTENDW
+    MOD
+    MODU
+    MUL
+    MULU
+    NEG
+    NOT
+    OR
+    SHL
+    SHR
+    SUB
+    XOR
+
+5. ✅ INSTRUCTION OP1 ARGUMENT, ARGUMENT
+    * GOTTA MATCH ON
+        CMPI
+        MOVI
+        MOVIn
+        MOVREL <- Check these to make sure parsing is the same
+
+4. ✅ INSTRUCTION OP1, OP2
+    STORESP
+    LOADSP
+
+3. ✅ INSTRUCTION OP1 ARGUMENT
+    * GOTTA MATCH ON
+        CALL32
+        JMP32
+        PUSH
+        PUSHn
+        POP
+        POPn
+
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
+        JMP64
+        CALL64
+
+2. ✅ INSTRUCTION ARGUMENT
+    * GOTTA MATCH ON
+        JMP8
+        BREAK
+
+    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
+        JMP64
+        CALL64
+
+1. ✅ INSTRUCTION
+    RET
+*/
+
+/*
 1. Use the right tool for the job: load PE in Python
 2. Pipe bytecode to STDIN
 3. Composeable programs are beautiful. Need to get interface right instead of
@@ -155,72 +222,6 @@ impl std::fmt::Display for Argument
         }
     }
 }
-
-
-/*
-7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT
-    * GOTTA MATCH ON
-        MOV? (such as MOVqq. Technically they are all the same instruction)
-        MOV?, MOVn, MOVsn (these have overlap with MOV, but MOVqq is tricky)
-
-6. ✅ INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate)
-    ADD
-    AND
-    ASHR
-    CMP
-    DIV
-    DIVU
-    EXTENDB
-    EXTENDD
-    EXTENDW
-    MOD
-    MODU
-    MUL
-    MULU
-    NEG
-    NOT
-    OR
-    SHL
-    SHR
-    SUB
-    XOR
-
-5. INSTRUCTION OP1 ARGUMENT, ARGUMENT
-    * GOTTA MATCH ON
-        CMPI
-        MOVI
-        MOVIn
-        MOVREL <- Check these to make sure parsing is the same
-
-4. ✅ INSTRUCTION OP1, OP2
-    STORESP
-    LOADSP
-
-3. ✅ INSTRUCTION OP1 ARGUMENT
-    * GOTTA MATCH ON
-        CALL32
-        JMP32
-        PUSH
-        PUSHn
-        POP
-        POPn
-
-    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
-        JMP64
-        CALL64
-
-2. ✅ INSTRUCTION ARGUMENT
-    * GOTTA MATCH ON
-        JMP8
-        BREAK
-
-    * THESE ARE TECHNICALLY HERE ALSO BUT THEY CAN'T BE MATCHED UPON
-        JMP64
-        CALL64
-
-1. ✅ INSTRUCTION
-    RET
-*/
 
 fn parse_instruction1<T: Iterator<Item=u8>>(
     bytes: &mut T,
@@ -1093,7 +1094,121 @@ fn parse_instruction6<T: Iterator<Item=u8>>(
     Some(())
 }
 
+fn parse_instruction7<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    match op
+    {
+        // OpCode::MOVbw
+        // | OpCode::MOVww
+        // | OpCode::MOVdw
+        // | OpCode::MOVqw
+        // | OpCode::MOVbd
+        // | OpCode::MOVwd
+        // | OpCode::MOVdd
+        // | OpCode::MOVqd
+        // | OpCode::MOVqq
 
+        OpCode::MOVsnw
+        | OpCode::MOVsnd =>
+        {
+            panic!("MOVsn*");
+        }
+
+        _ =>  // MOV
+        {
+            let operand1_index_present = byte0_bits[7];
+            let operand2_index_present = byte0_bits[6];
+
+            let byte1 = bytes.next().expect("Unexpected end of bytes");
+            let byte1_bits = bits_rev(byte1);
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+            let operand2_is_indirect = byte1_bits[7];
+            let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+
+            let op1 = Some(
+                Operand::new_general_purpose(
+                    operand1_value,
+                    operand1_is_indirect
+                )
+            );
+
+            let op2 = Some(
+                Operand::new_general_purpose(
+                    operand2_value,
+                    operand2_is_indirect
+                )
+            );
+
+            let arg1 =
+            {
+                if operand1_index_present
+                {
+                    let arg = match op
+                    {
+                        OpCode::MOVbw
+                        | OpCode::MOVww
+                        | OpCode::MOVdw
+                        | OpCode::MOVqw =>  // 16 bit
+                        {
+                            let mut value = [0u8; 2];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index16(u16::from_le_bytes(value))
+                        }
+
+                        OpCode::MOVbd
+                        | OpCode::MOVwd
+                        | OpCode::MOVdd
+                        | OpCode::MOVqd =>  // 32 bit
+                        {
+                            let mut value = [0u8; 4];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index32(u32::from_le_bytes(value))
+                        }
+
+                        OpCode::MOVqq =>  //64 bit
+                        {
+                            let mut value = [0u8; 8];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index64(u64::from_le_bytes(value))
+                        }
+
+                        _ => unreachable!()
+                    };
+
+                    Some(arg)
+                }
+                else
+                {
+                    None
+                }
+            };
+        }
+    }
+
+
+    Some(())
+}
 
 
 
@@ -1590,6 +1705,21 @@ impl OpCode
             | OpCode::XOR =>
             {
                 parse_instruction6(bytes, byte0_bits, op_value, op)
+            }
+
+            OpCode::MOVbw
+            | OpCode::MOVww
+            | OpCode::MOVdw
+            | OpCode::MOVqw
+            | OpCode::MOVbd
+            | OpCode::MOVwd
+            | OpCode::MOVdd
+            | OpCode::MOVqd
+            | OpCode::MOVqq
+            | OpCode::MOVsnw
+            | OpCode::MOVsnd =>
+            {
+                parse_instruction7(bytes, byte0_bits, op_value, op)
             }
 
             _ =>  // TODO(pbz): Remove this once all instructions are covered
