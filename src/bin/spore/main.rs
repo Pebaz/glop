@@ -297,21 +297,6 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
         _ => unreachable!(),
     };
 
-    // let (op1, op2) = match op
-    // {
-    //     OpCode::STORESP => (
-    //         Operand::new_general_purpose(operand1_value, false),
-    //         Operand::new_dedicated(operand2_value, false)
-    //     ),
-
-    //     OpCode::LOADSP => (
-    //         Operand::new_dedicated(operand1_value, false),
-    //         Operand::new_general_purpose(operand2_value, false)
-    //     ),
-
-    //     _ => unreachable!(),
-    // };
-
     disassemble_instruction(
         name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
         None,
@@ -727,7 +712,11 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
             (op1, arg1, arg2)
         }
 
-        OpCode::CMPI =>
+        OpCode::CMPIeq
+        | OpCode::CMPIlte
+        | OpCode::CMPIgte
+        | OpCode::CMPIulte
+        | OpCode::CMPIugte =>
         {
             panic!("CMPI");
         }
@@ -757,7 +746,74 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
     Some(())
 }
 
+fn parse_instruction6<T: Iterator<Item=u8>>(
+    bytes: &mut T,
+    byte0_bits: [bool; 8],
+    op_value: u8,
+    op: OpCode,
+) -> Option<()>
+{
+    let mut name = format!("{}", op);
+    let immediate_data_present = byte0_bits[7];
 
+    // TODO(pbz): Have postfixes colored differently? =)
+    name += if byte0_bits[6]
+    {
+        "64"
+    }
+    else
+    {
+        "32"
+    };
+
+    let byte1 = bytes.next().expect("Unexpected end of bytes");
+    let byte1_bits = bits_rev(byte1);
+    let operand1_is_indirect = byte1_bits[3];
+    let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+    let operand2_is_indirect = byte1_bits[7];
+    let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
+
+    let op1_x16_index_or_immediate =
+    {
+        if immediate_data_present
+        {
+            let mut value = [0u8; 2];
+
+            value[0] = bytes.next().unwrap();
+            value[1] = bytes.next().unwrap();
+
+            let arg = if operand2_is_indirect
+            {
+                Argument::Index16(u16::from_le_bytes(value))
+            }
+            else
+            {
+                Argument::ImmediateI16(i16::from_le_bytes(value))
+            };
+
+            Some(arg)
+        }
+        else
+        {
+            None
+        }
+    };
+
+    disassemble_instruction(
+        name.truecolor(BLUE.0, BLUE.1, BLUE.2).to_string(),
+        Some(
+            Operand::new_general_purpose(operand1_value, operand1_is_indirect)
+        ),
+        None,
+        Some(
+            Operand::new_general_purpose(operand2_value, operand2_is_indirect)
+        ),
+        op1_x16_index_or_immediate,
+        None
+    );
+
+    Some(())
+}
 
 
 
@@ -1168,40 +1224,23 @@ impl OpCode
             format!("Invalid OpCode: {}", op_value).as_str()
         );
 
-        // TODO(pbz): Reorder these by 1-7
+        /*
+        1. INSTRUCTION (RET)
+        2. INSTRUCTION ARGUMENT (BREAK)
+        3. INSTRUCTION OP1 ARGUMENT (CALL)
+        4. INSTRUCTION OP1, OP2 (STORESP)
+        5. INSTRUCTION OP1 ARGUMENT, ARGUMENT (CMPI)
+        6. INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate) (MUL)
+        7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT (MOV)
+        */
         match op
         {
-            OpCode::ADD
-            | OpCode::AND
-            | OpCode::ASHR
-            | OpCode::CMPeq
-            | OpCode::CMPlte
-            | OpCode::CMPgte
-            | OpCode::CMPulte
-            | OpCode::CMPugte
-            | OpCode::CMPIeq
-            | OpCode::CMPIlte
-            | OpCode::CMPIgte
-            | OpCode::CMPIulte
-            | OpCode::CMPIugte
-            | OpCode::DIV
-            | OpCode::DIVU
-            | OpCode::EXTNDB
-            | OpCode::EXTNDD
-            | OpCode::EXTNDW
-            | OpCode::MOD
-            | OpCode::MODU
-            | OpCode::MUL
-            | OpCode::MULU
-            | OpCode::NEG
-            | OpCode::NOT
-            | OpCode::OR
-            | OpCode::SHL
-            | OpCode::SHR
-            | OpCode::SUB
-            | OpCode::XOR =>
+            OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
+
+            OpCode::JMP8
+            | OpCode::BREAK =>
             {
-                parse_instruction6(bytes, byte0_bits, op_value, op)
+                parse_instruction2(bytes, byte0_bits, op_value, op)
             }
 
             OpCode::CALL
@@ -1234,13 +1273,33 @@ impl OpCode
                 parse_instruction5(bytes, byte0_bits, op_value, op)
             }
 
-            OpCode::JMP8
-            | OpCode::BREAK =>
+            OpCode::ADD
+            | OpCode::AND
+            | OpCode::ASHR
+            | OpCode::CMPeq
+            | OpCode::CMPlte
+            | OpCode::CMPgte
+            | OpCode::CMPulte
+            | OpCode::CMPugte
+            | OpCode::DIV
+            | OpCode::DIVU
+            | OpCode::EXTNDB
+            | OpCode::EXTNDD
+            | OpCode::EXTNDW
+            | OpCode::MOD
+            | OpCode::MODU
+            | OpCode::MUL
+            | OpCode::MULU
+            | OpCode::NEG
+            | OpCode::NOT
+            | OpCode::OR
+            | OpCode::SHL
+            | OpCode::SHR
+            | OpCode::SUB
+            | OpCode::XOR =>
             {
-                parse_instruction2(bytes, byte0_bits, op_value, op)
+                parse_instruction6(bytes, byte0_bits, op_value, op)
             }
-
-            OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
 
             _ =>  // TODO(pbz): Remove this once all instructions are covered
             {

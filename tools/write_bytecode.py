@@ -201,6 +201,9 @@ def write_bytecode():
         # bc.write(0b11110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
         # bc.write((1000).to_bytes(8, 'little'))  # ..
 
+        bc.write(0b00101101_00000001.to_bytes(2, 'big'))  # CMPI32weq R1 1000
+        bc.write((1000).to_bytes(2, 'little'))  # ..
+
         return
 
         ops = dict(
@@ -223,11 +226,6 @@ def write_bytecode():
             CMPgte=0x07,
             CMPulte=0x08,
             CMPugte=0x09,
-            CMPIeq=0x2D,
-            CMPIlte=0x2E,
-            CMPIgte=0x2F,
-            CMPIulte=0x30,
-            CMPIugte=0x31,
             MUL=0x0E,
             MULU=0x0F,
             NEG=0x0B,
