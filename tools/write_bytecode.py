@@ -358,6 +358,21 @@ def write_bytecode():
         bc.write(0b11111000_00000001.to_bytes(2, 'big'))
         bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
 
+        # MOVInw @R1(-3, -3), (-3, -3)
+        bc.write(0b01111000_01001001.to_bytes(2, 'big'))
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+
+        # MOVInd @R1(-3, -3), (-300, -300)
+        bc.write(0b10111000_01001001.to_bytes(2, 'big'))
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # MOVInd @R1(-3, -3), (-30000, -30000)
+        bc.write(0b11111000_01001001.to_bytes(2, 'big'))
+        bc.write((36879).to_bytes(2, 'little'))  # ..
+        bc.write((11529215048034579760).to_bytes(8, 'little'))  # ..
+
         return
 
         ops = dict(
