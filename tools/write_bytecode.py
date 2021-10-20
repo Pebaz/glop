@@ -163,43 +163,43 @@ def write_bytecode():
 
         # MOVI
         # w
-        bc.write(0b01110111_00000001.to_bytes(2, 'big'))  # MOVIbw R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01110111_00000001.to_bytes(2, 'big'))  # MOVIbw R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b01110111_00010001.to_bytes(2, 'big'))  # MOVIww R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01110111_00010001.to_bytes(2, 'big'))  # MOVIww R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b01110111_00100001.to_bytes(2, 'big'))  # MOVIdw R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01110111_00100001.to_bytes(2, 'big'))  # MOVIdw R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b01110111_00110001.to_bytes(2, 'big'))  # MOVIqw R1 1000
-        bc.write((1000).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01110111_00110001.to_bytes(2, 'big'))  # MOVIqw R1 1000
+        # bc.write((1000).to_bytes(2, 'little'))  # ..
 
-        # d
-        bc.write(0b10110111_00000001.to_bytes(2, 'big'))  # MOVIbd R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # # d
+        # bc.write(0b10110111_00000001.to_bytes(2, 'big'))  # MOVIbd R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b10110111_00010001.to_bytes(2, 'big'))  # MOVIwd R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b10110111_00010001.to_bytes(2, 'big'))  # MOVIwd R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b10110111_00100001.to_bytes(2, 'big'))  # MOVIdd R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b10110111_00100001.to_bytes(2, 'big'))  # MOVIdd R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b10110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
-        bc.write((1000).to_bytes(4, 'little'))  # ..
+        # bc.write(0b10110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
+        # bc.write((1000).to_bytes(4, 'little'))  # ..
 
-        # q
-        bc.write(0b11110111_00000001.to_bytes(2, 'big'))  # MOVIbd R1 1000
-        bc.write((1000).to_bytes(8, 'little'))  # ..
+        # # q
+        # bc.write(0b11110111_00000001.to_bytes(2, 'big'))  # MOVIbd R1 1000
+        # bc.write((1000).to_bytes(8, 'little'))  # ..
 
-        bc.write(0b11110111_00010001.to_bytes(2, 'big'))  # MOVIwd R1 1000
-        bc.write((1000).to_bytes(8, 'little'))  # ..
+        # bc.write(0b11110111_00010001.to_bytes(2, 'big'))  # MOVIwd R1 1000
+        # bc.write((1000).to_bytes(8, 'little'))  # ..
 
-        bc.write(0b11110111_00100001.to_bytes(2, 'big'))  # MOVIdd R1 1000
-        bc.write((1000).to_bytes(8, 'little'))  # ..
+        # bc.write(0b11110111_00100001.to_bytes(2, 'big'))  # MOVIdd R1 1000
+        # bc.write((1000).to_bytes(8, 'little'))  # ..
 
-        bc.write(0b11110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
-        bc.write((1000).to_bytes(8, 'little'))  # ..
+        # bc.write(0b11110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
+        # bc.write((1000).to_bytes(8, 'little'))  # ..
 
         return
 
