@@ -18,6 +18,18 @@ natural_indices = {
 def pad(width, string):
     return '0' * (width - len(string)) + string
 
+def lower(bc, opcode, bit8=False, bit7=False, byte1=None):
+    if bit8:
+        opcode = opcode | (1 << 7)  # Set 8th bit
+
+    if bit7:
+        opcode = opcode | (1 << 6)  # Set 7th bit
+
+    bc.write(opcode.to_bytes(1, 'big'))
+
+    if byte1:
+        bc.write(byte1.to_bytes(1, 'big'))
+
 def write_bytecode():
     with open('bc-example.bin', 'wb') as bc:
         # bc.write(0b00000100.to_bytes(1, 'big'))  # RET
@@ -404,7 +416,59 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
         # bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
 
-        # # MOV
+        # TODO(pbz): Take out all the loops. Then scrape out special symbol and
+        # TODO(pbz): compare it against the actual assembly output
+        # ! It can be indirect but not have immediate data :(
+
+        # MOV
+
+        lower(bc, 0x1D, False, False, 0b00100001)  # MOVb R1, R2
+
+        lower(bc, 0x1E, False, False, 0b00100001)  # MOVw R1, R2
+
+        lower(bc, 0x1F, False, False, 0b00100001)  # MOVd R1, R2
+
+        lower(bc, 0x20, False, False, 0b00100001)  # MOVq R1, R2
+
+        lower(bc, 0x1D, False, False, 0b00101001)  # MOVb @R1, R2
+
+        lower(bc, 0x1E, False, False, 0b00101001)  # MOVw @R1, R2
+
+        lower(bc, 0x1F, False, False, 0b00101001)  # MOVd @R1, R2
+
+        lower(bc, 0x20, False, False, 0b00101001)  # MOVq @R1, R2
+
+        lower(bc, 0x1D, False, False, 0b10100001)  # MOVb R1, @R2
+
+        lower(bc, 0x1E, False, False, 0b10100001)  # MOVw R1, @R2
+
+        lower(bc, 0x1F, False, False, 0b10100001)  # MOVd R1, @R2
+
+        lower(bc, 0x20, False, False, 0b10100001)  # MOVq R1, @R2
+
+        lower(bc, 0x1D, False, False, 0b10101001)  # MOVb @R1, @R2
+
+        lower(bc, 0x1E, False, False, 0b10101001)  # MOVw @R1, @R2
+
+        lower(bc, 0x1F, False, False, 0b10101001)  # MOVd @R1, @R2
+
+        lower(bc, 0x20, False, False, 0b10101001)  # MOVq @R1, @R2
+
+        # MOVbw @R1(-3, -3), R2
+        # MOVww @R1(-3, -3), R2
+        # MOVdw @R1(-3, -3), R2
+        # MOVqw @R1(-3, -3), R2
+
+        # MOVbw R1, @R2(-3, -3)
+        # MOVww R1, @R2(-3, -3)
+        # MOVdw R1, @R2(-3, -3)
+        # MOVqw R1, @R2(-3, -3)
+
+        # MOVbw @R1(-3, -3), @R2(-3, -3)
+        # MOVww @R1(-3, -3), @R2(-3, -3)
+        # MOVdw @R1(-3, -3), @R2(-3, -3)
+        # MOVqw @R1(-3, -3), @R2(-3, -3)
+
         # mov_ops = dict(
         #     MOVbw=0x1d,
         #     MOVww=0x1e,
@@ -475,132 +539,40 @@ def write_bytecode():
         #     bc.write(index.to_bytes(width, 'little'))  # ..
         #     # }}}}}}}}}}}}}}}}}}}
 
-        # TODO(pbz): Take out all the loops. Then scrape out special symbol and
-        # TODO(pbz): compare it against the actual assembly output
-        # ! It can be indirect but not have immediate data :(
+        # # MOVsn
+        # bc.write(0b01100101_00100001.to_bytes(2, 'big'))  # MOVsnw R1, R2 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        # MOVsn
-        bc.write(0b01100101_00100001.to_bytes(2, 'big'))  # MOVsnw R1, R2 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b01100110_00100001.to_bytes(2, 'big'))  # MOVsnd R1, R2 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b01100110_00100001.to_bytes(2, 'big'))  # MOVsnd R1, R2 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b01100101_00101001.to_bytes(2, 'big'))  # MOVsnw @R1, R2 -1000
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b01100101_00101001.to_bytes(2, 'big'))  # MOVsnw @R1, R2 -1000
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b01100110_00101001.to_bytes(2, 'big'))  # MOVsnd @R1, R2 -1000
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b01100110_00101001.to_bytes(2, 'big'))  # MOVsnd @R1, R2 -1000
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b01100101_10101001.to_bytes(2, 'big'))  # MOVsnw @R1, @R2(-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b01100101_10101001.to_bytes(2, 'big'))  # MOVsnw @R1, @R2(-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write(0b01100110_10101001.to_bytes(2, 'big'))  # MOVsnd @R1, @R2(-300, -300)
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
-        bc.write(0b01100110_10101001.to_bytes(2, 'big'))  # MOVsnd @R1, @R2(-300, -300)
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        # bc.write(0b11100101_00101001.to_bytes(2, 'big'))  # MOVsnw @R1(-3, -3), R2 -1000
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
 
-        bc.write(0b11100101_00101001.to_bytes(2, 'big'))  # MOVsnw @R1(-3, -3), R2 -1000
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((-1000).to_bytes(2, 'little', signed=True))  # ..
+        # bc.write(0b11100110_00101001.to_bytes(2, 'big'))  # MOVsnd @R1(-300, -300), R2 -1000
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        # bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
 
-        bc.write(0b11100110_00101001.to_bytes(2, 'big'))  # MOVsnd @R1(-300, -300), R2 -1000
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
-        bc.write((-1000).to_bytes(4, 'little', signed=True))  # ..
+        # bc.write(0b11100101_10101001.to_bytes(2, 'big'))  # MOVsnw @R1(-3, -3), @R2(-3, -3)
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
+        # bc.write((36879).to_bytes(2, 'little'))  # ..
 
-        bc.write(0b11100101_10101001.to_bytes(2, 'big'))  # MOVsnw @R1(-3, -3), @R2(-3, -3)
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-        bc.write((36879).to_bytes(2, 'little'))  # ..
-
-        bc.write(0b11100110_10101001.to_bytes(2, 'big'))  # MOVsnd @R1(-300, -300), @R2(-300, -300)
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
-        bc.write((2954019116).to_bytes(4, 'little'))  # ..
-
-
-
-
-        # MOVsn
-        movsn_ops = dict(
-            MOVsnw=0x25,
-            MOVsnd=0x26,
-        )
-
-        for instr, op in movsn_ops.items():
-            ""
-            # # {{{{{{{{{{{{{{{{{{{
-            # # Direct, Direct
-            # opcode = op
-            # bc.write(opcode.to_bytes(1, 'little'))
-
-            # # R1, R2
-            # bc.write(0b00100001.to_bytes(1, 'little'))
-            # # }}}}}}}}}}}}}}}}}}}
-
-            # # {{{{{{{{{{{{{{{{{{{
-            # # Indirect, Direct
-            # opcode = op
-            # opcode = op | (1 << 7)  # Set 8th bit
-            # bc.write(opcode.to_bytes(1, 'little'))
-
-            # # @R1(<INDEX>), R2
-            # bc.write(0b00101001.to_bytes(1, 'little'))
-
-            # index, width = natural_indices[instr[-1]]
-            # bc.write(index.to_bytes(width, 'little'))  # ..
-            # # }}}}}}}}}}}}}}}}}}}
-
-            # # {{{{{{{{{{{{{{{{{{{
-            # # Direct, Indirect
-            # opcode = op
-            # opcode = op | (1 << 6)  # Set 7th bit
-            # bc.write(opcode.to_bytes(1, 'little'))
-
-            # # R1, @R2(<INDEX>)
-            # bc.write(0b10100001.to_bytes(1, 'little'))
-
-            # index, width = natural_indices[instr[-1]]
-            # bc.write(index.to_bytes(width, 'little'))  # ..
-            # # }}}}}}}}}}}}}}}}}}}
-
-            # # {{{{{{{{{{{{{{{{{{{
-            # # Indirect, Indirect
-            # opcode = op
-            # opcode = opcode | (1 << 7)  # Set 8th bit
-            # opcode = opcode | (1 << 6)  # Set 7th bit
-            # bc.write(opcode.to_bytes(1, 'little'))
-
-            # # @R1(<INDEX>), @R2(<INDEX>)
-            # bc.write(0b10101001.to_bytes(1, 'little'))
-
-            # index, width = natural_indices[instr[-1]]
-            # bc.write(index.to_bytes(width, 'little'))  # ..
-
-            # index, width = natural_indices[instr[-1]]
-            # bc.write(index.to_bytes(width, 'little'))  # ..
-            # # }}}}}}}}}}}}}}}}}}}
-
-            # # {{{{{{{{{{{{{{{{{{{
-            # # Indirect, Indirect
-            # opcode = op
-            # # opcode = opcode | (1 << 7)  # Set 8th bit
-            # opcode = opcode | (1 << 6)  # Set 7th bit
-            # bc.write(opcode.to_bytes(1, 'little'))
-
-            # # @R1, @R2(<INDEX>)
-            # bc.write(0b10101001.to_bytes(1, 'little'))
-
-            # index, width = natural_indices[instr[-1]]
-            # bc.write(index.to_bytes(width, 'little'))  # ..
-            # # }}}}}}}}}}}}}}}}}}}
-
-            # # {{{{{{{{{{{{{{{{{{{
-            # # Indirect, Indirect
-            # opcode = op
-            # # opcode = opcode | (1 << 7)  # Set 8th bit
-            # # opcode = opcode | (1 << 6)  # Set 7th bit
-            # bc.write(opcode.to_bytes(1, 'little'))
-
-            # # @R1, @R2(<INDEX>)
-            # bc.write(0b10101001.to_bytes(1, 'little'))
-            # # }}}}}}}}}}}}}}}}}}}
+        # bc.write(0b11100110_10101001.to_bytes(2, 'big'))  # MOVsnd @R1(-300, -300), @R2(-300, -300)
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
         return
 
