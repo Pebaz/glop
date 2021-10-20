@@ -10,6 +10,7 @@ Bash. What if polyglot programs exposed same interface?
 // TODO(pbz): comments by each instruction so that you can read exact behavior.
 
 // TODO(pbz): Replace panics/unreachable code with better error messages.
+// TODO(pbz): I'm not sure if natural indexes need to be read using LE. BE?
 
 // TODO(pbz): Remove these in the future
 #![allow(unused_variables)]
