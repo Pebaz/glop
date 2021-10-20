@@ -637,7 +637,8 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
 
             let op1 = Some(
                 Operand::new_general_purpose(
-                    operand1_value, operand1_is_indirect
+                    operand1_value,
+                    operand1_is_indirect
                 )
             );
 
@@ -718,7 +719,105 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
         | OpCode::CMPIulte
         | OpCode::CMPIugte =>
         {
-            panic!("CMPI");
+            name = String::from("CMPI");
+
+            let immediate_data_is_32_bit = byte0_bits[7];
+            let comparison_is_64_bit = byte0_bits[6];
+
+            name += if comparison_is_64_bit { "64" } else { "32" };
+            name += if immediate_data_is_32_bit { "d" } else { "w" };
+
+            name += match op
+            {
+                OpCode::CMPIeq => "eq",
+                OpCode::CMPIlte => "lte",
+                OpCode::CMPIgte => "gte",
+                OpCode::CMPIulte => "ulte",
+                OpCode::CMPIugte => "ugte",
+                _ => unreachable!(),
+            };
+
+            let byte1 = bytes.next().expect("Unexpected end of bytes");
+            let byte1_bits = bits_rev(byte1);
+            let operand1_index_present = byte1_bits[4];
+            let operand1_is_indirect = byte1_bits[3];
+            let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
+
+            let op1 = Some(
+                Operand::new_general_purpose(
+                    operand1_value,
+                    operand1_is_indirect
+                )
+            );
+
+            // TODO(pbz): Make this into a function for all to use
+            let arg1 = if operand1_index_present
+            {
+                let mut value = [0u8; 2];
+
+                value[0] = bytes.next().unwrap();
+                value[1] = bytes.next().unwrap();
+
+                let arg = if operand1_is_indirect
+                {
+                    Argument::Index16(u16::from_le_bytes(value))
+                }
+                else
+                {
+                    panic!("Immediate data not supported for CMPI");
+                };
+
+                Some(arg)
+            }
+            else
+            {
+                None
+            };
+
+            let arg2 = {
+                if immediate_data_is_32_bit
+                {
+                    let mut value = [0u8; 4];
+
+                    for i in 0 .. value.len()
+                    {
+                        value[i] = bytes.next().unwrap();
+                    }
+
+                    match op
+                    {
+                        OpCode::CMPIulte | OpCode::CMPIugte => Some(
+                            Argument::ImmediateU32(u32::from_le_bytes(value))
+                        ),
+
+                        _ => Some(
+                            Argument::ImmediateI32(i32::from_le_bytes(value))
+                        ),
+                    }
+                }
+                else
+                {
+                    let mut value = [0u8; 2];
+
+                    for i in 0 .. value.len()
+                    {
+                        value[i] = bytes.next().unwrap();
+                    }
+
+                    match op
+                    {
+                        OpCode::CMPIulte | OpCode::CMPIugte => Some(
+                            Argument::ImmediateU16(u16::from_le_bytes(value))
+                        ),
+
+                        _ => Some(
+                            Argument::ImmediateI16(i16::from_le_bytes(value))
+                        ),
+                    }
+                }
+            };
+
+            (op1, arg1, arg2)
         }
 
         OpCode::MOVIn =>
@@ -1248,9 +1347,7 @@ impl OpCode
             | OpCode::PUSH
             | OpCode::PUSHn
             | OpCode::POP
-            | OpCode::POPn
-            | OpCode::JMP
-            | OpCode::CALL =>
+            | OpCode::POPn =>
             {
                 parse_instruction3(bytes, byte0_bits, op_value, op)
             }

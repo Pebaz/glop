@@ -201,6 +201,7 @@ def write_bytecode():
         # bc.write(0b11110111_00110001.to_bytes(2, 'big'))  # MOVIqd R1 1000
         # bc.write((1000).to_bytes(8, 'little'))  # ..
 
+        # CMPI
         bc.write(0b00101101_00000001.to_bytes(2, 'big'))  # CMPI32weq R1 1000
         bc.write((1000).to_bytes(2, 'little'))  # ..
 
