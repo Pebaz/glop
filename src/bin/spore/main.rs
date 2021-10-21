@@ -165,14 +165,14 @@ impl std::fmt::Display for Operand
 }
 
 // ? Should this be genric over T for i32/u32 etc.
-enum Argument
+pub enum Argument
 {
     Index16(u16),
     Index32(u32),
     Index64(u64),
     ImmediateU16(u16),
     ImmediateU32(u32),
-    // ? ImmediateU64(u64),
+    ImmediateU64(u64),
     ImmediateI16(i16),
     ImmediateI32(i32),
     ImmediateI64(i64),
@@ -211,7 +211,7 @@ impl std::fmt::Display for Argument
 
             Self::ImmediateU32(immediate) => write!(f, "{}", immediate),
 
-            // ? Self::ImmediateU64(immediate) => write!(f, "{}", immediate),
+            Self::ImmediateU64(immediate) => write!(f, "{}", immediate),
 
             Self::ImmediateI16(immediate) => write!(f, "{}", immediate),
 
@@ -281,13 +281,6 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
                     "cc"
                 };
             }
-
-            // TODO(pbz): Comments might not be the best idea.
-            // TODO(pbz): `JMP` means unconditional jump. `JMPcs` means conditional
-            // else
-            // {
-            //     comment = Some(String::from("Unconditional"));
-            // }
 
             Argument::ImmediateI16((byte1 as i8) as i16)
         }
@@ -1369,22 +1362,6 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
     Some(())
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // TODO(pbz): Only output text once. Build in buffer
 // TODO(pbz): Invest in some left/right justification
 // TODO(pbz): Justify in columns maybe?
@@ -1484,8 +1461,12 @@ impl NaturalIndex
         let sign = if bits[0] { -1i64 } else { 1i64 };
         let width_base = bits_to_byte_u16(&bits[1 .. 4]);
         let actual_width = width_base * ENCODING_SIZE;
-        let natural = bits_to_byte_u16(&bits[bits.len() - actual_width as usize ..]);
-        let constant = bits_to_byte_u16(&bits[HEADER_SIZE .. bits.len() - actual_width as usize]);
+        let natural = bits_to_byte_u16(
+            &bits[bits.len() - actual_width as usize ..]
+        );
+        let constant = bits_to_byte_u16(
+            &bits[HEADER_SIZE .. bits.len() - actual_width as usize]
+        );
         let offset = sign * (constant + natural * SIZE_OF_VOID_PTR) as i64;
 
         Self
@@ -1508,9 +1489,15 @@ impl NaturalIndex
         let sign = if bits[0] { -1i64 } else { 1i64 };
         let width_base = bits_to_byte_u32(&bits[1 .. 4]);
         let actual_width = width_base * ENCODING_SIZE;
-        let natural = bits_to_byte_u32(&bits[bits.len() - actual_width as usize ..]);
-        let constant = bits_to_byte_u32(&bits[HEADER_SIZE .. bits.len() - actual_width as usize]);
-        let offset = sign * (constant + natural * SIZE_OF_VOID_PTR as u32) as i64;
+        let natural = bits_to_byte_u32(
+            &bits[bits.len() - actual_width as usize ..]
+        );
+        let constant = bits_to_byte_u32(
+            &bits[HEADER_SIZE .. bits.len() - actual_width as usize]
+        );
+        let offset = {
+            sign * (constant + natural * SIZE_OF_VOID_PTR as u32) as i64
+        };
 
         Self
         {
@@ -1532,9 +1519,15 @@ impl NaturalIndex
         let sign = if bits[0] { -1i64 } else { 1i64 };
         let width_base = bits_to_byte_u64(&bits[1 .. 4]);
         let actual_width = width_base * ENCODING_SIZE;
-        let natural = bits_to_byte_u64(&bits[bits.len() - actual_width as usize ..]);
-        let constant = bits_to_byte_u64(&bits[HEADER_SIZE .. bits.len() - actual_width as usize]);
-        let offset = sign * (constant + natural * SIZE_OF_VOID_PTR as u64) as i64;
+        let natural = bits_to_byte_u64(
+            &bits[bits.len() - actual_width as usize ..]
+        );
+        let constant = bits_to_byte_u64(
+            &bits[HEADER_SIZE .. bits.len() - actual_width as usize]
+        );
+        let offset = {
+            sign * (constant + natural * SIZE_OF_VOID_PTR as u64) as i64
+        };
 
         Self
         {
@@ -1562,7 +1555,6 @@ impl std::fmt::Display for NaturalIndex
     }
 }
 
-// #[repr(u8)]
 #[derive(Debug)]
 enum OpCode
 {
@@ -1725,22 +1717,15 @@ impl OpCode
             format!("Invalid OpCode: {}", op_value).as_str()
         );
 
-        /*
-        1. INSTRUCTION (RET)
-        2. INSTRUCTION ARGUMENT (BREAK)
-        3. INSTRUCTION OP1 ARGUMENT (CALL)
-        4. INSTRUCTION OP1, OP2 (STORESP)
-        5. INSTRUCTION OP1 ARGUMENT, ARGUMENT (CMPI)
-        6. INSTRUCTION OP1, OP2 ARGUMENT (16 bit optional index/immediate) (MUL)
-        7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT (MOV)
-        */
         match op
         {
+            // 1. INSTRUCTION (RET)
             OpCode::RET => parse_instruction1(bytes, byte0_bits, op),
 
             OpCode::JMP8
             | OpCode::BREAK =>
             {
+                // 2. INSTRUCTION ARGUMENT (BREAK)
                 parse_instruction2(bytes, byte0_bits, op)
             }
 
@@ -1751,12 +1736,14 @@ impl OpCode
             | OpCode::POP
             | OpCode::POPn =>
             {
+                // 3. INSTRUCTION OP1 ARGUMENT (CALL)
                 parse_instruction3(bytes, byte0_bits, op)
             }
 
             OpCode::LOADSP
             | OpCode::STORESP =>
             {
+                // 4. INSTRUCTION OP1, OP2 (STORESP)
                 parse_instruction4(bytes, byte0_bits, op)
             }
 
@@ -1769,6 +1756,7 @@ impl OpCode
             | OpCode::MOVIn
             | OpCode::MOVREL =>
             {
+                // 5. INSTRUCTION OP1 ARGUMENT, ARGUMENT (CMPI)
                 parse_instruction5(bytes, byte0_bits, op)
             }
 
@@ -1797,6 +1785,8 @@ impl OpCode
             | OpCode::SUB
             | OpCode::XOR =>
             {
+                // 6. INSTRUCTION OP1, OP2 ARGUMENT
+                // (16 bit optional index/immediate) (MUL)
                 parse_instruction6(bytes, byte0_bits, op)
             }
 
@@ -1812,6 +1802,7 @@ impl OpCode
             | OpCode::MOVsnw
             | OpCode::MOVsnd =>
             {
+                // 7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT (MOV)
                 parse_instruction7(bytes, byte0_bits, op)
             }
 
@@ -1894,7 +1885,6 @@ fn bits_to_byte_u16(bits: &[bool]) -> u16
     {
         if *bit
         {
-            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
             byte += 2u16.pow((i) as u32);
         }
     }
@@ -1924,7 +1914,6 @@ fn bits_to_byte_u32(bits: &[bool]) -> u32
     {
         if *bit
         {
-            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
             byte += 2u32.pow((i) as u32);
         }
     }
@@ -1954,7 +1943,6 @@ fn bits_to_byte_u64(bits: &[bool]) -> u64
     {
         if *bit
         {
-            // byte += 2u8.pow((bits.len() - 1 - i) as u64);
             byte += 2u64.pow((i) as u32);
         }
     }
@@ -1986,7 +1974,6 @@ fn bits_to_byte_rev(bits: &[bool]) -> u8
     {
         if *bit
         {
-            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
             byte += 2u8.pow((i) as u32);
         }
     }
@@ -2005,7 +1992,6 @@ fn main()
             format!("File {} does not exist", bytecode_file).as_str()
         );
         let mut bytes = file.bytes().map(|b| b.unwrap());
-        // let mut instruction = [0; 4];
 
         loop
         {
