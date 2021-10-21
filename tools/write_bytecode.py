@@ -1,3 +1,12 @@
+"""
+TODO(pbz): Take out all the loops. Then scrape out special symbol and
+TODO(pbz): compare it against the actual assembly output
+! It can be indirect but not have immediate data :(
+! DO VALIDATION SO THAT IF DIRECT + INDEX FOR OP1, THAT IS AN ERROR!
+!                                           v <- SHOULD HAVE @ HERE
+! RIGHT NOW, IT JUST LOOKS LIKE THIS: MOVqw  R1(-3, -3), @R2(-3, -3)
+"""
+
 import random
 from itertools import cycle
 from natural_indexing import encode
@@ -126,16 +135,22 @@ def write_bytecode():
         # bc.write(0b10000011_00000001.to_bytes(2, 'big'))  # CALL32a R1 -3
         # bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
 
-        # # CALL32 @R1(-300, -300)
-        # bc.write(0b10000011_00011001.to_bytes(2, 'big'))
-        # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+        # lower(bc, 0x03, True, False, 0b00011001)  # CALL32 @R1(-300, -300)
+        # arg(bc, 2954019116, 4, 'little')  # ..
+
+        # lower(bc, 0x03, False, False, 0b00011001)  # CALL32 @R1
 
         # # CALL32a @R1(-300, -300)
         # bc.write(0b10000011_00001001.to_bytes(2, 'big'))
         # bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
         # bc.write(0b00000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1
+
         # bc.write(0b00000011_00100001.to_bytes(2, 'big'))  # CALL32EXa R1
+
+        # lower(bc, 0x03, False, False, 0b00111001)  # CALL32EX @R1
+
+        # lower(bc, 0x03, False, False, 0b00101001)  # CALL32EXa @R1
 
         # bc.write(0b10000011_00110001.to_bytes(2, 'big'))  # CALL32EX R1 -3
         # bc.write((-3).to_bytes(4, 'little', signed=True))  # ..
@@ -180,6 +195,10 @@ def write_bytecode():
         # # JMP32 @R1(-300, -300)  ;; Rel
         # bc.write(0b10000001_00011001.to_bytes(2, 'big'))
         # bc.write((2954019116).to_bytes(4, 'little'))  # ..
+
+        # bc.write(0b00000001_00011001.to_bytes(2, 'big'))  # JMP32 @R1  ;; Rel
+
+        # bc.write(0b00000001_00001001.to_bytes(2, 'big'))  # JMP32 @R1  ;; Abs
 
         # # 64
         # bc.write(0b01000001_00000001.to_bytes(2, 'big'))  # JMP64 1000
@@ -425,234 +444,156 @@ def write_bytecode():
         # bc.write((36879).to_bytes(2, 'little'))  # ..
         # bc.write((-1000).to_bytes(8, 'little', signed=True))  # ..
 
-        # TODO(pbz): Take out all the loops. Then scrape out special symbol and
-        # TODO(pbz): compare it against the actual assembly output
-        # ! It can be indirect but not have immediate data :(
-        # ! DO VALIDATION SO THAT IF DIRECT + INDEX FOR OP1, THAT IS AN ERROR!
-        # !                                           v <- SHOULD HAVE @ HERE
-        # ! RIGHT NOW, IT JUST LOOKS LIKE THIS: MOVqw  R1(-3, -3), @R2(-3, -3)
-
         # MOV
 
-        lower(bc, 0x1D, False, False, 0b00100001)  # MOVb R1, R2
+        # lower(bc, 0x1D, False, False, 0b00100001)  # MOVb R1, R2
 
-        lower(bc, 0x1E, False, False, 0b00100001)  # MOVw R1, R2
+        # lower(bc, 0x1E, False, False, 0b00100001)  # MOVw R1, R2
 
-        lower(bc, 0x1F, False, False, 0b00100001)  # MOVd R1, R2
+        # lower(bc, 0x1F, False, False, 0b00100001)  # MOVd R1, R2
 
-        lower(bc, 0x20, False, False, 0b00100001)  # MOVq R1, R2
+        # lower(bc, 0x20, False, False, 0b00100001)  # MOVq R1, R2
 
-        lower(bc, 0x1D, False, False, 0b00101001)  # MOVb @R1, R2
+        # lower(bc, 0x1D, False, False, 0b00101001)  # MOVb @R1, R2
 
-        lower(bc, 0x1E, False, False, 0b00101001)  # MOVw @R1, R2
+        # lower(bc, 0x1E, False, False, 0b00101001)  # MOVw @R1, R2
 
-        lower(bc, 0x1F, False, False, 0b00101001)  # MOVd @R1, R2
+        # lower(bc, 0x1F, False, False, 0b00101001)  # MOVd @R1, R2
 
-        lower(bc, 0x20, False, False, 0b00101001)  # MOVq @R1, R2
+        # lower(bc, 0x20, False, False, 0b00101001)  # MOVq @R1, R2
 
-        lower(bc, 0x1D, False, False, 0b10100001)  # MOVb R1, @R2
+        # lower(bc, 0x1D, False, False, 0b10100001)  # MOVb R1, @R2
 
-        lower(bc, 0x1E, False, False, 0b10100001)  # MOVw R1, @R2
+        # lower(bc, 0x1E, False, False, 0b10100001)  # MOVw R1, @R2
 
-        lower(bc, 0x1F, False, False, 0b10100001)  # MOVd R1, @R2
+        # lower(bc, 0x1F, False, False, 0b10100001)  # MOVd R1, @R2
 
-        lower(bc, 0x20, False, False, 0b10100001)  # MOVq R1, @R2
+        # lower(bc, 0x20, False, False, 0b10100001)  # MOVq R1, @R2
 
-        lower(bc, 0x1D, False, False, 0b10101001)  # MOVb @R1, @R2
+        # lower(bc, 0x1D, False, False, 0b10101001)  # MOVb @R1, @R2
 
-        lower(bc, 0x1E, False, False, 0b10101001)  # MOVw @R1, @R2
+        # lower(bc, 0x1E, False, False, 0b10101001)  # MOVw @R1, @R2
 
-        lower(bc, 0x1F, False, False, 0b10101001)  # MOVd @R1, @R2
+        # lower(bc, 0x1F, False, False, 0b10101001)  # MOVd @R1, @R2
 
-        lower(bc, 0x20, False, False, 0b10101001)  # MOVq @R1, @R2
+        # lower(bc, 0x20, False, False, 0b10101001)  # MOVq @R1, @R2
 
-        lower(bc, 0x1D, True, False, 0b00101001)  # MOVbw @R1(-3, -3), R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1D, True, False, 0b00101001)  # MOVbw @R1(-3, -3), R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1E, True, False, 0b00101001)  # MOVww @R1(-3, -3), R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1E, True, False, 0b00101001)  # MOVww @R1(-3, -3), R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1F, True, False, 0b00101001)  # MOVdw @R1(-3, -3), R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1F, True, False, 0b00101001)  # MOVdw @R1(-3, -3), R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x20, True, False, 0b00101001)  # MOVqw @R1(-3, -3), R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x20, True, False, 0b00101001)  # MOVqw @R1(-3, -3), R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1D, True, False, 0b10101001)  # MOVbw @R1(-3, -3), @R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1D, True, False, 0b10101001)  # MOVbw @R1(-3, -3), @R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1E, True, False, 0b10101001)  # MOVww @R1(-3, -3), @R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1E, True, False, 0b10101001)  # MOVww @R1(-3, -3), @R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1F, True, False, 0b10101001)  # MOVdw @R1(-3, -3), @R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1F, True, False, 0b10101001)  # MOVdw @R1(-3, -3), @R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x20, True, False, 0b10101001)  # MOVqw @R1(-3, -3), @R2
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x20, True, False, 0b10101001)  # MOVqw @R1(-3, -3), @R2
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1D, False, True, 0b10100001)  # MOVbw R1, @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1D, False, True, 0b10100001)  # MOVbw R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1E, False, True, 0b10100001)  # MOVww R1, @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1E, False, True, 0b10100001)  # MOVww R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1F, False, True, 0b10100001)  # MOVdw R1, @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1F, False, True, 0b10100001)  # MOVdw R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x20, False, True, 0b10100001)  # MOVqw R1, @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x20, False, True, 0b10100001)  # MOVqw R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1D, True, True, 0b10101001)  # MOVbw @R1(-3, -3), @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1D, True, True, 0b10101001)  # MOVbw @R1(-3, -3), @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1E, True, True, 0b10101001)  # MOVww @R1(-3, -3), @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1E, True, True, 0b10101001)  # MOVww @R1(-3, -3), @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x1F, True, True, 0b10101001)  # MOVdw @R1(-3, -3), @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1F, True, True, 0b10101001)  # MOVdw @R1(-3, -3), @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x20, True, True, 0b10101001)  # MOVqw @R1(-3, -3), @R2(-3, -3)
-        arg(bc, NATIND16, 2, 'little')
-        arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x20, True, True, 0b10101001)  # MOVqw @R1(-3, -3), @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # arg(bc, NATIND16, 2, 'little')
 
-        lower(bc, 0x21, True, False, 0b00101001)  # MOVbd @R1(-300, -300), R2
-        arg(bc, NATIND32, 4, 'little')
+        # lower(bc, 0x21, True, False, 0b00101001)  # MOVbd @R1(-300, -300), R2
+        # arg(bc, NATIND32, 4, 'little')
 
-        lower(bc, 0x22, True, False, 0b00101001)  # MOVwd @R1(-300, -300), R2
-        arg(bc, NATIND32, 4, 'little')
+        # lower(bc, 0x22, True, False, 0b00101001)  # MOVwd @R1(-300, -300), R2
+        # arg(bc, NATIND32, 4, 'little')
 
-        lower(bc, 0x23, True, False, 0b00101001)  # MOVdd @R1(-300, -300), R2
-        arg(bc, NATIND32, 4, 'little')
+        # lower(bc, 0x23, True, False, 0b00101001)  # MOVdd @R1(-300, -300), R2
+        # arg(bc, NATIND32, 4, 'little')
 
-        lower(bc, 0x24, True, False, 0b00101001)  # MOVqd @R1(-300, -300), R2
-        arg(bc, NATIND32, 4, 'little')
+        # lower(bc, 0x24, True, False, 0b00101001)  # MOVqd @R1(-300, -300), R2
+        # arg(bc, NATIND32, 4, 'little')
 
-        lower(bc, 0x21, True, False, 0b10101001)  # MOVbd @R1(-300, -300), @R2
-        arg(bc, NATIND32, 4, 'little')
+        # lower(bc, 0x21, True, False, 0b10101001)  # MOVbd @R1(-300, -300), @R2
+        # arg(bc, NATIND32, 4, 'little')
 
-        lower(bc, 0x22, True, False, 0b10101001)  # MOVwd @R1(-300, -300), @R2
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x23, True, False, 0b10101001)  # MOVdd @R1(-300, -300), @R2
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x24, True, False, 0b10101001)  # MOVqd @R1(-300, -300), @R2
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x21, False, True, 0b10100001)  # MOVbd R1, @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x22, False, True, 0b10100001)  # MOVwd R1, @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x23, False, True, 0b10100001)  # MOVdd R1, @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x24, False, True, 0b10100001)  # MOVqd R1, @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x21, True, True, 0b10101001)  # MOVbd @R1(-300, -300), @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x22, True, True, 0b10101001)  # MOVwd @R1(-300, -300), @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x23, True, True, 0b10101001)  # MOVdd @R1(-300, -300), @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x24, True, True, 0b10101001)  # MOVqd @R1(-300, -300), @R2(-300, -300)
-        arg(bc, NATIND32, 4, 'little')
-        arg(bc, NATIND32, 4, 'little')
-
-        lower(bc, 0x28, True, False, 0b00101001)  # MOVqq @R1(-30000, -30000), R2
-        arg(bc, NATIND64, 8, 'little')
-
-        lower(bc, 0x28, True, False, 0b10101001)  # MOVqq @R1(-30000, -30000), @R2
-        arg(bc, NATIND64, 8, 'little')
-
-        lower(bc, 0x28, False, True, 0b10100001)  # MOVqq R1, @R2(-30000, -30000)
-        arg(bc, NATIND64, 8, 'little')
-
-        lower(bc, 0x28, True, True, 0b10101001)  # MOVqq @R1(-30000, -30000), @R2(-30000, -30000)
-        arg(bc, NATIND64, 8, 'little')
-        arg(bc, NATIND64, 8, 'little')
-
-
-        # mov_ops = dict(
-        #     MOVbw=0x1d,
-        #     MOVww=0x1e,
-        #     MOVdw=0x1f,
-        #     MOVqw=0x20,
-        #     MOVbd=0x21,
-        #     MOVwd=0x22,
-        #     MOVdd=0x23,
-        #     MOVqd=0x24,
-        #     MOVqq=0x28
-        # )
-
-        # for instr, op in mov_ops.items():
-        #     # {{{{{{{{{{{{{{{{{{{
-        #     # Direct, Direct
-        #     opcode = op
-        #     bc.write(opcode.to_bytes(1, 'little'))
-
-        #     # R1, R2
-        #     bc.write(0b00100001.to_bytes(1, 'little'))
-        #     # }}}}}}}}}}}}}}}}}}}
-
-        #     # {{{{{{{{{{{{{{{{{{{
-        #     # Indirect, Direct
-        #     opcode = op
-        #     opcode = op | (1 << 7)  # Set 8th bit
-        #     bc.write(opcode.to_bytes(1, 'little'))
-
-        #     # @R1(<INDEX>), R2
-        #     bc.write(0b00101001.to_bytes(1, 'little'))
-
-        #     # TODO(pbz): Allow creation of any bit length natural indices
-        #     natural_indices = {
-        #         'w': (36879, 2),
-        #         'd': (2954019116, 4),
-        #         'q': (11529215048034579760, 8),
-        #     }
-
-        #     index, width = natural_indices[instr[-1]]
-        #     bc.write(index.to_bytes(width, 'little'))  # ..
-        #     # }}}}}}}}}}}}}}}}}}}
-
-        #     # {{{{{{{{{{{{{{{{{{{
-        #     # Direct, Indirect
-        #     opcode = op
-        #     opcode = op | (1 << 6)  # Set 7th bit
-        #     bc.write(opcode.to_bytes(1, 'little'))
-
-        #     # R1, @R2(<INDEX>)
-        #     bc.write(0b10100001.to_bytes(1, 'little'))
-
-        #     index, width = natural_indices[instr[-1]]
-        #     bc.write(index.to_bytes(width, 'little'))  # ..
-        #     # }}}}}}}}}}}}}}}}}}}
-
-        #     # {{{{{{{{{{{{{{{{{{{
-        #     # Indirect, Indirect
-        #     opcode = op
-        #     opcode = opcode | (1 << 7)  # Set 8th bit
-        #     opcode = opcode | (1 << 6)  # Set 7th bit
-        #     bc.write(opcode.to_bytes(1, 'little'))
-
-        #     # @R1(<INDEX>), @R2(<INDEX>)
-        #     bc.write(0b10101001.to_bytes(1, 'little'))
-
-        #     index, width = natural_indices[instr[-1]]
-        #     bc.write(index.to_bytes(width, 'little'))  # ..
-        #     bc.write(index.to_bytes(width, 'little'))  # ..
-        #     # }}}}}}}}}}}}}}}}}}}
+        # lower(bc, 0x22, True, False, 0b10101001)  # MOVwd @R1(-300, -300), @R2
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x23, True, False, 0b10101001)  # MOVdd @R1(-300, -300), @R2
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x24, True, False, 0b10101001)  # MOVqd @R1(-300, -300), @R2
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x21, False, True, 0b10100001)  # MOVbd R1, @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x22, False, True, 0b10100001)  # MOVwd R1, @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x23, False, True, 0b10100001)  # MOVdd R1, @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x24, False, True, 0b10100001)  # MOVqd R1, @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x21, True, True, 0b10101001)  # MOVbd @R1(-300, -300), @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x22, True, True, 0b10101001)  # MOVwd @R1(-300, -300), @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x23, True, True, 0b10101001)  # MOVdd @R1(-300, -300), @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x24, True, True, 0b10101001)  # MOVqd @R1(-300, -300), @R2(-300, -300)
+        # arg(bc, NATIND32, 4, 'little')
+        # arg(bc, NATIND32, 4, 'little')
+
+        # lower(bc, 0x28, True, False, 0b00101001)  # MOVqq @R1(-30000, -30000), R2
+        # arg(bc, NATIND64, 8, 'little')
+
+        # lower(bc, 0x28, True, False, 0b10101001)  # MOVqq @R1(-30000, -30000), @R2
+        # arg(bc, NATIND64, 8, 'little')
+
+        # lower(bc, 0x28, False, True, 0b10100001)  # MOVqq R1, @R2(-30000, -30000)
+        # arg(bc, NATIND64, 8, 'little')
+
+        # lower(bc, 0x28, True, True, 0b10101001)  # MOVqq @R1(-30000, -30000), @R2(-30000, -30000)
+        # arg(bc, NATIND64, 8, 'little')
+        # arg(bc, NATIND64, 8, 'little')
 
         # # MOVsn
         # bc.write(0b01100101_00100001.to_bytes(2, 'big'))  # MOVsnw R1, R2 -1000
@@ -689,6 +630,534 @@ def write_bytecode():
         # bc.write((2954019116).to_bytes(4, 'little'))  # ..
         # bc.write((2954019116).to_bytes(4, 'little'))  # ..
 
+        # lower(bc, 0x0C, False, False, 0b00100001)  # ADD32 R1, R2
+        # lower(bc, 0x0C, False, False, 0b00101001)  # ADD32 @R1, R2
+        # lower(bc, 0x0C, False, False, 0b10100001)  # ADD32 R1, @R2
+        # lower(bc, 0x0C, False, False, 0b10101001)  # ADD32 @R1, @R2
+        # lower(bc, 0x0C, True, False, 0b00100001)  # ADD32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0C, True, False, 0b10100001)  # ADD32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0C, True, False, 0b10101001)  # ADD32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0C, False, True, 0b00100001)  # ADD64 R1, R2
+        # lower(bc, 0x0C, False, True, 0b00101001)  # ADD64 @R1, R2
+        # lower(bc, 0x0C, False, True, 0b10100001)  # ADD64 R1, @R2
+        # lower(bc, 0x0C, False, True, 0b10101001)  # ADD64 @R1, @R2
+        # lower(bc, 0x0C, True, True, 0b00100001)  # ADD64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0C, True, True, 0b10100001)  # ADD64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0C, True, True, 0b10101001)  # ADD64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x14, False, False, 0b00100001)  # AND32 R1, R2
+        # lower(bc, 0x14, False, False, 0b00101001)  # AND32 @R1, R2
+        # lower(bc, 0x14, False, False, 0b10100001)  # AND32 R1, @R2
+        # lower(bc, 0x14, False, False, 0b10101001)  # AND32 @R1, @R2
+        # lower(bc, 0x14, True, False, 0b00100001)  # AND32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x14, True, False, 0b10100001)  # AND32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x14, True, False, 0b10101001)  # AND32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x14, False, True, 0b00100001)  # AND64 R1, R2
+        # lower(bc, 0x14, False, True, 0b00101001)  # AND64 @R1, R2
+        # lower(bc, 0x14, False, True, 0b10100001)  # AND64 R1, @R2
+        # lower(bc, 0x14, False, True, 0b10101001)  # AND64 @R1, @R2
+        # lower(bc, 0x14, True, True, 0b00100001)  # AND64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x14, True, True, 0b10100001)  # AND64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x14, True, True, 0b10101001)  # AND64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x19, False, False, 0b00100001)  # ASHR32 R1, R2
+        # lower(bc, 0x19, False, False, 0b00101001)  # ASHR32 @R1, R2
+        # lower(bc, 0x19, False, False, 0b10100001)  # ASHR32 R1, @R2
+        # lower(bc, 0x19, False, False, 0b10101001)  # ASHR32 @R1, @R2
+        # lower(bc, 0x19, True, False, 0b00100001)  # ASHR32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x19, True, False, 0b10100001)  # ASHR32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x19, True, False, 0b10101001)  # ASHR32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x19, False, True, 0b00100001)  # ASHR64 R1, R2
+        # lower(bc, 0x19, False, True, 0b00101001)  # ASHR64 @R1, R2
+        # lower(bc, 0x19, False, True, 0b10100001)  # ASHR64 R1, @R2
+        # lower(bc, 0x19, False, True, 0b10101001)  # ASHR64 @R1, @R2
+        # lower(bc, 0x19, True, True, 0b00100001)  # ASHR64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x19, True, True, 0b10100001)  # ASHR64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x19, True, True, 0b10101001)  # ASHR64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x10, False, False, 0b00100001)  # DIV32 R1, R2
+        # lower(bc, 0x10, False, False, 0b00101001)  # DIV32 @R1, R2
+        # lower(bc, 0x10, False, False, 0b10100001)  # DIV32 R1, @R2
+        # lower(bc, 0x10, False, False, 0b10101001)  # DIV32 @R1, @R2
+        # lower(bc, 0x10, True, False, 0b00100001)  # DIV32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x10, True, False, 0b10100001)  # DIV32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x10, True, False, 0b10101001)  # DIV32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x10, False, True, 0b00100001)  # DIV64 R1, R2
+        # lower(bc, 0x10, False, True, 0b00101001)  # DIV64 @R1, R2
+        # lower(bc, 0x10, False, True, 0b10100001)  # DIV64 R1, @R2
+        # lower(bc, 0x10, False, True, 0b10101001)  # DIV64 @R1, @R2
+        # lower(bc, 0x10, True, True, 0b00100001)  # DIV64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x10, True, True, 0b10100001)  # DIV64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x10, True, True, 0b10101001)  # DIV64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x11, False, False, 0b00100001)  # DIVU32 R1, R2
+        # lower(bc, 0x11, False, False, 0b00101001)  # DIVU32 @R1, R2
+        # lower(bc, 0x11, False, False, 0b10100001)  # DIVU32 R1, @R2
+        # lower(bc, 0x11, False, False, 0b10101001)  # DIVU32 @R1, @R2
+        # lower(bc, 0x11, True, False, 0b00100001)  # DIVU32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x11, True, False, 0b10100001)  # DIVU32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x11, True, False, 0b10101001)  # DIVU32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x11, False, True, 0b00100001)  # DIVU64 R1, R2
+        # lower(bc, 0x11, False, True, 0b00101001)  # DIVU64 @R1, R2
+        # lower(bc, 0x11, False, True, 0b10100001)  # DIVU64 R1, @R2
+        # lower(bc, 0x11, False, True, 0b10101001)  # DIVU64 @R1, @R2
+        # lower(bc, 0x11, True, True, 0b00100001)  # DIVU64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x11, True, True, 0b10100001)  # DIVU64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x11, True, True, 0b10101001)  # DIVU64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x1A, False, False, 0b00100001)  # EXTNDB32 R1, R2
+        # lower(bc, 0x1A, False, False, 0b00101001)  # EXTNDB32 @R1, R2
+        # lower(bc, 0x1A, False, False, 0b10100001)  # EXTNDB32 R1, @R2
+        # lower(bc, 0x1A, False, False, 0b10101001)  # EXTNDB32 @R1, @R2
+        # lower(bc, 0x1A, True, False, 0b00100001)  # EXTNDB32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x1A, True, False, 0b10100001)  # EXTNDB32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1A, True, False, 0b10101001)  # EXTNDB32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x1A, False, True, 0b00100001)  # EXTNDB64 R1, R2
+        # lower(bc, 0x1A, False, True, 0b00101001)  # EXTNDB64 @R1, R2
+        # lower(bc, 0x1A, False, True, 0b10100001)  # EXTNDB64 R1, @R2
+        # lower(bc, 0x1A, False, True, 0b10101001)  # EXTNDB64 @R1, @R2
+        # lower(bc, 0x1A, True, True, 0b00100001)  # EXTNDB64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x1A, True, True, 0b10100001)  # EXTNDB64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1A, True, True, 0b10101001)  # EXTNDB64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x1C, False, False, 0b00100001)  # EXTNDD32 R1, R2
+        # lower(bc, 0x1C, False, False, 0b00101001)  # EXTNDD32 @R1, R2
+        # lower(bc, 0x1C, False, False, 0b10100001)  # EXTNDD32 R1, @R2
+        # lower(bc, 0x1C, False, False, 0b10101001)  # EXTNDD32 @R1, @R2
+        # lower(bc, 0x1C, True, False, 0b00100001)  # EXTNDD32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x1C, True, False, 0b10100001)  # EXTNDD32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1C, True, False, 0b10101001)  # EXTNDD32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x1C, False, True, 0b00100001)  # EXTNDD64 R1, R2
+        # lower(bc, 0x1C, False, True, 0b00101001)  # EXTNDD64 @R1, R2
+        # lower(bc, 0x1C, False, True, 0b10100001)  # EXTNDD64 R1, @R2
+        # lower(bc, 0x1C, False, True, 0b10101001)  # EXTNDD64 @R1, @R2
+        # lower(bc, 0x1C, True, True, 0b00100001)  # EXTNDD64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x1C, True, True, 0b10100001)  # EXTNDD64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1C, True, True, 0b10101001)  # EXTNDD64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x1B, False, False, 0b00100001)  # EXTNDW32 R1, R2
+        # lower(bc, 0x1B, False, False, 0b00101001)  # EXTNDW32 @R1, R2
+        # lower(bc, 0x1B, False, False, 0b10100001)  # EXTNDW32 R1, @R2
+        # lower(bc, 0x1B, False, False, 0b10101001)  # EXTNDW32 @R1, @R2
+        # lower(bc, 0x1B, True, False, 0b00100001)  # EXTNDW32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x1B, True, False, 0b10100001)  # EXTNDW32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1B, True, False, 0b10101001)  # EXTNDW32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x1B, False, True, 0b00100001)  # EXTNDW64 R1, R2
+        # lower(bc, 0x1B, False, True, 0b00101001)  # EXTNDW64 @R1, R2
+        # lower(bc, 0x1B, False, True, 0b10100001)  # EXTNDW64 R1, @R2
+        # lower(bc, 0x1B, False, True, 0b10101001)  # EXTNDW64 @R1, @R2
+        # lower(bc, 0x1B, True, True, 0b00100001)  # EXTNDW64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x1B, True, True, 0b10100001)  # EXTNDW64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x1B, True, True, 0b10101001)  # EXTNDW64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x12, False, False, 0b00100001)  # MOD32 R1, R2
+        # lower(bc, 0x12, False, False, 0b00101001)  # MOD32 @R1, R2
+        # lower(bc, 0x12, False, False, 0b10100001)  # MOD32 R1, @R2
+        # lower(bc, 0x12, False, False, 0b10101001)  # MOD32 @R1, @R2
+        # lower(bc, 0x12, True, False, 0b00100001)  # MOD32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x12, True, False, 0b10100001)  # MOD32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x12, True, False, 0b10101001)  # MOD32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x12, False, True, 0b00100001)  # MOD64 R1, R2
+        # lower(bc, 0x12, False, True, 0b00101001)  # MOD64 @R1, R2
+        # lower(bc, 0x12, False, True, 0b10100001)  # MOD64 R1, @R2
+        # lower(bc, 0x12, False, True, 0b10101001)  # MOD64 @R1, @R2
+        # lower(bc, 0x12, True, True, 0b00100001)  # MOD64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x12, True, True, 0b10100001)  # MOD64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x12, True, True, 0b10101001)  # MOD64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x13, False, False, 0b00100001)  # MODU32 R1, R2
+        # lower(bc, 0x13, False, False, 0b00101001)  # MODU32 @R1, R2
+        # lower(bc, 0x13, False, False, 0b10100001)  # MODU32 R1, @R2
+        # lower(bc, 0x13, False, False, 0b10101001)  # MODU32 @R1, @R2
+        # lower(bc, 0x13, True, False, 0b00100001)  # MODU32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x13, True, False, 0b10100001)  # MODU32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x13, True, False, 0b10101001)  # MODU32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x13, False, True, 0b00100001)  # MODU64 R1, R2
+        # lower(bc, 0x13, False, True, 0b00101001)  # MODU64 @R1, R2
+        # lower(bc, 0x13, False, True, 0b10100001)  # MODU64 R1, @R2
+        # lower(bc, 0x13, False, True, 0b10101001)  # MODU64 @R1, @R2
+        # lower(bc, 0x13, True, True, 0b00100001)  # MODU64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x13, True, True, 0b10100001)  # MODU64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x13, True, True, 0b10101001)  # MODU64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x17, False, False, 0b00100001)  # SHL32 R1, R2
+        # lower(bc, 0x17, False, False, 0b00101001)  # SHL32 @R1, R2
+        # lower(bc, 0x17, False, False, 0b10100001)  # SHL32 R1, @R2
+        # lower(bc, 0x17, False, False, 0b10101001)  # SHL32 @R1, @R2
+        # lower(bc, 0x17, True, False, 0b00100001)  # SHL32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x17, True, False, 0b10100001)  # SHL32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x17, True, False, 0b10101001)  # SHL32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x17, False, True, 0b00100001)  # SHL64 R1, R2
+        # lower(bc, 0x17, False, True, 0b00101001)  # SHL64 @R1, R2
+        # lower(bc, 0x17, False, True, 0b10100001)  # SHL64 R1, @R2
+        # lower(bc, 0x17, False, True, 0b10101001)  # SHL64 @R1, @R2
+        # lower(bc, 0x17, True, True, 0b00100001)  # SHL64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x17, True, True, 0b10100001)  # SHL64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x17, True, True, 0b10101001)  # SHL64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x18, False, False, 0b00100001)  # SHR32 R1, R2
+        # lower(bc, 0x18, False, False, 0b00101001)  # SHR32 @R1, R2
+        # lower(bc, 0x18, False, False, 0b10100001)  # SHR32 R1, @R2
+        # lower(bc, 0x18, False, False, 0b10101001)  # SHR32 @R1, @R2
+        # lower(bc, 0x18, True, False, 0b00100001)  # SHR32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x18, True, False, 0b10100001)  # SHR32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x18, True, False, 0b10101001)  # SHR32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x18, False, True, 0b00100001)  # SHR64 R1, R2
+        # lower(bc, 0x18, False, True, 0b00101001)  # SHR64 @R1, R2
+        # lower(bc, 0x18, False, True, 0b10100001)  # SHR64 R1, @R2
+        # lower(bc, 0x18, False, True, 0b10101001)  # SHR64 @R1, @R2
+        # lower(bc, 0x18, True, True, 0b00100001)  # SHR64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x18, True, True, 0b10100001)  # SHR64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x18, True, True, 0b10101001)  # SHR64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0D, False, False, 0b00100001)  # SUB32 R1, R2
+        # lower(bc, 0x0D, False, False, 0b00101001)  # SUB32 @R1, R2
+        # lower(bc, 0x0D, False, False, 0b10100001)  # SUB32 R1, @R2
+        # lower(bc, 0x0D, False, False, 0b10101001)  # SUB32 @R1, @R2
+        # lower(bc, 0x0D, True, False, 0b00100001)  # SUB32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0D, True, False, 0b10100001)  # SUB32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0D, True, False, 0b10101001)  # SUB32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0D, False, True, 0b00100001)  # SUB64 R1, R2
+        # lower(bc, 0x0D, False, True, 0b00101001)  # SUB64 @R1, R2
+        # lower(bc, 0x0D, False, True, 0b10100001)  # SUB64 R1, @R2
+        # lower(bc, 0x0D, False, True, 0b10101001)  # SUB64 @R1, @R2
+        # lower(bc, 0x0D, True, True, 0b00100001)  # SUB64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0D, True, True, 0b10100001)  # SUB64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0D, True, True, 0b10101001)  # SUB64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x16, False, False, 0b00100001)  # XOR32 R1, R2
+        # lower(bc, 0x16, False, False, 0b00101001)  # XOR32 @R1, R2
+        # lower(bc, 0x16, False, False, 0b10100001)  # XOR32 R1, @R2
+        # lower(bc, 0x16, False, False, 0b10101001)  # XOR32 @R1, @R2
+        # lower(bc, 0x16, True, False, 0b00100001)  # XOR32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x16, True, False, 0b10100001)  # XOR32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x16, True, False, 0b10101001)  # XOR32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x16, False, True, 0b00100001)  # XOR64 R1, R2
+        # lower(bc, 0x16, False, True, 0b00101001)  # XOR64 @R1, R2
+        # lower(bc, 0x16, False, True, 0b10100001)  # XOR64 R1, @R2
+        # lower(bc, 0x16, False, True, 0b10101001)  # XOR64 @R1, @R2
+        # lower(bc, 0x16, True, True, 0b00100001)  # XOR64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x16, True, True, 0b10100001)  # XOR64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x16, True, True, 0b10101001)  # XOR64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x05, False, False, 0b00100001)  # CMPeq32 R1, R2
+        # lower(bc, 0x05, False, False, 0b00101001)  # CMPeq32 @R1, R2
+        # lower(bc, 0x05, False, False, 0b10100001)  # CMPeq32 R1, @R2
+        # lower(bc, 0x05, False, False, 0b10101001)  # CMPeq32 @R1, @R2
+        # lower(bc, 0x05, True, False, 0b00100001)  # CMPeq32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x05, True, False, 0b10100001)  # CMPeq32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x05, True, False, 0b10101001)  # CMPeq32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x05, False, True, 0b00100001)  # CMPeq64 R1, R2
+        # lower(bc, 0x05, False, True, 0b00101001)  # CMPeq64 @R1, R2
+        # lower(bc, 0x05, False, True, 0b10100001)  # CMPeq64 R1, @R2
+        # lower(bc, 0x05, False, True, 0b10101001)  # CMPeq64 @R1, @R2
+        # lower(bc, 0x05, True, True, 0b00100001)  # CMPeq64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x05, True, True, 0b10100001)  # CMPeq64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x05, True, True, 0b10101001)  # CMPeq64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x06, False, False, 0b00100001)  # CMPlte32 R1, R2
+        # lower(bc, 0x06, False, False, 0b00101001)  # CMPlte32 @R1, R2
+        # lower(bc, 0x06, False, False, 0b10100001)  # CMPlte32 R1, @R2
+        # lower(bc, 0x06, False, False, 0b10101001)  # CMPlte32 @R1, @R2
+        # lower(bc, 0x06, True, False, 0b00100001)  # CMPlte32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x06, True, False, 0b10100001)  # CMPlte32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x06, True, False, 0b10101001)  # CMPlte32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x06, False, True, 0b00100001)  # CMPlte64 R1, R2
+        # lower(bc, 0x06, False, True, 0b00101001)  # CMPlte64 @R1, R2
+        # lower(bc, 0x06, False, True, 0b10100001)  # CMPlte64 R1, @R2
+        # lower(bc, 0x06, False, True, 0b10101001)  # CMPlte64 @R1, @R2
+        # lower(bc, 0x06, True, True, 0b00100001)  # CMPlte64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x06, True, True, 0b10100001)  # CMPlte64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x06, True, True, 0b10101001)  # CMPlte64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x07, False, False, 0b00100001)  # CMPgte32 R1, R2
+        # lower(bc, 0x07, False, False, 0b00101001)  # CMPgte32 @R1, R2
+        # lower(bc, 0x07, False, False, 0b10100001)  # CMPgte32 R1, @R2
+        # lower(bc, 0x07, False, False, 0b10101001)  # CMPgte32 @R1, @R2
+        # lower(bc, 0x07, True, False, 0b00100001)  # CMPgte32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x07, True, False, 0b10100001)  # CMPgte32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x07, True, False, 0b10101001)  # CMPgte32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x07, False, True, 0b00100001)  # CMPgte64 R1, R2
+        # lower(bc, 0x07, False, True, 0b00101001)  # CMPgte64 @R1, R2
+        # lower(bc, 0x07, False, True, 0b10100001)  # CMPgte64 R1, @R2
+        # lower(bc, 0x07, False, True, 0b10101001)  # CMPgte64 @R1, @R2
+        # lower(bc, 0x07, True, True, 0b00100001)  # CMPgte64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x07, True, True, 0b10100001)  # CMPgte64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x07, True, True, 0b10101001)  # CMPgte64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x08, False, False, 0b00100001)  # CMPulte32 R1, R2
+        # lower(bc, 0x08, False, False, 0b00101001)  # CMPulte32 @R1, R2
+        # lower(bc, 0x08, False, False, 0b10100001)  # CMPulte32 R1, @R2
+        # lower(bc, 0x08, False, False, 0b10101001)  # CMPulte32 @R1, @R2
+        # lower(bc, 0x08, True, False, 0b00100001)  # CMPulte32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x08, True, False, 0b10100001)  # CMPulte32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x08, True, False, 0b10101001)  # CMPulte32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x08, False, True, 0b00100001)  # CMPulte64 R1, R2
+        # lower(bc, 0x08, False, True, 0b00101001)  # CMPulte64 @R1, R2
+        # lower(bc, 0x08, False, True, 0b10100001)  # CMPulte64 R1, @R2
+        # lower(bc, 0x08, False, True, 0b10101001)  # CMPulte64 @R1, @R2
+        # lower(bc, 0x08, True, True, 0b00100001)  # CMPulte64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x08, True, True, 0b10100001)  # CMPulte64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x08, True, True, 0b10101001)  # CMPulte64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x09, False, False, 0b00100001)  # CMPugte32 R1, R2
+        # lower(bc, 0x09, False, False, 0b00101001)  # CMPugte32 @R1, R2
+        # lower(bc, 0x09, False, False, 0b10100001)  # CMPugte32 R1, @R2
+        # lower(bc, 0x09, False, False, 0b10101001)  # CMPugte32 @R1, @R2
+        # lower(bc, 0x09, True, False, 0b00100001)  # CMPugte32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x09, True, False, 0b10100001)  # CMPugte32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x09, True, False, 0b10101001)  # CMPugte32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x09, False, True, 0b00100001)  # CMPugte64 R1, R2
+        # lower(bc, 0x09, False, True, 0b00101001)  # CMPugte64 @R1, R2
+        # lower(bc, 0x09, False, True, 0b10100001)  # CMPugte64 R1, @R2
+        # lower(bc, 0x09, False, True, 0b10101001)  # CMPugte64 @R1, @R2
+        # lower(bc, 0x09, True, True, 0b00100001)  # CMPugte64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x09, True, True, 0b10100001)  # CMPugte64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x09, True, True, 0b10101001)  # CMPugte64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0E, False, False, 0b00100001)  # MUL32 R1, R2
+        # lower(bc, 0x0E, False, False, 0b00101001)  # MUL32 @R1, R2
+        # lower(bc, 0x0E, False, False, 0b10100001)  # MUL32 R1, @R2
+        # lower(bc, 0x0E, False, False, 0b10101001)  # MUL32 @R1, @R2
+        # lower(bc, 0x0E, True, False, 0b00100001)  # MUL32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0E, True, False, 0b10100001)  # MUL32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0E, True, False, 0b10101001)  # MUL32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0E, False, True, 0b00100001)  # MUL64 R1, R2
+        # lower(bc, 0x0E, False, True, 0b00101001)  # MUL64 @R1, R2
+        # lower(bc, 0x0E, False, True, 0b10100001)  # MUL64 R1, @R2
+        # lower(bc, 0x0E, False, True, 0b10101001)  # MUL64 @R1, @R2
+        # lower(bc, 0x0E, True, True, 0b00100001)  # MUL64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0E, True, True, 0b10100001)  # MUL64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0E, True, True, 0b10101001)  # MUL64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0F, False, False, 0b00100001)  # MULU32 R1, R2
+        # lower(bc, 0x0F, False, False, 0b00101001)  # MULU32 @R1, R2
+        # lower(bc, 0x0F, False, False, 0b10100001)  # MULU32 R1, @R2
+        # lower(bc, 0x0F, False, False, 0b10101001)  # MULU32 @R1, @R2
+        # lower(bc, 0x0F, True, False, 0b00100001)  # MULU32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0F, True, False, 0b10100001)  # MULU32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0F, True, False, 0b10101001)  # MULU32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0F, False, True, 0b00100001)  # MULU64 R1, R2
+        # lower(bc, 0x0F, False, True, 0b00101001)  # MULU64 @R1, R2
+        # lower(bc, 0x0F, False, True, 0b10100001)  # MULU64 R1, @R2
+        # lower(bc, 0x0F, False, True, 0b10101001)  # MULU64 @R1, @R2
+        # lower(bc, 0x0F, True, True, 0b00100001)  # MULU64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0F, True, True, 0b10100001)  # MULU64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0F, True, True, 0b10101001)  # MULU64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0B, False, False, 0b00100001)  # NEG32 R1, R2
+        # lower(bc, 0x0B, False, False, 0b00101001)  # NEG32 @R1, R2
+        # lower(bc, 0x0B, False, False, 0b10100001)  # NEG32 R1, @R2
+        # lower(bc, 0x0B, False, False, 0b10101001)  # NEG32 @R1, @R2
+        # lower(bc, 0x0B, True, False, 0b00100001)  # NEG32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0B, True, False, 0b10100001)  # NEG32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0B, True, False, 0b10101001)  # NEG32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0B, False, True, 0b00100001)  # NEG64 R1, R2
+        # lower(bc, 0x0B, False, True, 0b00101001)  # NEG64 @R1, R2
+        # lower(bc, 0x0B, False, True, 0b10100001)  # NEG64 R1, @R2
+        # lower(bc, 0x0B, False, True, 0b10101001)  # NEG64 @R1, @R2
+        # lower(bc, 0x0B, True, True, 0b00100001)  # NEG64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0B, True, True, 0b10100001)  # NEG64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0B, True, True, 0b10101001)  # NEG64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0A, False, False, 0b00100001)  # NOT32 R1, R2
+        # lower(bc, 0x0A, False, False, 0b00101001)  # NOT32 @R1, R2
+        # lower(bc, 0x0A, False, False, 0b10100001)  # NOT32 R1, @R2
+        # lower(bc, 0x0A, False, False, 0b10101001)  # NOT32 @R1, @R2
+        # lower(bc, 0x0A, True, False, 0b00100001)  # NOT32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0A, True, False, 0b10100001)  # NOT32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0A, True, False, 0b10101001)  # NOT32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x0A, False, True, 0b00100001)  # NOT64 R1, R2
+        # lower(bc, 0x0A, False, True, 0b00101001)  # NOT64 @R1, R2
+        # lower(bc, 0x0A, False, True, 0b10100001)  # NOT64 R1, @R2
+        # lower(bc, 0x0A, False, True, 0b10101001)  # NOT64 @R1, @R2
+        # lower(bc, 0x0A, True, True, 0b00100001)  # NOT64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x0A, True, True, 0b10100001)  # NOT64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x0A, True, True, 0b10101001)  # NOT64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x15, False, False, 0b00100001)  # OR32 R1, R2
+        # lower(bc, 0x15, False, False, 0b00101001)  # OR32 @R1, R2
+        # lower(bc, 0x15, False, False, 0b10100001)  # OR32 R1, @R2
+        # lower(bc, 0x15, False, False, 0b10101001)  # OR32 @R1, @R2
+        # lower(bc, 0x15, True, False, 0b00100001)  # OR32 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x15, True, False, 0b10100001)  # OR32 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x15, True, False, 0b10101001)  # OR32 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
+        # lower(bc, 0x15, False, True, 0b00100001)  # OR64 R1, R2
+        # lower(bc, 0x15, False, True, 0b00101001)  # OR64 @R1, R2
+        # lower(bc, 0x15, False, True, 0b10100001)  # OR64 R1, @R2
+        # lower(bc, 0x15, False, True, 0b10101001)  # OR64 @R1, @R2
+        # lower(bc, 0x15, True, True, 0b00100001)  # OR64 R1, R2 -1000
+        # arg(bc, -1000, 2, 'little', signed=True)
+        # lower(bc, 0x15, True, True, 0b10100001)  # OR64 R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+        # lower(bc, 0x15, True, True, 0b10101001)  # OR64 @R1, @R2(-3, -3)
+        # arg(bc, NATIND16, 2, 'little')
+
         return
 
         ops = dict(
@@ -713,6 +1182,7 @@ def write_bytecode():
             CMPugte=0x09,
             MUL=0x0E,
             MULU=0x0F,
+
             NEG=0x0B,
             NOT=0x0A,
             OR=0x15
