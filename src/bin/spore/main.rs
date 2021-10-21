@@ -1226,6 +1226,11 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
             (arg1, arg2)
         }
 
+
+        // TODO(pbz): VVVVVVVVVV
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // MOVnw, MOVND not implemented. Need to go and look if all are handled
+
         _ =>  // MOV
         {
             let arg1 =
@@ -1790,7 +1795,9 @@ impl OpCode
                 parse_instruction6(bytes, byte0_bits, op)
             }
 
-            OpCode::MOVbw
+            OpCode::MOVnw
+            | OpCode::MOVnd
+            | OpCode::MOVbw
             | OpCode::MOVww
             | OpCode::MOVdw
             | OpCode::MOVqw
