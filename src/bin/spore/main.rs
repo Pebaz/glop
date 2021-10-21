@@ -79,10 +79,6 @@ Bash. What if polyglot programs exposed same interface?
 // TODO(pbz): Replace panics/unreachable code with better error messages.
 // TODO(pbz): I'm not sure if natural indexes need to be read using LE. BE?
 
-// TODO(pbz): Remove these in the future
-#![allow(unused_variables)]
-#![allow(dead_code)]
-
 use std::io::prelude::*;
 use std::convert::TryInto;
 use colored::*;
@@ -176,7 +172,7 @@ enum Argument
     Index64(u64),
     ImmediateU16(u16),
     ImmediateU32(u32),
-    ImmediateU64(u64),
+    // ? ImmediateU64(u64),
     ImmediateI16(i16),
     ImmediateI32(i32),
     ImmediateI64(i64),
@@ -215,7 +211,7 @@ impl std::fmt::Display for Argument
 
             Self::ImmediateU32(immediate) => write!(f, "{}", immediate),
 
-            Self::ImmediateU64(immediate) => write!(f, "{}", immediate),
+            // ? Self::ImmediateU64(immediate) => write!(f, "{}", immediate),
 
             Self::ImmediateI16(immediate) => write!(f, "{}", immediate),
 
@@ -227,9 +223,8 @@ impl std::fmt::Display for Argument
 }
 
 fn parse_instruction1<T: Iterator<Item=u8>>(
-    bytes: &mut T,
-    byte0_bits: [bool; 8],
-    op_value: u8,
+    _bytes: &mut T,
+    _byte0_bits: [bool; 8],
     op: OpCode,
 ) -> Option<()>
 {
@@ -248,14 +243,12 @@ fn parse_instruction1<T: Iterator<Item=u8>>(
 fn parse_instruction2<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
-    op_value: u8,
     op: OpCode,
 ) -> Option<()>
 {
     let mut name = format!("{}", op);
 
     let byte1 = bytes.next().expect("Unexpected end of bytes");
-    let byte1_bits = bits_rev(byte1);
 
     let arg1 = match op
     {
@@ -317,7 +310,6 @@ fn parse_instruction2<T: Iterator<Item=u8>>(
 fn parse_instruction3<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
-    op_value: u8,
     op: OpCode,
 ) -> Option<()>
 {
@@ -559,8 +551,7 @@ fn parse_instruction3<T: Iterator<Item=u8>>(
 
 fn parse_instruction4<T: Iterator<Item=u8>>(
     bytes: &mut T,
-    byte0_bits: [bool; 8],
-    op_value: u8,
+    _byte0_bits: [bool; 8],
     op: OpCode,
 ) -> Option<()>
 {
@@ -601,7 +592,6 @@ fn parse_instruction4<T: Iterator<Item=u8>>(
 fn parse_instruction5<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
-    op_value: u8,
     op: OpCode,
 ) -> Option<()>
 {
@@ -1031,7 +1021,6 @@ fn parse_instruction5<T: Iterator<Item=u8>>(
 fn parse_instruction6<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
-    op_value: u8,
     op: OpCode,
 ) -> Option<()>
 {
@@ -1100,7 +1089,6 @@ fn parse_instruction6<T: Iterator<Item=u8>>(
 fn parse_instruction7<T: Iterator<Item=u8>>(
     bytes: &mut T,
     byte0_bits: [bool; 8],
-    op_value: u8,
     op: OpCode,
 ) -> Option<()>
 {
@@ -1420,9 +1408,9 @@ fn disassemble_instruction(
     {
         match arg1
         {
-            Argument::Index16(index) => print!("{}", arg1),
-            Argument::Index32(index) => print!("{}", arg1),
-            Argument::Index64(index) => print!("{}", arg1),
+            Argument::Index16(_index) => print!("{}", arg1),
+            Argument::Index32(_index) => print!("{}", arg1),
+            Argument::Index64(_index) => print!("{}", arg1),
             _ => print!(" {}", arg1),
         }
     }
@@ -1441,19 +1429,19 @@ fn disassemble_instruction(
     {
         match arg2
         {
-            Argument::Index16(index) =>
+            Argument::Index16(_index) =>
             {
                 if operand2.is_none() { print!(" "); }
                 print!("{}", arg2)
             }
 
-            Argument::Index32(index) =>
+            Argument::Index32(_index) =>
             {
                 if operand2.is_none() { print!(" "); }
                 print!("{}", arg2)
             }
 
-            Argument::Index64(index) =>
+            Argument::Index64(_index) =>
             {
                 if operand2.is_none() { print!(" "); }
                 print!("{}", arg2)
@@ -1472,68 +1460,13 @@ fn disassemble_instruction(
     println!("");
 }
 
-
-
-
-
-
-
-
-
-
-
-/// As noted in UEFI.22.3, these registers are only to be interpreted as
-/// "general purpose" when using normal instructions. Specialized instructions
-/// such as CMP can reference these same indices, but they refer to registers
-/// like FLAGS, IP, and some reserved registers.
-#[derive(Debug)]
-enum Register
+pub struct NaturalIndex
 {
-    R0 = 0,
-    R1 = 1,
-    R2 = 2,  // * Not valid from here down for Dedicated VM Register Indices
-    R3 = 3,
-    R4 = 4,
-    R5 = 5,
-    R6 = 6,
-    R7 = 7
-}
-
-/// Needed since stringifying the OpCode is part of application functionality.
-impl std::fmt::Display for Register
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
-    {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Register
-{
-    fn from_u8(value: u8) -> Self
-    {
-        match value
-        {
-            0 => Self::R0,
-            1 => Self::R1,
-            2 => Self::R2,
-            3 => Self::R3,
-            4 => Self::R4,
-            5 => Self::R5,
-            6 => Self::R6,
-            7 => Self::R7,
-            _ => unreachable!(),
-        }
-    }
-}
-
-struct NaturalIndex
-{
-    value: u64,
-    sign: i8,
-    constant: u64,
-    natural: u64,
-    offset: i64,
+    pub value: u64,
+    pub sign: i8,
+    pub constant: u64,
+    pub natural: u64,
+    pub offset: i64,
 }
 
 const SIZE_OF_VOID_PTR: u16 = 8;
@@ -1771,16 +1704,6 @@ impl std::fmt::Display for OpCode
 
 impl OpCode
 {
-    // parse from [u8] -> Result
-
-    // fn parse() -> Self
-    // {
-    //     match
-    // }
-
-    // fn parse;
-    // fn print;
-
     /// Bytes are read from left to right. Bits are read from right to left.
     fn disassemble<T: Iterator<Item=u8>>(bytes: &mut T) -> Option<()>
     {
@@ -1792,8 +1715,6 @@ impl OpCode
         {
             return None;
         };
-
-        // println!("BYTE: {}", byte0);
 
         // * Using reverse number parsing to make indexing the individual bits
         // * easier since the UEFI spec specifies them in reverse.
@@ -1815,12 +1736,12 @@ impl OpCode
         */
         match op
         {
-            OpCode::RET => parse_instruction1(bytes, byte0_bits, op_value, op),
+            OpCode::RET => parse_instruction1(bytes, byte0_bits, op),
 
             OpCode::JMP8
             | OpCode::BREAK =>
             {
-                parse_instruction2(bytes, byte0_bits, op_value, op)
+                parse_instruction2(bytes, byte0_bits, op)
             }
 
             OpCode::CALL
@@ -1830,13 +1751,13 @@ impl OpCode
             | OpCode::POP
             | OpCode::POPn =>
             {
-                parse_instruction3(bytes, byte0_bits, op_value, op)
+                parse_instruction3(bytes, byte0_bits, op)
             }
 
             OpCode::LOADSP
             | OpCode::STORESP =>
             {
-                parse_instruction4(bytes, byte0_bits, op_value, op)
+                parse_instruction4(bytes, byte0_bits, op)
             }
 
             OpCode::CMPIeq
@@ -1848,7 +1769,7 @@ impl OpCode
             | OpCode::MOVIn
             | OpCode::MOVREL =>
             {
-                parse_instruction5(bytes, byte0_bits, op_value, op)
+                parse_instruction5(bytes, byte0_bits, op)
             }
 
             OpCode::ADD
@@ -1876,7 +1797,7 @@ impl OpCode
             | OpCode::SUB
             | OpCode::XOR =>
             {
-                parse_instruction6(bytes, byte0_bits, op_value, op)
+                parse_instruction6(bytes, byte0_bits, op)
             }
 
             OpCode::MOVbw
@@ -1891,7 +1812,7 @@ impl OpCode
             | OpCode::MOVsnw
             | OpCode::MOVsnd =>
             {
-                parse_instruction7(bytes, byte0_bits, op_value, op)
+                parse_instruction7(bytes, byte0_bits, op)
             }
 
             _ =>  // TODO(pbz): Remove this once all instructions are covered
@@ -1901,437 +1822,6 @@ impl OpCode
                 Some(())
             }
         }
-
-        // println!("{:?} bytes", &byte0_bits[0 ..= 5]);
-        // println!("OpCode: {}", op);
-        // return None;
-
-        /*
-        match op
-        {
-            OpCode::MOVnw =>
-            {
-                let operand1_index_present = byte0_bits[7];
-                let operand2_index_present = byte0_bits[6];
-
-                let byte1 = bytes.next().expect("Unexpected end of bytes");
-                let byte1_bits = bits_rev(byte1);
-                let operand2_is_indirect = byte1_bits[7];
-                let operand2_value = bits_to_byte_rev(&byte1_bits[4 ..= 6]);
-                let operand1_is_indirect = byte1_bits[3];
-                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
-
-                let op1_x16_index_or_immediate =
-                {
-                    if operand1_index_present
-                    {
-                        let mut value = [0u8; 2];
-
-                        value[0] = bytes.next().unwrap();
-                        value[1] = bytes.next().unwrap();
-
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
-
-                let op2_x16_index_or_immediate =
-                {
-                    if operand2_index_present
-                    {
-                        let mut value = [0u8; 2];
-
-                        value[0] = bytes.next().unwrap();
-                        value[1] = bytes.next().unwrap();
-
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
-
-                print!("    {} ", op);
-
-                // Operand 1
-                if operand1_is_indirect
-                {
-                    print!("@");
-                }
-
-                let operand1 = Register::from_u8(operand1_value);
-
-                print!("{}", operand1);
-
-                if let Some(value) = op1_x16_index_or_immediate
-                {
-                    print!("({})", u16::from_le_bytes(value));
-                }
-
-                print!(", ");
-
-                // Operand 2
-                if operand2_is_indirect
-                {
-                    print!("@");
-                }
-
-                let operand2 = Register::from_u8(operand2_value);
-
-                print!("{}", operand2);
-
-                if let Some(value) = op2_x16_index_or_immediate
-                {
-                    let index = u16::from_le_bytes(value);
-                    let natural_index = NaturalIndex::from_u16(index);
-                    print!("{}", natural_index);
-                }
-
-                println!("");
-            }
-
-            OpCode::MOVREL =>
-            {
-                let size_of_immediate_data = bits_to_byte_rev(
-                    &byte0_bits[6 ..= 7]
-                );
-
-                let byte1 = bytes.next().expect("Unexpected end of bytes");
-                let byte1_bits = bits_rev(byte1);
-                let operand1_index_present = byte1_bits[6];
-                let operand1_is_indirect = byte1_bits[3];
-                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
-
-                let op1_x16_index_or_immediate =
-                {
-                    if operand1_index_present
-                    {
-                        let mut value = [0u8; 2];
-
-                        value[0] = bytes.next().unwrap();
-                        value[1] = bytes.next().unwrap();
-
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
-
-                // This is a signed integer of size 16, 32, or 64 bits
-                let immediate_offset =
-                {
-                    // Store enough for 64 bits and then just match on output
-                    let mut value = [0u8; 8];
-
-                    match size_of_immediate_data
-                    {
-                        1 =>
-                        {
-                            value[0] = bytes.next().unwrap();
-                            value[1] = bytes.next().unwrap();
-                        }
-
-                        2 =>
-                        {
-                            value[0] = bytes.next().unwrap();
-                            value[1] = bytes.next().unwrap();
-                            value[2] = bytes.next().unwrap();
-                            value[3] = bytes.next().unwrap();
-                        }
-
-                        3 =>
-                        {
-                            value[0] = bytes.next().unwrap();
-                            value[1] = bytes.next().unwrap();
-                            value[2] = bytes.next().unwrap();
-                            value[3] = bytes.next().unwrap();
-                            value[4] = bytes.next().unwrap();
-                            value[5] = bytes.next().unwrap();
-                        }
-                        _ => unreachable!()
-                    }
-
-                    value
-                };
-
-                print!("    {} ", op);
-
-                // Operand 1
-                if operand1_is_indirect
-                {
-                    print!("@");
-                }
-
-                let operand1 = Register::from_u8(operand1_value);
-
-                print!("{}", operand1);
-
-                if let Some(value) = op1_x16_index_or_immediate
-                {
-                    print!("({})", u16::from_le_bytes(value));
-                }
-
-                print!(", ");
-
-                // Operand 2
-                match size_of_immediate_data
-                {
-                    1 =>
-                    {
-                        let mut value = [0u8; 2];
-                        for i in 0 .. value.len()
-                        {
-                            value[i] = immediate_offset[i];
-                        }
-                        let offset = i16::from_le_bytes(value);
-                        print!("{}", if offset < 0 { "-" } else { "+" });
-                        print!("{}", offset);
-                    }
-
-                    2 =>
-                    {
-                        let mut value = [0u8; 4];
-                        for i in 0 .. value.len()
-                        {
-                            value[i] = immediate_offset[i];
-                        }
-                        let offset = i32::from_le_bytes(value);
-                        print!("{}", if offset < 0 { "-" } else { "+" });
-                        print!("{}", offset);
-                    }
-
-                    3 =>
-                    {
-                        let offset = i64::from_le_bytes(immediate_offset);
-                        print!("{}", if offset < 0 { "-" } else { "+" });
-                        print!("{}", offset);
-                    }
-
-                    _ => unreachable!()
-                }
-
-                println!("");
-            }
-
-            OpCode::PUSHn =>
-            {
-                let operand1_index_present = byte0_bits[7];
-
-                let byte1 = bytes.next().expect("Unexpected end of bytes");
-                let byte1_bits = bits_rev(byte1);
-                let operand1_is_indirect = byte1_bits[3];
-                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
-
-                let op1_x16_index_or_immediate =
-                {
-                    if operand1_index_present
-                    {
-                        let mut value = [0u8; 2];
-
-                        value[0] = bytes.next().unwrap();
-                        value[1] = bytes.next().unwrap();
-
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
-
-                print!("    {} ", op);
-
-                // Operand 1
-                if operand1_is_indirect
-                {
-                    print!("@");
-                }
-
-                let operand1 = Register::from_u8(operand1_value);
-
-                print!("{}", operand1);
-
-                if let Some(value) = op1_x16_index_or_immediate
-                {
-                    if operand1_is_indirect
-                    {
-                        let offset = i16::from_le_bytes(value);
-                        print!("{}", if offset < 0 { '-' } else { '+' });
-                        print!("({})", offset);
-                    }
-                    else
-                    {
-                        let index = u16::from_le_bytes(value);
-                        let natural_index = NaturalIndex::from_u16(index);
-                        print!("{}", natural_index);
-                    }
-                }
-
-                println!("");
-            }
-
-            OpCode::CALL =>
-            {
-                let operand1_index_present = byte0_bits[7];
-                let operand1_index_is_x64 = byte0_bits[6];
-
-                let byte1 = bytes.next().expect("Unexpected end of bytes");
-                let byte1_bits = bits_rev(byte1);
-                let is_native_call = byte1_bits[5];
-                let is_relative_address = byte1_bits[4];
-                let operand1_is_indirect = byte1_bits[3];
-                let operand1_value = bits_to_byte_rev(&byte1_bits[0 ..= 2]);
-
-                let op1_x32_index_or_immediate =
-                {
-                    if operand1_index_present
-                    {
-                        let mut value = [0u8; 8];
-
-                        if operand1_index_is_x64
-                        {
-                            for i in 0 .. value.len()
-                            {
-                                value[i] = bytes.next().unwrap();
-                            }
-                        }
-                        else
-                        {
-                            value[0] = bytes.next().unwrap();
-                            value[1] = bytes.next().unwrap();
-                        }
-
-                        Some(value)
-                    }
-                    else
-                    {
-                        None
-                    }
-                };
-
-                print!("    CALL");
-                print!("{}", if operand1_index_is_x64 { "64" } else { "32" });
-
-                if is_native_call
-                {
-                    print!("EX");
-                }
-
-                if !is_relative_address
-                {
-                    print!("a");
-                }
-
-                print!(" ");
-
-                // !!!!!!!!!!!!!!!!!!! There are only a finite number of ways to print out instructions
-                // !!!!!!!!!!!!!!!!!!! Perhaps there are only a finite number of ways to parse them also?
-                // See section 22.7 because it shows you the variants!
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!! Please take the time to hand-translate
-                // !!!!!!!!!!!!!!!!!!! the bytecode into assembly
-                // !!!!!!!!!!!!!!!!!!! It will be worth it
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!!
-                // !!!!!!!!!!!!!!!!!!!
-
-
-                // Operand 1
-                if operand1_is_indirect
-                {
-                    print!("@");
-                }
-
-                let operand1 = Register::from_u8(operand1_value);
-
-                print!("{}", operand1);
-
-                // TODO(pbz): This is the easy one. Always treat it as immed
-                if operand1_index_is_x64
-                {
-                    let value = op1_x32_index_or_immediate.expect(
-                        "Expected 64-bit immediate data"
-                    );
-
-                    let offset = i64::from_le_bytes(value);
-                    print!("{}", if offset < 0 { '-' } else { '+' });
-                    print!("offset");
-                }
-                else
-                {
-                    if let Some(immediate_offset) = op1_x32_index_or_immediate
-                    {
-                        let mut value = [0u8; 4];
-                        for i in 0 .. value.len()
-                        {
-                            value[i] = immediate_offset[i];
-                        }
-
-                        if operand1_is_indirect
-                        {
-                            let index = u32::from_le_bytes(value);
-                            let natural_index = NaturalIndex::from_u32(index);
-                            print!("{}", natural_index);
-                        }
-                        else
-                        {
-                            let offset = i32::from_le_bytes(value);
-                            print!("{}", if offset < 0 { '-' } else { '+' });
-                            print!("({})", offset);
-                        }
-                    }
-                }
-
-
-                // if let Some(value) = op1_index_or_immediate
-                // {
-                //     if operand1_index_is_x64
-                //     {
-                //         let offset = i64::from_le_bytes(value);
-                //         print!("{}", if offset < 0 { '-' } else { '+' });
-                //         print!("({})", offset);
-                //     }
-
-                //     if operand1_is_indirect
-                //     {
-                //         let offset = i16::from_le_bytes(value);
-                //         print!("{}", if offset < 0 { '-' } else { '+' });
-                //         print!("({})", offset);
-                //     }
-                //     else
-                //     {
-                //         let index = u16::from_le_bytes(value);
-                //         let natural_index = NaturalIndex::from_u16(index);
-                //         print!("{}", natural_index);
-                //     }
-                // }
-
-                println!("");
-            }
-
-            OpCode::BREAK =>
-            {
-                return None;  // TODO(pbz): This is just temporary
-            }
-
-            _ =>  // TODO(pbz): Remove this once all instructions are covered
-            {
-                println!("OpCode: {}", op);
-            }
-        }
-        */
-
-        // Some(())
     }
 }
 
@@ -2351,35 +1841,35 @@ impl OpCode
 // }
 
 
-fn bits_u8(byte: u8) -> [bool; 8]
-{
-    let mut bits = [false; 8];
+// fn bits_u8(byte: u8) -> [bool; 8]
+// {
+//     let mut bits = [false; 8];
 
-    for i in 0 .. 8
-    {
-        if byte & 2u8.pow(i) > 0
-        {
-            bits[(bits.len() - 1) - i as usize] = true;
-        }
-    }
+//     for i in 0 .. 8
+//     {
+//         if byte & 2u8.pow(i) > 0
+//         {
+//             bits[(bits.len() - 1) - i as usize] = true;
+//         }
+//     }
 
-    bits
-}
+//     bits
+// }
 
-fn bits_to_byte_u8(bits: &[bool]) -> u8
-{
-    let mut byte = 0;
+// fn bits_to_byte_u8(bits: &[bool]) -> u8
+// {
+//     let mut byte = 0;
 
-    for (i, bit) in bits.iter().rev().enumerate()
-    {
-        if *bit
-        {
-            // byte += 2u8.pow((bits.len() - 1 - i) as u32);
-            byte += 2u8.pow((i) as u32);
-        }
-    }
-    byte
-}
+//     for (i, bit) in bits.iter().rev().enumerate()
+//     {
+//         if *bit
+//         {
+//             // byte += 2u8.pow((bits.len() - 1 - i) as u32);
+//             byte += 2u8.pow((i) as u32);
+//         }
+//     }
+//     byte
+// }
 
 fn bits_u16(byte: u16) -> [bool; 16]
 {
@@ -2506,84 +1996,10 @@ fn bits_to_byte_rev(bits: &[bool]) -> u8
 /// Reads in an EFI Bytecode file from STDIN and prints the disassembly.
 fn main()
 {
-    // disassemble_instruction(
-    //     "BREAK".yellow().to_string(),
-    //     None,
-    //     Some(Argument::ImmediateU64(1)),
-    //     None,
-    //     None
-    // );
-
-    // disassemble_instruction(
-    //     "CMP32eq".on_blue().italic().to_string(),
-    //     Some(Operand::new_general_purpose(1, false)),
-    //     Some(Argument::ImmediateU64(1)),
-    //     Some(Operand::new_general_purpose(2, true)),
-    //     Some(Argument::ImmediateU16(2)),
-    // );
-
-    // disassemble_instruction(
-    //     "CMP32eq".blue().italic().to_string(),
-    //     Some(Operand::new_general_purpose(1, false)),
-    //     Some(Argument::ImmediateU64(1)),
-    //     Some(Operand::new_general_purpose(2, true)),
-    //     Some(Argument::ImmediateU16(2)),
-    // );
-
-    // disassemble_instruction(
-    //     "ADD32".purple().to_string(),
-    //     Some(Operand::new_general_purpose(1, false)),
-    //     None,
-    //     Some(Operand::new_general_purpose(2, true)),
-    //     None,
-    // );
-
-    // disassemble_instruction(
-    //     "STORESP".red().to_string(),
-    //     Some(Operand::new_general_purpose(1, false)),
-    //     None,
-    //     Some(Operand::new_dedicated(0, false)),
-    //     None,
-    // );
-
-    // disassemble_instruction(
-    //     "ADD64".purple().bold().to_string(),
-    //     Some(Operand::new_general_purpose(1, false)),
-    //     Some(Argument::Index16(0x1234)),
-    //     None,
-    //     None,
-    // );
-
-    // disassemble_instruction(
-    //     "RET".red().bold().to_string(),
-    //     None,
-    //     None,
-    //     None,
-    //     None,
-    // );
-
-    // disassemble_instruction(
-    //     "SUPER LONG INSTRUCTION".truecolor(255, 200, 0).to_string(),
-    //     None,
-    //     Some(Argument::Index16(8564)),
-    //     None,
-    //     None,
-    // );
-
-
-    // disassemble_instruction(
-    //     "SUPER LONG INSTRUCTION".truecolor(98, 209, 111).to_string(),
-    //     None,
-    //     Some(Argument::Index32(3352307477)),
-    //     Some(Operand::new_general_purpose(1, false)),
-    //     Some(Argument::Index64(3458764547375975133)),
-    // );
-
     let mut show_help = true;
     for bytecode_file in std::env::args().skip(1).take(1)
     {
         show_help = false;
-        println!("{}", bytecode_file);
 
         let file = std::fs::File::open(bytecode_file.clone()).expect(
             format!("File {} does not exist", bytecode_file).as_str()
@@ -2599,47 +2015,7 @@ fn main()
             }
         }
 
-        /*
-        for (i, byte) in bytes.enumerate()
-        {
-            instruction[i % 4] = byte;
-
-            let bits = bits(byte);
-            let instruction_type_bits = &bits[0 .. 5];
-            let op = bits_to_byte(instruction_type_bits);
-
-            if op > 0
-            {
-                println!("{:?}", op);
-            }
-
-            match op
-            {
-                op if op == OpCode::MOD as u8 =>
-                {
-                    println!("MOD: {:?}", OpCode::MOD);
-                }
-
-                _ => ()
-            }
-
-            // if i % 4 == 0 && i > 0
-            // {
-            //     println!("{:?}", instruction);
-            //     instruction = [0; 4];
-            // }
-        }
-        */
-
         // TODO(pbz): Bytes can be left over in the instruction. Process them.
-
-        // loop
-        // {
-        //     let byte = bytes.next();
-        //     if byte.is_none() { break; }
-
-        //     println!("{:?}", byte.unwrap());
-        // }
     }
 
     if show_help
