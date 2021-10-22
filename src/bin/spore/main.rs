@@ -1469,6 +1469,8 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
     Some(())
 }
 
+// TODO(pbz): Output the actual bytecode bytes (machine code) side by side
+// TODO(pbz): so that you can count the bytes for relative jumps!
 // TODO(pbz): Only output text once. Build in buffer
 // TODO(pbz): Invest in some left/right justification
 // TODO(pbz): Justify in columns maybe?
