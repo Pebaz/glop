@@ -1226,10 +1226,112 @@ fn parse_instruction7<T: Iterator<Item=u8>>(
             (arg1, arg2)
         }
 
+        // Try to combine this with MOVsnw and MOVsnd
+        OpCode::MOVnw
+        | OpCode::MOVnd =>
+        {
+            let arg1 =
+            {
+                if operand1_index_present
+                {
+                    let arg = match op
+                    {
+                        OpCode::MOVnw =>  // 16 bit
+                        {
+                            let mut value = [0u8; 2];
 
-        // TODO(pbz): VVVVVVVVVV
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // MOVnw, MOVND not implemented. Need to go and look if all are handled
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index16(u16::from_le_bytes(value))
+                        }
+
+                        OpCode::MOVnd =>  // 32 bit
+                        {
+                            let mut value = [0u8; 4];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            Argument::Index32(u32::from_le_bytes(value))
+                        }
+
+                        _ => unreachable!()
+                    };
+
+                    Some(arg)
+                }
+                else
+                {
+                    None
+                }
+            };
+
+            let arg2 =
+            {
+                if operand2_index_present
+                {
+                    let arg = match op
+                    {
+                        OpCode::MOVnw =>  // 16 bit
+                        {
+                            let mut value = [0u8; 2];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            if operand2_is_indirect
+                            {
+                                Argument::Index16(u16::from_le_bytes(value))
+                            }
+                            else
+                            {
+                                Argument::ImmediateI16(
+                                    i16::from_le_bytes(value)
+                                )
+                            }
+                        }
+
+                        OpCode::MOVnd =>  // 32 bit
+                        {
+                            let mut value = [0u8; 4];
+
+                            for i in 0 .. value.len()
+                            {
+                                value[i] = bytes.next().unwrap();
+                            }
+
+                            if operand2_is_indirect
+                            {
+                                Argument::Index32(u32::from_le_bytes(value))
+                            }
+                            else
+                            {
+                                Argument::ImmediateI32(
+                                    i32::from_le_bytes(value)
+                                )
+                            }
+                        }
+
+                        _ => unreachable!()
+                    };
+
+                    Some(arg)
+                }
+                else
+                {
+                    None
+                }
+            };
+
+            (arg1, arg2)
+        }
 
         _ =>  // MOV
         {
@@ -1811,13 +1913,6 @@ impl OpCode
             {
                 // 7. INSTRUCTION OP1 ARGUMENT, OP2 ARGUMENT (MOV)
                 parse_instruction7(bytes, byte0_bits, op)
-            }
-
-            _ =>  // TODO(pbz): Remove this once all instructions are covered
-            {
-                println!("OpCode: {}", op);
-
-                Some(())
             }
         }
     }
