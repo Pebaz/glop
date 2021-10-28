@@ -561,9 +561,6 @@ def write_bytecode():
     arg(bc, NATIND64, 8, 'little')
     arg(bc, NATIND64, 8, 'little')
 
-
-
-
     bc.write(0b01110010_00100001.to_bytes(2, 'big'))  # $ MOVnw R1, R2 -1000
     bc.write((-1000).to_bytes(2, 'little', signed=True))
 
@@ -597,8 +594,6 @@ def write_bytecode():
     bc.write(0b11110011_10101001.to_bytes(2, 'big'))  # $ MOVnd @R1(-300, -300), @R2(-300, -300)
     bc.write((2954019116).to_bytes(4, 'little'))
     bc.write((2954019116).to_bytes(4, 'little'))
-
-
 
     bc.write(0b01100101_00100001.to_bytes(2, 'big'))  # $ MOVsnw R1, R2 -1000
     bc.write((-1000).to_bytes(2, 'little', signed=True))
