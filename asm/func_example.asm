@@ -24,7 +24,8 @@ EBC_Read_MSR:
 		MOVIQW		R7,_IA32_Read_MSR  ; This pointer for IA32 (native width=4)
 		JMP8CS		Native_Gate
 		MOVIQW		R7,_x64_Read_MSR  ; This pointer for x64 (native width=8)
-Native_Gate:	ADD64		R7,R1  ; Add base address = R1
+Native_Gate:
+		ADD64		R7,R1  ; Add base address = R1
 		CALL32EXA	R7
 		POPN		R6  ; Remove Parameter#1
 		POPN		R7  ; Remove Parameter#2
