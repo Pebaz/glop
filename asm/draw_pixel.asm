@@ -59,8 +59,10 @@ efi_main:
     MOV       R3, @R3
     MOVn      R3, @R3(EFI_SYSTEM_TABLE.BootServices)
 
-    MOVREL    R5, graphics_color
-    MOVi      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), 255
+    MOVREL      R5, graphics_color
+    MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), 255
+    MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), 200
+    MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), 0
 
     ;; LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, 0, (void**)&gop);
 
