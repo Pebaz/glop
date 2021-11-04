@@ -11,7 +11,7 @@ struct EFI_GRAPHICS_OUTPUT_PROTOCOL
     QueryMode   VOID_PTR
     SetMode     VOID_PTR
     Blt         VOID_PTR
-    ;; EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode;
+    Mode        VOID_PTR
 ends
 
 struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL
@@ -119,9 +119,10 @@ continue:
     PUSHn R4
     MOVi R4, EfiBltVideoFill
     PUSHn R4
-    MOVREL R2, graphics_color
+    MOVREL R2, graphics_color  ;; This is a pointer to a struct
     PUSHn R2
-    MOVREL R2, graphics_output_protocol
+    MOVREL R2, graphics_output_protocol  ;; This is a pointer to a pointer
+    MOV R2, @R2
     PUSHn R2
 
     MOVREL    R1, string_status
@@ -130,6 +131,7 @@ continue:
     POP       R1
 
     MOVREL R3, graphics_output_protocol
+    MOV R3, @R3
     CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
 
     POPn      R5
