@@ -14,6 +14,13 @@ struct EFI_GRAPHICS_OUTPUT_PROTOCOL
     ;; EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode;
 ends
 
+struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL
+    Blue        UINT8
+    Green       UINT8
+    Red         UINT8
+    Reserved    UINT8
+ends
+
 EfiBltVideoFill = 0
 
 section '.text' code executable readable
@@ -27,6 +34,7 @@ print:
     CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
     MOV       R0, R0(+2,0)
     RET
+
 
 clear_screen:
     MOVREL    R1, system_table
@@ -50,6 +58,9 @@ efi_main:
     MOVREL    R3, system_table
     MOV       R3, @R3
     MOVn      R3, @R3(EFI_SYSTEM_TABLE.BootServices)
+
+    MOVREL    R5, graphics_color
+    MOVi      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), 255
 
     ;; LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, 0, (void**)&gop);
 
@@ -98,7 +109,7 @@ continue:
     PUSHn R4
     MOVi R4, 1
     PUSHn R4
-    MOVi R4, 256
+    MOVi R4, 64
     PUSHn R4
     MOVi R4, 64
     PUSHn R4
@@ -147,10 +158,11 @@ loop_forever:
 section '.data' data readable writeable
     ;; Reserve 8 bytes in the .data section to use for storing a pointer
     system_table: dq ?
-    efi_graphics_protocol_guid: EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
+    efi_graphics_protocol_guid:
+        EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
     graphics_output_protocol: dq ?
     event_wait_for_key: dq ?  ;; I think this stays 0? 0 = WaitForKey?
     string_succeed: du "YES", 0x0A, 0x00
     string_failed: du "NO", 0x0A, 0x00
     string_status: du "HERE", 0x0A, 0x00
-    graphics_color: db 111, 111, 111, 0
+    graphics_color: rb EFI_GRAPHICS_OUTPUT_BLT_PIXEL.__size
