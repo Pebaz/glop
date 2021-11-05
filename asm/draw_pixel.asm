@@ -49,6 +49,53 @@ clear_screen:
     RET
 
 
+;; void set_pen_color(char r, char g, char b);
+;; Arguments should be pushed on stack and will be popped off automatically.
+;; Uses registers R5-R6.
+set_pen_color:
+    POP R7  ;; Save return address
+    MOVREL R5, graphics_color
+
+    ; POP R6  ;; b
+    MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R0(+1, 0)
+    ; POP R6  ;; g
+    MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), @R0(+2, 0)
+    ; POP R6  ;; r
+    MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), @R0(+3, 0)
+
+    PUSH R7  ;; Put the return address back
+    RET
+
+
+;; void draw_pixel(char x, char y)  // , char r, char g, char b);
+;; Arguments should be pushed on stack and will be popped off automatically.
+; draw_pixel:
+;     ;; graphics_output_protocol is now useable!
+;     ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, 256, 256, 1, 1, 0);
+;     MOVi R4, 0
+;     PUSHn R4
+;     MOVi R4, 1
+;     PUSHn R4
+;     MOVi R4, 1
+;     PUSHn R4
+;     MOVi R4, 64
+;     PUSHn R4
+;     MOVi R4, 64
+;     PUSHn R4
+;     MOVi R4, 0
+;     PUSHn R4
+;     MOVi R4, 0
+;     PUSHn R4
+;     MOVi R4, EfiBltVideoFill
+;     PUSHn R4
+;     MOVREL R2, graphics_color  ;; This is a pointer to a struct
+;     PUSHn R2
+;     MOVREL R2, graphics_output_protocol  ;; This is a pointer to a pointer
+;     MOV R2, @R2
+;     PUSHn R2
+
+
+
 efi_main:
     MOVREL    R1, system_table  ;; Move system_table into R1
     MOVn      @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
@@ -59,10 +106,18 @@ efi_main:
     MOV       R3, @R3
     MOVn      R3, @R3(EFI_SYSTEM_TABLE.BootServices)
 
-    MOVREL      R5, graphics_color
-    MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), 255
-    MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), 200
-    MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), 0
+    ; MOVREL      R5, graphics_color
+    ; MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), 255
+    ; MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), 200
+    ; MOVibw      @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), 0
+
+    MOVibw R5, 0
+    PUSH R5
+    MOVibw R5, 200
+    PUSH R5
+    MOVibw R5, 255
+    PUSH R5
+    CALL set_pen_color
 
     ;; LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, 0, (void**)&gop);
 
@@ -114,6 +169,58 @@ continue:
     MOVi R4, 64
     PUSHn R4
     MOVi R4, 64
+    PUSHn R4
+    MOVi R4, 0
+    PUSHn R4
+    MOVi R4, 0
+    PUSHn R4
+    MOVi R4, EfiBltVideoFill
+    PUSHn R4
+    MOVREL R2, graphics_color  ;; This is a pointer to a struct
+    PUSHn R2
+    MOVREL R2, graphics_output_protocol  ;; This is a pointer to a pointer
+    MOV R2, @R2
+    PUSHn R2
+
+    MOVREL    R1, string_status
+    PUSH      R1
+    CALL      print
+    POP       R1
+
+    MOVREL R3, graphics_output_protocol
+    MOV R3, @R3
+    CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
+
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+    POPn      R5
+
+    MOVibw R5, 100
+    PUSH R5
+    MOVibw R5, 100
+    PUSH R5
+    MOVibw R5, 0
+    PUSH R5
+    CALL set_pen_color
+
+    ;; graphics_output_protocol is now useable!
+    ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, 256, 256, 1, 1, 0);
+    MOVi R4, 0
+    PUSHn R4
+    MOVi R4, 1
+    PUSHn R4
+    MOVi R4, 1
+    PUSHn R4
+    MOVi R4, 64
+    PUSHn R4
+    MOVi R4, 68
     PUSHn R4
     MOVi R4, 0
     PUSHn R4
