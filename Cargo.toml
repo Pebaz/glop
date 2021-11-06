@@ -3,6 +3,7 @@ name = "glop"
 version = "0.1.0"
 edition = "2021"
 license = "Zlib"
+default-run = "glop"
 
 [dependencies]
 colored = "*"
