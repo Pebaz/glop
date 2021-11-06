@@ -78,7 +78,7 @@ draw_pixel:
     PUSHn R4
     MOV R4, @R0(+5, 0)  ;; +3 previous PUSHes
     PUSHn R4
-    MOV R4, @R0(+6, 0)  ;; +4 previous PUSHes
+    MOV R4, @R0(+7, 0)  ;; +4 previous PUSHes
     PUSHn R4
     MOVi R4, 0
     PUSHn R4
@@ -96,16 +96,7 @@ draw_pixel:
     MOV R3, @R3
     CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
 
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
+    MOV R0, R0(+10, 0)
 
     RET
 
@@ -172,112 +163,44 @@ continue:
     CALL      print
     POP       R1
 
-    ;; graphics_output_protocol is now useable!
-    ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, 256, 256, 1, 1, 0);
-    MOVi R4, 0
-    PUSHn R4
-    MOVi R4, 1
-    PUSHn R4
-    MOVi R4, 1
-    PUSHn R4
-    MOVi R4, 64
-    PUSHn R4
-    MOVi R4, 64
-    PUSHn R4
-    MOVi R4, 0
-    PUSHn R4
-    MOVi R4, 0
-    PUSHn R4
-    MOVi R4, EfiBltVideoFill
-    PUSHn R4
-    MOVREL R2, graphics_color  ;; This is a pointer to a struct
-    PUSHn R2
-    MOVREL R2, graphics_output_protocol  ;; This is a pointer to a pointer
-    MOV R2, @R2
-    PUSHn R2
-
-    MOVREL    R1, string_status
-    PUSH      R1
-    CALL      print
-    POP       R1
-
-    MOVREL R3, graphics_output_protocol
-    MOV R3, @R3
-    CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
-
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-
-    ;; graphics_output_protocol is now useable!
-    ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, 256, 256, 1, 1, 0);
-    MOVi R4, 0
-    PUSHn R4
-    MOVi R4, 1
-    PUSHn R4
-    MOVi R4, 1
-    PUSHn R4
-    MOVi R4, 64
-    PUSHn R4
-    MOVi R4, 68
-    PUSHn R4
-    MOVi R4, 0
-    PUSHn R4
-    MOVi R4, 0
-    PUSHn R4
-    MOVi R4, EfiBltVideoFill
-    PUSHn R4
-    MOVREL R2, graphics_color  ;; This is a pointer to a struct
-    PUSHn R2
-    MOVREL R2, graphics_output_protocol  ;; This is a pointer to a pointer
-    MOV R2, @R2
-    PUSHn R2
-
-    MOVREL    R1, string_status
-    PUSH      R1
-    CALL      print
-    POP       R1
-
-    MOVREL R3, graphics_output_protocol
-    MOV R3, @R3
-    CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
-
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-    POPn      R5
-
-    MOVREL    R1, string_status
-    PUSH      R1
-    CALL      print
-    POP       R1
-
-    MOVi R4, 72
+    ;; draw_pixel(192, 64);
+    MOVi R4, 192
     PUSH R4
+    MOVi R4, 64
     PUSH R4
     CALL draw_pixel
     POP R4
     POP R4
 
-    MOVi R4, 32
+    ;; draw_pixel(128, 64);
+    MOVi R4, 128
     PUSH R4
+    MOVi R4, 64
     PUSH R4
     CALL draw_pixel
     POP R4
     POP R4
+
+    ;; print(string_status);
+    MOVREL    R1, string_status
+    PUSH      R1
+    CALL      print
+    POP       R1
+
+    ;; for (int i = 0; i < 256; i++) { draw_pixel(i, i); }
+    MOVi R1, 1
+    draw_line:
+        PUSH R1
+        PUSH R1
+        CALL draw_pixel
+        POP R4
+        POP R4
+
+        MOVi R2, 1
+        ADD R1, R2
+
+        CMPIgte R1, 256
+        JMPcc draw_line
 
     JMP loop_forever
     RET
