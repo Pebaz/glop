@@ -1,5 +1,7 @@
 // PE Spec: https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
 
+mod backend;
+
 use std::io::prelude::*;
 use std::fs::File;
 use std::time::SystemTime;

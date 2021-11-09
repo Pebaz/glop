@@ -23,7 +23,8 @@ ends
 
 EfiBltVideoFill = 0
 
-section '.text' code executable readable
+;; .text
+section 'CODE' code executable readable
 
 print:
     MOVREL    R1, system_table
@@ -209,7 +210,8 @@ loop_forever:
     JMP loop_forever
 
 ;; ! http://flatassembler.net/docs.php?article=fasmg_manual
-section '.data' data readable writeable
+;; .data
+section 'DATA' data readable writeable
     ;; Reserve 8 bytes in the .data section to use for storing a pointer
     system_table: dq ?
     efi_graphics_protocol_guid:
@@ -220,3 +222,7 @@ section '.data' data readable writeable
     string_failed: du "NO", 0x0A, 0x00
     string_status: du "HERE", 0x0A, 0x00
     graphics_color: rb EFI_GRAPHICS_OUTPUT_BLT_PIXEL.__size
+
+;; .bss
+section 'RESERVED' data readable writeable
+    boo: db ?

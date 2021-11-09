@@ -7,3 +7,4 @@ default-run = "glop"
 
 [dependencies]
 colored = "*"
+fasmg-ebc-rs = { git = "https://github.com/Pebaz/fasmg-ebc-rs" }

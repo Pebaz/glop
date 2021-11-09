@@ -1,4 +1,4 @@
-# slime
+# Glop
 
 Programming language that compiles to UEFI Bytecode.
 
