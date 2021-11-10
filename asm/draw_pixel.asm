@@ -79,6 +79,33 @@ digit_to_utf8:
         RET
 
 
+;; Print out the digit 2
+emit_digit:
+    ; ;; Arg1:
+    ; MOVI R1, 2
+    ; PUSH R1
+
+    ; ;; Arg0: Allocate space for the return value
+    ; MOVI R1, 0
+    ; PUSH R1
+
+    ; CALL digit_to_utf8
+
+    ; POP R1
+    ; POP R2  ;; Throwaway
+
+
+    MOVIb R2, 50  ;; '2'
+    ; MOVREL R2, string_succeed
+    PUSH R2
+    MOVIb R2, 0  ;; \0
+    PUSH R0(0, +2)  ;; Push the address of STACK[-2] (R2)
+    CALL print
+    POP R2
+    POP R2
+    RET
+
+
 clear_screen:
     MOVREL    R1, system_table
     MOV       R1, @R1
@@ -230,6 +257,20 @@ continue:
     CALL      print
     POP       R1
 
+            MOVREL    R1, string_status
+            PUSH      R1
+            CALL      print
+            POP       R1
+
+            CALL emit_digit
+
+            MOVREL    R1, string_status
+            PUSH      R1
+            CALL      print
+            POP       R1
+
+    RET
+
     ;; for (int i = 0; i < 256; i++) { draw_pixel(i, i); }
     MOVi R1, 1
     draw_line:
@@ -260,11 +301,13 @@ section 'DATA' data readable writeable
         EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
     graphics_output_protocol: dq ?
     event_wait_for_key: dq ?  ;; I think this stays 0? 0 = WaitForKey?
-    string_succeed: du "YES", 0x0A, 0x00
-    string_failed: du "NO", 0x0A, 0x00
-    string_status: du "HERE", 0x0A, 0x00
+    string_succeed: du "YES", 0x0D, 0x0A, 0x00
+    string_failed: du "NO", 0x0D, 0x0A, 0x00
+    string_status: du "HERE", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     graphics_color: rb EFI_GRAPHICS_OUTPUT_BLT_PIXEL.__size
 
 ;; .bss
 section 'RESERVED' data readable writeable
+    string_digit: du "0", 0x00
+
     boo: db ?
