@@ -42,6 +42,7 @@ print:
 ;; Caller must ensure that digit is in range 0-9.
 ;; Undefined behavior if digit is 10-255.
 ;; Return value is written to argument 0.
+;; void digit_to_utf8(char ret, char arg1)
 digit_to_utf8:
     ; ;; Arg1 by value:
     ; MOVI R1, 0
@@ -53,26 +54,34 @@ digit_to_utf8:
 
     ;; ret = ord('0'); while (arg1) { arg1 -= 1; ret += 1 } return ret;
 
-    MOVI @R0(+2, 0), 48  ;; Assume '0' by default: ret = ord('0');
 
-    CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
+    ;; WORKS, USE MOV to overwrite entire register. That's how it works!
+    MOVIb R1, 56
+    MOVq @R0(+2, 0), R1
+    RET
+
+
+
+    MOVI @R0(+1, 0), 48  ;; Assume '0' by default: ret = ord('0');
+
+    CMPIlte @R0(+2, 0), 0  ;; if (arg1 <= 0)
     JMPcc return
 
     count_down:
 
         ;; arg1 -= 1;
         MOVI R2, 1
-        MOV R1, @R0(+1, 0)
+        MOV R1, @R0(+2, 0)
         SUB R1, R2
-        MOV @R0(+1, 0), R1
+        MOV @R0(+2, 0), R1
 
         ;; ret += 1;
         MOVI R2, 1
-        MOV R1, @R0(+2, 0)
+        MOV R1, @R0(+1, 0)
         ADD R1, R2
-        MOV @R0(+2, 0), R1
+        MOV @R0(+1, 0), R1
 
-        CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
+        CMPIlte @R0(+2, 0), 0  ;; if (arg1 <= 0)
         JMPcs count_down
 
     return:
@@ -81,26 +90,28 @@ digit_to_utf8:
 
 ;; Print out the digit 2
 emit_digit:
-    ; ;; Arg1:
-    ; MOVI R1, 2
-    ; PUSH R1
+    ;; Arg1:
+    MOVI R2, 2
+    PUSHn R2
 
-    ; ;; Arg0: Allocate space for the return value
-    ; MOVI R1, 0
-    ; PUSH R1
+    ;; Arg0: Allocate space for the return value
+    MOVI R2, 0
+    PUSHn R2
 
-    ; CALL digit_to_utf8
+    CALL digit_to_utf8
 
-    ; POP R1
-    ; POP R2  ;; Throwaway
+    POPn R3  ;; R3 now contains the stringified digit
+    POPn R1  ;; Throwaway
 
+    ;; -- WORKS --
 
     MOVREL R2, string_digit
-    MOVIb @R2, 50
+    ; MOVIb @R2, 55
+    MOVb @R2, R3  ;; Write the stringified digit to the string
 
-    PUSH R2
+    PUSHn R2
     CALL print
-    POP R2
+    POPn R2
     RET
 
 
@@ -306,4 +317,4 @@ section 'DATA' data readable writeable
 
 ;; .bss
 section 'RESERVED' data readable writeable
-    string_digit: du "0", 0x0D, 0x0A, 0x00
+    string_digit: du "©", 0x0D, 0x0A, 0x00
