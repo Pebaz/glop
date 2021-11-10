@@ -37,6 +37,48 @@ print:
     RET
 
 
+;; 1. Pass in digit to convert on stack.
+;; 0. Pass in address of return value.
+;; Caller must ensure that digit is in range 0-9.
+;; Undefined behavior if digit is 10-255.
+;; Return value is written to argument 0.
+digit_to_utf8:
+    ; ;; Arg1 by value:
+    ; MOVI R1, 0
+    ; PUSHN R1
+
+    ; ;; Arg0 (ret) by reference:
+    ; MOVI R1, 0
+    ; PUSHN R1
+
+    ;; ret = ord('0'); while (arg1) { arg1 -= 1; ret += 1 } return ret;
+
+    MOVI @R0(+2, 0), 48  ;; Assume '0' by default: ret = ord('0');
+
+    CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
+    JMPcc return
+
+    count_down:
+
+        ;; arg1 -= 1;
+        MOVI R2, 1
+        MOV R1, @R0(+1, 0)
+        SUB R1, R2
+        MOV @R0(+1, 0), R1
+
+        ;; ret += 1;
+        MOVI R2, 1
+        MOV R1, @R0(+2, 0)
+        ADD R1, R2
+        MOV @R0(+2, 0), R1
+
+        CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
+        JMPcs count_down
+
+    return:
+        RET
+
+
 clear_screen:
     MOVREL    R1, system_table
     MOV       R1, @R1
