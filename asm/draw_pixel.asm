@@ -95,13 +95,11 @@ emit_digit:
     ; POP R2  ;; Throwaway
 
 
-    MOVIb R2, 50  ;; '2'
-    ; MOVREL R2, string_succeed
+    MOVREL R2, string_digit
+    MOVIb @R2, 50
+
     PUSH R2
-    MOVIb R2, 0  ;; \0
-    PUSH R0(0, +2)  ;; Push the address of STACK[-2] (R2)
     CALL print
-    POP R2
     POP R2
     RET
 
@@ -308,6 +306,4 @@ section 'DATA' data readable writeable
 
 ;; .bss
 section 'RESERVED' data readable writeable
-    string_digit: du "0", 0x00
-
-    boo: db ?
+    string_digit: du "0", 0x0D, 0x0A, 0x00
