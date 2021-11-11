@@ -56,46 +56,148 @@ digit_to_utf8:
 
 
     ;; WORKS, USE MOV to overwrite entire register. That's how it works!
-    MOVIb R1, 56
-    MOVq @R0(+2, 0), R1
+    ; MOVIb R1, 56
+    ; MOVq @R0(+2, 0), R1
+    ; RET
+
+    MOVI @R0(+2, 0), 48  ;; Assume '0' by default: ret = ord('0');
+
+    ;; Upper: 125000000
+    ;; Lower: 124000000
+    ;; Lower: 124000000
+    CMPIgte @R0(+1, 0), 124000000
+    JMPcs yes
+    JMPcc no
+
+    yes:
+        MOVREL R3, string_higher
+        PUSH R3
+        CALL print
+        POP R3
+        RET
+    no:
+        MOVREL R3, string_lower
+        PUSH R3
+        CALL print
+        POP R3
+        RET
+
     RET
 
+    MOVI R3, 33
 
+    CMPI64eq @R0(+1, 0), 0
+    JMPcs print_0
 
-    MOVI @R0(+1, 0), 48  ;; Assume '0' by default: ret = ord('0');
+    CMPI64eq @R0(+1, 0), 1
+    JMPcs print_1
 
-    CMPIlte @R0(+2, 0), 0  ;; if (arg1 <= 0)
-    JMPcc return
+    CMPI64eq @R0(+1, 0), 2
+    JMPcs print_2
 
-    count_down:
+    CMPI64eq @R0(+1, 0), 3
+    JMPcs print_3
 
-        ;; arg1 -= 1;
-        MOVI R2, 1
-        MOV R1, @R0(+2, 0)
-        SUB R1, R2
-        MOV @R0(+2, 0), R1
+    CMPI64eq @R0(+1, 0), 4
+    JMPcs print_4
 
-        ;; ret += 1;
-        MOVI R2, 1
-        MOV R1, @R0(+1, 0)
-        ADD R1, R2
-        MOV @R0(+1, 0), R1
+    CMPI64eq @R0(+1, 0), 5
+    JMPcs print_5
 
-        CMPIlte @R0(+2, 0), 0  ;; if (arg1 <= 0)
-        JMPcs count_down
+    CMPI64eq @R0(+1, 0), 6
+    JMPcs print_6
 
-    return:
+    CMPI64eq @R0(+1, 0), 7
+    JMPcs print_7
+
+    CMPI64eq @R0(+1, 0), 8
+    JMPcs print_8
+
+    CMPI64eq @R0(+1, 0), 9
+    JMPcs print_9
+
+    JMP return_digit_to_utf8
+
+    print_0:
+        MOVIq R3, 48  ; 0
+        JMP return_digit_to_utf8
+
+    print_1:
+        MOVIq R3, 49  ; 1
+        JMP return_digit_to_utf8
+
+    print_2:
+        MOVIq R3, 50  ; 2
+        JMP return_digit_to_utf8
+
+    print_3:
+        MOVIq R3, 51  ; 3
+        JMP return_digit_to_utf8
+
+    print_4:
+        MOVIq R3, 52  ; 4
+        JMP return_digit_to_utf8
+
+    print_5:
+        MOVIq R3, 53  ; 5
+        JMP return_digit_to_utf8
+
+    print_6:
+        MOVIq R3, 54  ; 6
+        JMP return_digit_to_utf8
+
+    print_7:
+        MOVIq R3, 55  ; 7
+        JMP return_digit_to_utf8
+
+    print_8:
+        MOVIq R3, 56  ; 8
+        JMP return_digit_to_utf8
+
+    print_9:
+        MOVIq R3, 57  ; 9
+        JMP return_digit_to_utf8
+
+    return_digit_to_utf8:
+        MOV @R0(+2, 0), R3
         RET
+
+    ; CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
+    ; JMPcs return
+
+    ; count_down:
+    ;     MOVREL R5, string_status
+    ;     PUSH R5
+    ;     CALL print
+    ;     POP R5
+
+    ;     ;; arg1 -= 1;
+    ;     MOVI R2, 1
+    ;     MOV R1, @R0(+1, 0)
+    ;     SUB R1, R2
+    ;     MOV @R0(+1, 0), R1
+
+    ;     ;; ret += 1;
+    ;     MOVI R2, 1
+    ;     MOV R1, @R0(+2, 0)
+    ;     ADD R1, R2
+    ;     MOV @R0(+2, 0), R1
+
+    ;     CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0) break;
+    ;     JMPcc count_down  ;; else loop
+
+    ; return:
+    ;     RET
 
 
 ;; Print out the digit 2
 emit_digit:
     ;; Arg1:
-    MOVI R2, 2
+    MOVIq R2, 2
     PUSHn R2
 
     ;; Arg0: Allocate space for the return value
-    MOVI R2, 0
+    MOVIq R2, 0
     PUSHn R2
 
     CALL digit_to_utf8
@@ -106,7 +208,7 @@ emit_digit:
     ;; -- WORKS --
 
     MOVREL R2, string_digit
-    ; MOVIb @R2, 55
+    ; MOVIb @R2, 55  ;; '7'
     MOVb @R2, R3  ;; Write the stringified digit to the string
 
     PUSHn R2
@@ -314,6 +416,10 @@ section 'DATA' data readable writeable
     string_failed: du "NO", 0x0D, 0x0A, 0x00
     string_status: du "HERE", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     graphics_color: rb EFI_GRAPHICS_OUTPUT_BLT_PIXEL.__size
+
+    string_higher: du "^", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
+    string_lower: du "v", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
+
 
 ;; .bss
 section 'RESERVED' data readable writeable
