@@ -282,6 +282,42 @@ draw_pixel:
     RET
 
 
+;; char * return_string() { if (1) { return string_success; } else { return string_failed; } }
+return_string:
+    POP R7  ;; Save return address
+    MOVREL R1, return_first_string
+    MOVIq R2, 1
+    ; CMPIeq R1, 1
+
+    MOVREL R1, string_yes
+    MOVq @R0(+1, 0), R1  ;; Move &string_yes in R1 to STACK[-1]
+
+    PUSH R7  ;; Put the return address back
+    RET
+
+
+push_registers:
+    ;; PUSH R0  <- Won't work with RET
+    PUSH R1
+    PUSH R2
+    PUSH R3
+    PUSH R4
+    PUSH R5
+    PUSH R6
+    PUSH R7
+    RET
+
+pop_registers:
+    POP R7
+    POP R6
+    POP R5
+    POP R4
+    POP R3
+    POP R2
+    POP R1
+    ;; POP R0  <- Won't work with RET
+    RET
+
 efi_main:
     MOVREL    R1, system_table  ;; Move system_table into R1
     MOVn      @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
@@ -373,9 +409,25 @@ continue:
             CALL      print
             POP       R1
 
-            CALL emit_digit
+            ;; TODO(pbz): Finish this function
+            ;; CALL emit_digit
 
-            MOVREL    R1, string_status
+            MOVREL    R1, string_line
+            PUSH      R1
+            CALL      print
+            POP       R1
+
+            ;; --
+            PUSH64 R4  ;; Allocate space for return value
+            CALL return_string
+            POP64 R4  ;; Deallocate return value
+
+            PUSH64 R4  ;; Push arg
+            CALL print
+            POP64 R4  ;; Pop arg
+
+
+            MOVREL    R1, string_line
             PUSH      R1
             CALL      print
             POP       R1
@@ -416,9 +468,14 @@ section 'DATA' data readable writeable
     string_failed: du "NO", 0x0D, 0x0A, 0x00
     string_status: du "HERE", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     graphics_color: rb EFI_GRAPHICS_OUTPUT_BLT_PIXEL.__size
+    string_line: du "----------", 0x0D, 0x0A, 0x00
 
     string_higher: du "^", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     string_lower: du "v", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
+
+    return_first_string: db 1
+    string_yes: du "<YES>", 0x0D, 0x0A, 0x00
+    string_no: du "<NO>", 0x0D, 0x0A, 0x00
 
 
 ;; .bss
