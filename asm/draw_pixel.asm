@@ -282,18 +282,44 @@ draw_pixel:
     RET
 
 
-;; char * return_string() { if (1) { return string_success; } else { return string_failed; } }
-return_string:
-    POP R7  ;; Save return address
-    MOVREL R1, return_first_string
-    MOVIq R2, 1
-    ; CMPIeq R1, 1
 
+
+;; char * return_string() { if (1) { return string_success; } else { return string_failed; } }
+fn_return_string_working:  ;; ! This is working
+    POP R7  ;; Save return address
+
+    ;; ret = string_yes; OR: arg0 = string_yes;
     MOVREL R1, string_yes
     MOVq @R0(+1, 0), R1  ;; Move &string_yes in R1 to STACK[-1]
 
     PUSH R7  ;; Put the return address back
     RET
+
+
+fn_return_string:
+    POP R7  ;; Save return address
+
+    MOVRELq R1, return_first_string
+    MOVRELq R2, return_first_string_comparitor
+    ;; CMP64eq R1, R2  ;; THIS IS SIGNED :|  <------------------------------------
+    CMP64ulte R1, R2
+    CMP64ugte R1, R2
+    JMPcs fn_return_string_set_string_yes
+    JMPcc fn_return_string_set_string_no
+
+    fn_return_string_set_string_yes:
+        MOVREL R1, string_yes
+        MOVq @R0(+1, 0), R1  ;; Move &string_yes in R1 to STACK[-1]
+        JMP fn_return_string_end_scope
+
+    fn_return_string_set_string_no:
+        MOVREL R1, string_no
+        MOVq @R0(+1, 0), R1  ;; Move &string_no in R1 to STACK[-1]
+        JMP fn_return_string_end_scope
+
+    fn_return_string_end_scope:
+        PUSH R7  ;; Put the return address back
+        RET
 
 
 push_registers:
@@ -419,13 +445,12 @@ continue:
 
             ;; --
             PUSH64 R4  ;; Allocate space for return value
-            CALL return_string
+            CALL fn_return_string
             POP64 R4  ;; Deallocate return value
 
             PUSH64 R4  ;; Push arg
             CALL print
             POP64 R4  ;; Pop arg
-
 
             MOVREL    R1, string_line
             PUSH      R1
@@ -473,7 +498,8 @@ section 'DATA' data readable writeable
     string_higher: du "^", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     string_lower: du "v", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
 
-    return_first_string: db 1
+    return_first_string: dq 1
+    return_first_string_comparitor: dq 1
     string_yes: du "<YES>", 0x0D, 0x0A, 0x00
     string_no: du "<NO>", 0x0D, 0x0A, 0x00
 
