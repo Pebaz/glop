@@ -302,10 +302,19 @@ fn_return_string:
     MOVRELq R1, return_first_string
     MOVRELq R2, return_first_string_comparitor
     ;; CMP64eq R1, R2  ;; THIS IS SIGNED :|  <------------------------------------
-    CMP64ulte R1, R2
-    CMP64ugte R1, R2
+    ; CMP64gte R1, R2
+
+    ; CMP64gte R1, R2
+
+    MOVI R2, -256
+    CMPIeq R2, -256
     JMPcs fn_return_string_set_string_yes
     JMPcc fn_return_string_set_string_no
+
+    MOVREL R1, string_neither
+    MOVq @R0(+1, 0), R1  ;; Move &string_yes in R1 to STACK[-1]
+    JMP fn_return_string_end_scope
+
 
     fn_return_string_set_string_yes:
         MOVREL R1, string_yes
@@ -499,9 +508,10 @@ section 'DATA' data readable writeable
     string_lower: du "v", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
 
     return_first_string: dq 1
-    return_first_string_comparitor: dq 1
+    return_first_string_comparitor: dq -1
     string_yes: du "<YES>", 0x0D, 0x0A, 0x00
     string_no: du "<NO>", 0x0D, 0x0A, 0x00
+    string_neither: du "<NEITHER>", 0x0D, 0x0A, 0x00
 
 
 ;; .bss
