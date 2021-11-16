@@ -46,47 +46,7 @@ print:
 digit_to_utf8:
     POP R7  ;; Save return address
 
-    ; ;; Arg1 by value:
-    ; MOVI R1, 0
-    ; PUSHN R1
-
-    ; ;; Arg0 (ret) by reference:
-    ; MOVI R1, 0
-    ; PUSHN R1
-
-    ;; ret = ord('0'); while (arg1) { arg1 -= 1; ret += 1 } return ret;
-
-
-    ;; WORKS, USE MOV to overwrite entire register. That's how it works!
-    ; MOVIb R1, 56
-    ; MOVq @R0(+2, 0), R1
-    ; RET
-
     MOVI @R0(+1, 0), 48  ;; Assume '0' by default: ret = ord('0');
-
-    ;; Upper: 125000000
-    ;; Lower: 124000000
-    ;; Lower: 124000000
-    ; CMPIeq @R0(+2, 0), 2
-    ; JMPcs yes
-    ; JMPcc no
-
-    ; yes:
-    ;     MOVREL R3, string_higher
-    ;     PUSH R3
-    ;     CALL print
-    ;     POP R3
-    ;     RET
-    ; no:
-    ;     MOVREL R3, string_lower
-    ;     PUSH R3
-    ;     CALL print
-    ;     POP R3
-    ;     RET
-
-    ; PUSH R7  ;; Put the return address back
-    ; RET
-
     MOVI R3, 33
 
     CMPI64eq @R0(+2, 0), 0
@@ -195,6 +155,44 @@ emit_digit:
     POPn R2
 
     PUSH R6  ;; Put the return address back
+    RET
+
+
+
+
+;; The largest possible u64 is: 18446744073709551615 (20 digits)
+emit_u64:
+    POP R6  ;; Save return address
+
+    ;; TODO(pbz): Fill the char[20] with \0 each time to preserve it
+
+    PUSH R6  ;; Put the return address back
+    RET
+
+
+;; void memory_fill(byte * address, u64 size, byte value);
+;; Fills a given memory region with a given value.
+;; TODO(pbz): Do this with UEFI instead.
+fn_memory_fill:
+    POP R6  ;; Save return address
+
+    MOVb R3, @R0(+1, 0)  ;; value
+    MOVq R4, @R0(+2, 0)  ;; size
+    MOVq R5, @R0(+3, 0)  ;; address
+
+    MOVi R1, 1  ;; int i = 0;
+
+    fn_memory_fill_loop:
+        MOVq @R5, R3  ;; *address = value
+
+        MOVi R2, 1
+        ADD R5, R2  ;; address += 1
+        ADD R1, R2  ;; i += 1
+
+        CMPIgte R1, R4  ;; if (i >= size) { continue; } else { loop }
+        JMPcc fn_memory_fill_loop
+
+    PUSH R6  ;; Put the return address
     RET
 
 
@@ -419,6 +417,8 @@ continue:
     PUSH      R1
     CALL      print
     POP       R1
+
+    ---------------------------------------------------------- Clear the memory
 
     MOVREL    R1, string_status
     PUSH      R1
