@@ -166,50 +166,18 @@ digit_to_utf8:
         PUSH R7  ;; Put the return address back
         RET
 
-    ; CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
-    ; JMPcs return
-
-    ; count_down:
-    ;     MOVREL R5, string_status
-    ;     PUSH R5
-    ;     CALL print
-    ;     POP R5
-
-    ;     ;; arg1 -= 1;
-    ;     MOVI R2, 1
-    ;     MOV R1, @R0(+1, 0)
-    ;     SUB R1, R2
-    ;     MOV @R0(+1, 0), R1
-
-    ;     ;; ret += 1;
-    ;     MOVI R2, 1
-    ;     MOV R1, @R0(+2, 0)
-    ;     ADD R1, R2
-    ;     MOV @R0(+2, 0), R1
-
-    ;     CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0) break;
-    ;     JMPcc count_down  ;; else loop
-
-    ; return:
-    ;     RET
-
 
 ;; Print out the digit 2
 emit_digit:
-    POP R7  ;; Save return address
+    POP R6  ;; Save return address
 
     ;; Arg1:
-    MOVIq R2, 2
+    MOVq R2, @R0(+1, 0)
     PUSHn R2
 
     ;; Arg0: Allocate space for the return value
     MOVIq R2, 0
     PUSHn R2
-
-            MOVREL R3, string_line
-            PUSH R3
-            CALL print
-            POP R3
 
     CALL digit_to_utf8
 
@@ -226,12 +194,7 @@ emit_digit:
     CALL print
     POPn R2
 
-    MOVREL R3, string_line
-            PUSH R3
-            CALL print
-            POP R3
-
-    PUSH R7  ;; Put the return address back
+    PUSH R6  ;; Put the return address back
     RET
 
 
@@ -463,7 +426,20 @@ continue:
     POP       R1
 
     ;; TODO(pbz): Finish this function
+            MOVREL R3, string_line
+            PUSH R3
+            CALL print
+            POP R3
+
+    MOVI R1, 2
+    PUSH R1
     CALL emit_digit
+    POP R1
+
+            MOVREL R3, string_line
+            PUSH R3
+            CALL print
+            POP R3
 
     RET
 
