@@ -44,6 +44,8 @@ print:
 ;; Return value is written to argument 0.
 ;; void digit_to_utf8(char ret, char arg1)
 digit_to_utf8:
+    POP R7  ;; Save return address
+
     ; ;; Arg1 by value:
     ; MOVI R1, 0
     ; PUSHN R1
@@ -60,12 +62,12 @@ digit_to_utf8:
     ; MOVq @R0(+2, 0), R1
     ; RET
 
-    MOVI @R0(+2, 0), 48  ;; Assume '0' by default: ret = ord('0');
+    MOVI @R0(+1, 0), 48  ;; Assume '0' by default: ret = ord('0');
 
     ;; Upper: 125000000
     ;; Lower: 124000000
     ;; Lower: 124000000
-    CMPIgte @R0(+1, 0), 124000000
+    CMPIeq @R0(+2, 0), 2
     JMPcs yes
     JMPcc no
 
@@ -82,38 +84,39 @@ digit_to_utf8:
         POP R3
         RET
 
+    PUSH R7  ;; Put the return address back
     RET
 
     MOVI R3, 33
 
-    CMPI64eq @R0(+1, 0), 0
+    CMPI64eq @R0(+2, 0), 0
     JMPcs print_0
 
-    CMPI64eq @R0(+1, 0), 1
+    CMPI64eq @R0(+2, 0), 1
     JMPcs print_1
 
-    CMPI64eq @R0(+1, 0), 2
+    CMPI64eq @R0(+2, 0), 2
     JMPcs print_2
 
-    CMPI64eq @R0(+1, 0), 3
+    CMPI64eq @R0(+2, 0), 3
     JMPcs print_3
 
-    CMPI64eq @R0(+1, 0), 4
+    CMPI64eq @R0(+2, 0), 4
     JMPcs print_4
 
-    CMPI64eq @R0(+1, 0), 5
+    CMPI64eq @R0(+2, 0), 5
     JMPcs print_5
 
-    CMPI64eq @R0(+1, 0), 6
+    CMPI64eq @R0(+2, 0), 6
     JMPcs print_6
 
-    CMPI64eq @R0(+1, 0), 7
+    CMPI64eq @R0(+2, 0), 7
     JMPcs print_7
 
-    CMPI64eq @R0(+1, 0), 8
+    CMPI64eq @R0(+2, 0), 8
     JMPcs print_8
 
-    CMPI64eq @R0(+1, 0), 9
+    CMPI64eq @R0(+2, 0), 9
     JMPcs print_9
 
     JMP return_digit_to_utf8
@@ -160,6 +163,7 @@ digit_to_utf8:
 
     return_digit_to_utf8:
         MOV @R0(+2, 0), R3
+        PUSH R7  ;; Put the return address back
         RET
 
     ; CMPIlte @R0(+1, 0), 0  ;; if (arg1 <= 0)
@@ -192,6 +196,8 @@ digit_to_utf8:
 
 ;; Print out the digit 2
 emit_digit:
+    POP R7  ;; Save return address
+
     ;; Arg1:
     MOVIq R2, 2
     PUSHn R2
@@ -199,6 +205,11 @@ emit_digit:
     ;; Arg0: Allocate space for the return value
     MOVIq R2, 0
     PUSHn R2
+
+            MOVREL R3, string_line
+            PUSH R3
+            CALL print
+            POP R3
 
     CALL digit_to_utf8
 
@@ -214,6 +225,13 @@ emit_digit:
     PUSHn R2
     CALL print
     POPn R2
+
+    MOVREL R3, string_line
+            PUSH R3
+            CALL print
+            POP R3
+
+    PUSH R7  ;; Put the return address back
     RET
 
 
@@ -315,7 +333,6 @@ fn_return_string:
     MOVREL R1, string_neither
     MOVq @R0(+1, 0), R1  ;; Move &string_yes in R1 to STACK[-1]
     JMP fn_return_string_end_scope
-
 
     fn_return_string_set_string_yes:
         MOVREL R1, string_yes
@@ -440,32 +457,34 @@ continue:
     CALL      print
     POP       R1
 
-            MOVREL    R1, string_status
-            PUSH      R1
-            CALL      print
-            POP       R1
+    MOVREL    R1, string_status
+    PUSH      R1
+    CALL      print
+    POP       R1
 
-            ;; TODO(pbz): Finish this function
-            ;; CALL emit_digit
+    ;; TODO(pbz): Finish this function
+    CALL emit_digit
 
-            MOVREL    R1, string_line
-            PUSH      R1
-            CALL      print
-            POP       R1
+    RET
 
-            ;; --
-            PUSH64 R4  ;; Allocate space for return value
-            CALL fn_return_string
-            POP64 R4  ;; Deallocate return value
+    MOVREL    R1, string_line
+    PUSH      R1
+    CALL      print
+    POP       R1
 
-            PUSH64 R4  ;; Push arg
-            CALL print
-            POP64 R4  ;; Pop arg
+    ;; --
+    PUSH64 R4  ;; Allocate space for return value
+    CALL fn_return_string
+    POP64 R4  ;; Deallocate return value
 
-            MOVREL    R1, string_line
-            PUSH      R1
-            CALL      print
-            POP       R1
+    PUSH64 R4  ;; Push arg
+    CALL print
+    POP64 R4  ;; Pop arg
+
+    MOVREL    R1, string_line
+    PUSH      R1
+    CALL      print
+    POP       R1
 
     RET
 
