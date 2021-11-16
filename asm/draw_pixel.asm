@@ -159,12 +159,16 @@ emit_digit:
 
 
 
-
 ;; The largest possible u64 is: 18446744073709551615 (20 digits)
 emit_u64:
     POP R6  ;; Save return address
 
     ;; TODO(pbz): Fill the char[20] with \0 each time to preserve it
+
+    MOVREL R1, string_u64
+    PUSH R1
+    CALL print
+    POP R1
 
     PUSH R6  ;; Put the return address back
     RET
@@ -212,6 +216,10 @@ fn_memory_zero:
     PUSH R1  ;; size = arg0
 
     CALL fn_memory_fill
+
+    POP R1
+    POP R1
+    POP R1
 
     PUSH R6  ;; Put the return address
     RET
@@ -458,6 +466,9 @@ continue:
 
             ; CALL fn_memory_zero
 
+            ; POP R1
+            ; POP R1
+
 
             ; MOVREL    R1, string_clear
             ; PUSH      R1
@@ -480,6 +491,11 @@ continue:
     MOVI R1, 2
     PUSH R1
     CALL emit_digit
+    POP R1
+
+    MOVI R1, 123
+    PUSH R1
+    CALL emit_u64
     POP R1
 
             MOVREL R3, string_line
@@ -545,19 +561,17 @@ section 'DATA' data readable writeable
     string_status: du "HERE", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     graphics_color: rb EFI_GRAPHICS_OUTPUT_BLT_PIXEL.__size
     string_line: du "----------", 0x0D, 0x0A, 0x00
-
     string_higher: du "^", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
     string_lower: du "v", 0x0D, 0x0A, 0x00  ;; Windows line endings: \r\n
-
     return_first_string: dq 1
     return_first_string_comparitor: dq -256
     string_yes: du "<YES>", 0x0D, 0x0A, 0x00
     string_no: du "<NO>", 0x0D, 0x0A, 0x00
     string_neither: du "<NEITHER>", 0x0D, 0x0A, 0x00
-
     string_clear: du "->***", 0x0D, 0x0A, 0x00
-
+    string_newline: du 0x0D, 0x0A, 0x00
 
 ;; .bss
 section 'RESERVED' data readable writeable
     string_digit: du "©", 0x0D, 0x0A, 0x00
+    string_u64: du "©©©©©©©©©©©©©©©©©©©©", 0x0D, 0x0A, 0x00
