@@ -67,25 +67,25 @@ digit_to_utf8:
     ;; Upper: 125000000
     ;; Lower: 124000000
     ;; Lower: 124000000
-    CMPIeq @R0(+2, 0), 2
-    JMPcs yes
-    JMPcc no
+    ; CMPIeq @R0(+2, 0), 2
+    ; JMPcs yes
+    ; JMPcc no
 
-    yes:
-        MOVREL R3, string_higher
-        PUSH R3
-        CALL print
-        POP R3
-        RET
-    no:
-        MOVREL R3, string_lower
-        PUSH R3
-        CALL print
-        POP R3
-        RET
+    ; yes:
+    ;     MOVREL R3, string_higher
+    ;     PUSH R3
+    ;     CALL print
+    ;     POP R3
+    ;     RET
+    ; no:
+    ;     MOVREL R3, string_lower
+    ;     PUSH R3
+    ;     CALL print
+    ;     POP R3
+    ;     RET
 
-    PUSH R7  ;; Put the return address back
-    RET
+    ; PUSH R7  ;; Put the return address back
+    ; RET
 
     MOVI R3, 33
 
@@ -162,7 +162,7 @@ digit_to_utf8:
         JMP return_digit_to_utf8
 
     return_digit_to_utf8:
-        MOV @R0(+2, 0), R3
+        MOV @R0(+1, 0), R3
         PUSH R7  ;; Put the return address back
         RET
 
