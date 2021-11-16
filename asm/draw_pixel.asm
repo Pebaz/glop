@@ -189,8 +189,29 @@ fn_memory_fill:
         ADD R5, R2  ;; address += 1
         ADD R1, R2  ;; i += 1
 
-        CMPIgte R1, R4  ;; if (i >= size) { continue; } else { loop }
+        CMPgte R1, R4  ;; if (i >= size) { continue; } else { loop }
         JMPcc fn_memory_fill_loop
+
+    PUSH R6  ;; Put the return address
+    RET
+
+
+fn_memory_zero:
+    POP R6  ;; Save return address
+
+    ;; PATTERN: Temporary register to save passed in arguments
+    MOVI R1, 0
+    PUSH R1  ;; value = 0
+
+    ;; Passed in argument positions have been changed
+
+    MOV R1, @R0(+2, 0)  ;; +1 for previous argument
+    PUSH R1  ;; size = arg1
+
+    MOV R1, @R0(+3, 0)  ;; +1 for previous arguments
+    PUSH R1  ;; size = arg0
+
+    CALL fn_memory_fill
 
     PUSH R6  ;; Put the return address
     RET
@@ -418,7 +439,32 @@ continue:
     CALL      print
     POP       R1
 
-    ---------------------------------------------------------- Clear the memory
+
+
+            ;; !!!! EXPERIMENT - CLEAR MEMORY TO ZERO !!!!
+            ; MOVREL    R1, string_clear
+            ; PUSH      R1
+            ; CALL      print
+            ; POP       R1
+
+
+            ; MOVI R1, 2  ;; size = 2
+            ; PUSH R1
+
+            ; MOVREL R1, string_clear  ;; addr = &string_clear + 2
+            ; ; MOVI R2, 2
+            ; ; ADD R1, R2
+            ; PUSH R1
+
+            ; CALL fn_memory_zero
+
+
+            ; MOVREL    R1, string_clear
+            ; PUSH      R1
+            ; CALL      print
+            ; POP       R1
+
+
 
     MOVREL    R1, string_status
     PUSH      R1
@@ -508,6 +554,8 @@ section 'DATA' data readable writeable
     string_yes: du "<YES>", 0x0D, 0x0A, 0x00
     string_no: du "<NO>", 0x0D, 0x0A, 0x00
     string_neither: du "<NEITHER>", 0x0D, 0x0A, 0x00
+
+    string_clear: du "->***", 0x0D, 0x0A, 0x00
 
 
 ;; .bss
