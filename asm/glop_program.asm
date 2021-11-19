@@ -34,6 +34,10 @@ print:
 ;     PUSH R6  ;; Put the return address back
 ;     RET
 
+
+
+;; TODO(pbz): Don't use STACKPUSH & STACKPOP
+
 ;; Pushes a 64-bit value onto the stack
 ;; STACKPUSH(u64)
 STACKPUSH:
@@ -56,29 +60,52 @@ STACKPOP:
 
 
 
+test_func:
+    ; POP R6
+
+    MOVREL R1, string_1
+    PUSH R1
+    CALL print
+    POP R1
+
+    JMP32 R6
+
+
 efi_main:
     ;; First order of business, store the pointer to the system table
     MOVREL    R1, system_table  ;; Move system_table into R1
     MOVn      @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
 
-    MOVREL R1, string_hello_world
 
+        MOVI R1, 6
+        STORESP R6, [IP]
 
+        ;; Add bytes to the address to skip the next instruction
+        ADD R6, R1
+
+        JMP test_func  ;; Performing a jump messes up the instruction pointer
+
+        ;; Need to continue from here somehow
 
         ;; THIS WORKED!
         STORESP R6, [IP]
         PUSH R6
-        MOVREL R1, string_status
+        MOVREL R1, string_2
         PUSH R1
         CALL print
         POP R1
         POP R6
+
+        looop:
+            JMP looop
+
+
         JMP32 R6
 
 
 
 
-
+    MOVREL R1, string_hello_world
 
     ; PUSH R1
     ;; CALL STACKPUSH
@@ -109,3 +136,5 @@ section 'RESERVED' data readable writeable
 section 'DATA' data readable writeable
     string_hello_world: du "Hello World!", 0x0D, 0x0A, 0x00
     string_status: du "HERE", 0x0D, 0x0A, 0x00
+    string_1: du "1", 0x0D, 0x0A, 0x00
+    string_2: du "2", 0x0D, 0x0A, 0x00
