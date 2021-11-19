@@ -1,0 +1,34 @@
+let global-str = "Hello World!"  -- DATA section
+let global-int: u64              -- Reserved section
+
+type Color                       -- CODE section
+[
+    red: u8,
+    green: u8,
+    blue: u8,
+]
+
+fn entry(system-table: EFI-System-Table)
+[
+    let color = @push-struct(Color),
+    set color/red = 255,
+    set color/green = 200,
+    set color/blue = 0,
+
+    -- Could probably be @draw-pixel to get bootstrapped!
+    draw-pixel(64, 128, color),
+
+    loop [ ]  -- fn_entry_loop1:
+              -- fn_entry_loop1_break:
+]
+
+fn add(ret: u64, a: ptr, b: ptr)
+[
+
+    let x = @u64-fetch(a),
+    let x = get u64 from a,  -- Equivalent
+    let y = @u64-fetch(b),
+    let y = get u64 from b,  -- Equivalent
+
+    @u64-add(x, y)
+]

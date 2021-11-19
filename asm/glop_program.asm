@@ -72,20 +72,69 @@ test_func:
     JMP32 R6
 
 
+
+; ;; TODO ----------> perhaps push return address last?
+; test_func2:
+;     ;; Args
+;     PUSH arg0
+;     PUSH arg1
+;     PUSH arg2
+
+;     ;; Call
+;     MOVI R1, 6
+;     STORESP R6, [IP]
+;     ADD R6, R1
+;     PUSH R6  ;; NEED TO ACCOUNT FOR THIS
+;     JMP the_function_to_call
+
+
+; the_function_to_call:
+
+
+
+;; CAN ALL OF THESE BE ASM ROUTINES?
+;; JMP SYSCALL <- Wow. Just wow.
+;; JMP FNCALL <- Nice, but could just jump directly to label?
+;; JMP ASMCALL <- Cool, but again could just jump directly
+;; The sick part is that all 3 of those are really assembly routines!
+
+;; Handles all the register business for you but still acts like an ASMCALL
+;; Arguments must be popped back off manually
+;; C calling convention
+;; EBC defined
+SYSCALL:
+    db 0
+
+;; A normal function call, has a return value
+;; Manipulates the stack to get arguments
+;; Glop source code
+FNCALL:
+    db 0
+
+
+;; PERHAPS ASMCALL SHOULDN'T EXIST. JUST INLINE EVERYTHING.
+;; An assembly routine, only works with the logical stack
+;; Manipulates the stack to get arguments
+;; Handmade for each platform
+;; ASMCALL:
+    ;; NUM ARGS
+    ;; JUMP TO ADDRESS
+
+
+
+
 efi_main:
     ;; First order of business, store the pointer to the system table
     MOVREL    R1, system_table  ;; Move system_table into R1
     MOVn      @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
 
 
+        ;; This works by itself
         MOVI R1, 6
         STORESP R6, [IP]
         ADD R6, R1  ;; Add bytes to the address to skip the next instruction
         JMP test_func  ;; Performing a jump messes up the instruction pointer
-
-        ;; Need to continue from here somehow
-
-        ;; THIS WORKED!
+        ;; Continue from here! :D
         STORESP R6, [IP]
         PUSH R6
         MOVREL R1, string_2
