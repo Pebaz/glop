@@ -61,13 +61,14 @@ STACKPOP:
 
 
 test_func:
-    ; POP R6
+    PUSH R6  ;; Save IP
 
     MOVREL R1, string_1
     PUSH R1
     CALL print
     POP R1
 
+    POP R6  ;; Retrieve IP
     JMP32 R6
 
 
@@ -79,10 +80,7 @@ efi_main:
 
         MOVI R1, 6
         STORESP R6, [IP]
-
-        ;; Add bytes to the address to skip the next instruction
-        ADD R6, R1
-
+        ADD R6, R1  ;; Add bytes to the address to skip the next instruction
         JMP test_func  ;; Performing a jump messes up the instruction pointer
 
         ;; Need to continue from here somehow
