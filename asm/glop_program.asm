@@ -268,10 +268,9 @@ efi_main:
     MOVn      @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
 
 
-        ;; Trying something new
+        ;; Only 2 instructions to call a function!
         STORESP R6, [IP]
         JMP test_func3  ;; Performing a jump messes up the instruction pointer
-
         ;; Continue from here! :D
         STORESP R6, [IP]
         PUSH R6
