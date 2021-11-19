@@ -20,6 +20,127 @@ print:
     MOV       R0, R0(+2,0)
     RET
 
+
+;; 1. Pass in digit to convert on stack.
+;; 0. Pass in address of return value.
+;; Caller must ensure that digit is in range 0-9.
+;; Undefined behavior if digit is 10-255.
+;; Return value is written to argument 0.
+;; void digit_to_utf8(char ret, char arg1)
+digit_to_utf8:
+    POP R7  ;; Save return address
+
+    MOVI @R0(+1, 0), 48  ;; Assume '0' by default: ret = ord('0');
+    MOVI R3, 33
+
+    CMPI64eq @R0(+2, 0), 0
+    JMPcs print_0
+
+    CMPI64eq @R0(+2, 0), 1
+    JMPcs print_1
+
+    CMPI64eq @R0(+2, 0), 2
+    JMPcs print_2
+
+    CMPI64eq @R0(+2, 0), 3
+    JMPcs print_3
+
+    CMPI64eq @R0(+2, 0), 4
+    JMPcs print_4
+
+    CMPI64eq @R0(+2, 0), 5
+    JMPcs print_5
+
+    CMPI64eq @R0(+2, 0), 6
+    JMPcs print_6
+
+    CMPI64eq @R0(+2, 0), 7
+    JMPcs print_7
+
+    CMPI64eq @R0(+2, 0), 8
+    JMPcs print_8
+
+    CMPI64eq @R0(+2, 0), 9
+    JMPcs print_9
+
+    JMP return_digit_to_utf8
+
+    print_0:
+        MOVIq R3, 48  ; 0
+        JMP return_digit_to_utf8
+
+    print_1:
+        MOVIq R3, 49  ; 1
+        JMP return_digit_to_utf8
+
+    print_2:
+        MOVIq R3, 50  ; 2
+        JMP return_digit_to_utf8
+
+    print_3:
+        MOVIq R3, 51  ; 3
+        JMP return_digit_to_utf8
+
+    print_4:
+        MOVIq R3, 52  ; 4
+        JMP return_digit_to_utf8
+
+    print_5:
+        MOVIq R3, 53  ; 5
+        JMP return_digit_to_utf8
+
+    print_6:
+        MOVIq R3, 54  ; 6
+        JMP return_digit_to_utf8
+
+    print_7:
+        MOVIq R3, 55  ; 7
+        JMP return_digit_to_utf8
+
+    print_8:
+        MOVIq R3, 56  ; 8
+        JMP return_digit_to_utf8
+
+    print_9:
+        MOVIq R3, 57  ; 9
+        JMP return_digit_to_utf8
+
+    return_digit_to_utf8:
+        MOV @R0(+1, 0), R3
+        PUSH R7  ;; Put the return address back
+        RET
+
+
+;; Print out the digit 2
+emit_digit:
+    POP R6  ;; Save return address
+
+    ;; Arg1:
+    MOVq R2, @R0(+1, 0)
+    PUSHn R2
+
+    ;; Arg0: Allocate space for the return value
+    MOVIq R2, 0
+    PUSHn R2
+
+    CALL digit_to_utf8
+
+    POPn R3  ;; R3 now contains the stringified digit
+    POPn R1  ;; Throwaway
+
+    ;; -- WORKS --
+
+    MOVREL R2, string_digit
+    ; MOVIb @R2, 55  ;; '7'
+    MOVb @R2, R3  ;; Write the stringified digit to the string
+
+    PUSHn R2
+    CALL print
+    POPn R2
+
+    PUSH R6  ;; Put the return address back
+    RET
+
 ; struct fn_hello_world_stack_frame
 ;     string_hello UINT64  ;; Points to address within DATA section
 ;     int_age UINT8
@@ -121,12 +242,48 @@ FNCALL:
     ;; JUMP TO ADDRESS
 
 
+;; Pop 2 u64s off the stack and push their sum.
+ADDU64one:
+    POP R1
+    POP R2
+    ; ADD R1, R2
+    ; PUSH R1
+
+    JMP32 R6  ;; Gotta remember to use JMP32 or it will insert JMP8 instead
+
+
+
+test_func3:
+    MOVREL R1, string_1
+    PUSH R1
+    CALL print
+    POP R1
+
+    JMP32 R6(+0, +4)  ;; Directly add to the address here!
 
 
 efi_main:
     ;; First order of business, store the pointer to the system table
     MOVREL    R1, system_table  ;; Move system_table into R1
     MOVn      @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
+
+
+        ;; Trying something new
+        STORESP R6, [IP]
+        JMP test_func3  ;; Performing a jump messes up the instruction pointer
+
+        ;; Continue from here! :D
+        STORESP R6, [IP]
+        PUSH R6
+        MOVREL R1, string_2
+        PUSH R1
+        CALL print
+        POP R1
+        POP R6
+
+
+
+
 
 
         ;; This works by itself
@@ -142,6 +299,29 @@ efi_main:
         CALL print
         POP R1
         POP R6
+
+
+        ;; Call first assembly routine: ADDU64
+        MOVI R1, 3        ;; Arg0
+        PUSH R1
+        MOVI R1, 1        ;; Arg1
+        PUSH R1
+        MOVI R1, 6        ;; RTNCALL
+        STORESP R6, [IP]
+        ADD R6, R1
+        JMP ADDU64one
+        ; POP R1
+        ; POP R1
+
+
+
+        MOVI R1, 3
+        PUSH R1
+        CALL emit_digit
+        POP R1
+
+
+
 
         looop:
             JMP looop
@@ -178,6 +358,7 @@ efi_main:
 ;; This is for uninitialized global variables and is used in leu of malloc
 section 'RESERVED' data readable writeable
     system_table: dq ?
+    string_digit: du "©", 0x0D, 0x0A, 0x00
 
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
