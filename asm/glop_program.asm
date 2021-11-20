@@ -252,23 +252,12 @@ test_func3:
 
 
 ;; Pop 2 u64s off the stack and push their sum.
-ADDU64one:
-    POP R3
-    POP R4
-    ADD R3, R4
-    PUSH R3
-
-    MOVREL R1, string_1
-    PUSH R1
-    CALL print
+ADDU64:
+    POP R2
     POP R1
-
-    ; POP R6
-
-
+    ADD R1, R2
+    PUSH R1
     JMP32 R6(+0, +2)
-
-    RET
 
 
 
@@ -314,7 +303,7 @@ efi_main:
                     ; PUSH R1
                     ; STORESP R6, [IP]  ;; RTNCALL
                     ; ; PUSH R6
-                    ; JMP ADDU64one
+                    ; JMP ADDU64
                     ; ; POP R1
                     ; ; POP R1
 
@@ -342,9 +331,9 @@ efi_main:
         PUSH R1
 
         STORESP R6, [IP]  ;; RTNCALL
-        ; MOVREL R1, ADDU64one
+        ; MOVREL R1, ADDU64
         ; JMP32 R1
-        JMP ADDU64one
+        JMP ADDU64
         ;; POP R1  ;; Why does this fix it? <--
         ; POP R1
         ; POP R1
