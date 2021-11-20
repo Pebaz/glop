@@ -336,13 +336,24 @@ efi_main:
         PUSH R0
         PUSH R0
 
+        MOVI R1, 5
+        PUSH R1
+        MOVI R1, 4
+        PUSH R1
 
         STORESP R6, [IP]  ;; RTNCALL
+        ; MOVREL R1, ADDU64one
+        ; JMP32 R1
         JMP ADDU64one
         ;; POP R1  ;; Why does this fix it? <--
         ; POP R1
         ; POP R1
         ; POP R1
+
+        CALL emit_digit
+        POP R1
+
+
 
         MOVREL R1, string_status
         PUSH R1
