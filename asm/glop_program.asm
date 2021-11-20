@@ -31,7 +31,7 @@ digit_to_utf8:
     POP R7  ;; Save return address
 
     MOVI @R0(+1, 0), 48  ;; Assume '0' by default: ret = ord('0');
-    MOVI R3, 33
+    MOVI R3, 33  ;; '!'
 
     CMPI64eq @R0(+2, 0), 0
     JMPcs print_0
@@ -242,24 +242,34 @@ FNCALL:
     ;; JUMP TO ADDRESS
 
 
+test_func3:
+    MOVREL R1, string_at
+    PUSH R1
+    CALL print
+    POP R1
+
+    JMP32 R6(+0, +2)  ;; Directly add to the address here!
+
+
 ;; Pop 2 u64s off the stack and push their sum.
 ADDU64one:
-    POP R1
-    POP R2
-    ; ADD R1, R2
-    ; PUSH R1
+    POP R3
+    POP R4
+    ADD R3, R4
+    PUSH R3
 
-    JMP32 R6  ;; Gotta remember to use JMP32 or it will insert JMP8 instead
-
-
-
-test_func3:
     MOVREL R1, string_1
     PUSH R1
     CALL print
     POP R1
 
-    JMP32 R6(+0, +4)  ;; Directly add to the address here!
+    ; POP R6
+
+
+    JMP32 R6(+0, +2)
+
+    RET
+
 
 
 efi_main:
@@ -282,36 +292,67 @@ efi_main:
 
 
 
+        ; ;; This works by itself
+        ; MOVI R1, 6
+        ; STORESP R6, [IP]
+        ; ADD R6, R1  ;; Add bytes to the address to skip the next instruction
+        ; JMP test_func  ;; Performing a jump messes up the instruction pointer
+        ; ;; Continue from here! :D
+        ; STORESP R6, [IP]
+        ; PUSH R6
+        ; MOVREL R1, string_2
+        ; PUSH R1
+        ; CALL print
+        ; POP R1
+        ; POP R6
 
 
+                    ; ;; Call first assembly routine: ADDU64
+                    ; MOVI R1, 3        ;; Arg0
+                    ; PUSH R1
+                    ; MOVI R1, 1        ;; Arg1
+                    ; PUSH R1
+                    ; STORESP R6, [IP]  ;; RTNCALL
+                    ; ; PUSH R6
+                    ; JMP ADDU64one
+                    ; ; POP R1
+                    ; ; POP R1
 
-        ;; This works by itself
-        MOVI R1, 6
-        STORESP R6, [IP]
-        ADD R6, R1  ;; Add bytes to the address to skip the next instruction
-        JMP test_func  ;; Performing a jump messes up the instruction pointer
-        ;; Continue from here! :D
-        STORESP R6, [IP]
-        PUSH R6
-        MOVREL R1, string_2
+
+                    ; ; MOVREL R1, string_status
+                    ; ; PUSH R1
+                    ; ; CALL print
+                    ; ; POP R1
+                    ; ; POP R6
+
+                    ; POP R1
+
+        PUSH R0
+        PUSH R0
+        PUSH R0
+        PUSH R0
+        PUSH R0
+        PUSH R0
+        PUSH R0
+        PUSH R0
+
+
+        STORESP R6, [IP]  ;; RTNCALL
+        JMP ADDU64one
+        ;; POP R1  ;; Why does this fix it? <--
+        ; POP R1
+        ; POP R1
+        ; POP R1
+
+        MOVREL R1, string_status
         PUSH R1
         CALL print
         POP R1
-        POP R6
 
-
-        ;; Call first assembly routine: ADDU64
-        MOVI R1, 3        ;; Arg0
+        MOVREL R1, string_status
         PUSH R1
-        MOVI R1, 1        ;; Arg1
-        PUSH R1
-        MOVI R1, 6        ;; RTNCALL
-        STORESP R6, [IP]
-        ADD R6, R1
-        JMP ADDU64one
-        ; POP R1
-        ; POP R1
-
+        CALL print
+        POP R1
 
 
         MOVI R1, 3
@@ -320,7 +361,10 @@ efi_main:
         POP R1
 
 
-
+        MOVREL R1, string_status
+        PUSH R1
+        CALL print
+        POP R1
 
         looop:
             JMP looop
@@ -365,3 +409,4 @@ section 'DATA' data readable writeable
     string_status: du "HERE", 0x0D, 0x0A, 0x00
     string_1: du "1", 0x0D, 0x0A, 0x00
     string_2: du "2", 0x0D, 0x0A, 0x00
+    string_at: du "@", 0x0D, 0x0A, 0x00
