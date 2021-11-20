@@ -23,9 +23,11 @@ efi_main:
 
     ;; BEGIN OWN INSTRUCTIONS
 
+    ;; @clear-screen()
     STORESP R6, [IP]
     JMP CLEARSCREEN
 
+    ;; @emit-string("Hello World!")
     MOVREL R1, string_hello_world
     PUSH R1
     STORESP R6, [IP]

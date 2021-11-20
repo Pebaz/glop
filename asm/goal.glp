@@ -1,0 +1,14 @@
+@clear-screen(),
+@emit-string("Hello World!"),
+
+let x = 0,
+
+loop
+[
+    if @u64-gte(x, 64)
+    [
+        @break()
+    ]
+
+    @draw-pixel(x, x, 255, 200, 0)
+]
