@@ -1,47 +1,70 @@
-// PE Spec: https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
+use std::io::{Read, Write};
 
-mod backend;
+const PRELUDE: &'static str = include_str!("../../../asm/prelude.inc");
+const POSTLUDE: &'static str = include_str!("../../../asm/postlude.inc");
 
-use std::io::prelude::*;
-use std::fs::File;
-use std::time::SystemTime;
-
-/// Glop compiler executable
 fn main()
 {
-    println!("Hello Glop Compiler!");
+    let filename = std::env::args().skip(1).next().unwrap();
 
-    let pe_stub = std::fs::read("pe-stub.bin").unwrap();
-    let mut file = File::create("out.efi").unwrap();
+    println!("{}", filename);
 
-    file.write_all(&pe_stub).unwrap();
+    let mut source_file = std::fs::File::open(filename).unwrap();
+    let mut source_code = String::with_capacity(2048);
+    source_file.read_to_string(&mut source_code).unwrap();
 
-    let system_time = SystemTime::now().duration_since(
-        SystemTime::UNIX_EPOCH
-    ).unwrap().as_secs();
+    println!("{}", source_code);
 
-    file.write_all(&u32::to_le_bytes(system_time as u32)).unwrap();
-    file.write_all(&u32::to_le_bytes(0)).unwrap();
-    file.write_all(&u32::to_le_bytes(0)).unwrap();
+    let mut output_file = std::fs::File::create("a.asm").unwrap();
+    output_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 
-    // TODO(pbz): GO AND DETERMINE SIZE OF OPTIONAL HEADER + WRITE IT (2 bytes)
-    file.write_all(&u16::to_le_bytes(0)).unwrap();
+    // TODO(pbz): Refine the parser at each stage
+    println!("---------------------------------------------");
 
-    const IMAGE_FILE_EXECUTABLE_IMAGE: u16 = 0x0002;
-    const IMAGE_FILE_32BIT_MACHINE: u16 = 0x0100;
-    const IMAGE_FILE_DLL: u16 = 0x2000;
-    // TODO(pbz): Might not need this since loader strips relocs by default
-    // const IMAGE_FILE_RELOCS_STRIPPED: u16 = 0x0200;
-    const CHARACTERISTICS: u16 = {
-        IMAGE_FILE_EXECUTABLE_IMAGE
-        | IMAGE_FILE_32BIT_MACHINE
-        | IMAGE_FILE_DLL
-    };
+    let intrinsic_calls: Vec<&str> = source_code.split("@")
+        .map(|s| s.trim())
+        .collect();
 
-    file.write_all(&u16::to_le_bytes(CHARACTERISTICS)).unwrap();
-    file.write_all(&[0x0B, 0x02]).unwrap();  // Standard fields magic
-    file.write_all(&u8::to_le_bytes(2)).unwrap();
-    file.write_all(&u8::to_le_bytes(0)).unwrap();
+    for intrinsic_call in intrinsic_calls
+    {
+        if intrinsic_call.trim().is_empty()
+        {
+            continue;
+        }
 
-    // TODO(pbz): Write address of code. Currently \xA0\x10\x00\x00
+        println!("{}", intrinsic_call);
+
+        let mut elements = intrinsic_call.split("(").collect::<Vec<&str>>();
+
+        let intrinsic_name = elements.remove(0);
+
+        println!("CALL {}", intrinsic_name);
+
+        output_file.write_fmt(
+            format_args!(
+                "    STORESP R6, [IP]\n    JMP {}\n\n",
+                lookup_intrinsic(intrinsic_name)
+            )
+        ).unwrap();
+
+        if *elements.last().unwrap() == "),"
+        {
+            continue;
+        }
+
+        println!("NUM-ARGS: {}", elements.len());
+        println!("{:?}", elements);
+    }
+
+    output_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
+}
+
+
+fn lookup_intrinsic<'a>(name: &'a str) -> &'static str
+{
+    match name
+    {
+        "clear-screen" => "CLEARSCREEN",
+        _ => unreachable!(),
+    }
 }
