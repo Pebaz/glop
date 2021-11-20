@@ -16,7 +16,9 @@ print:
     MOVn      R1, @R1(EFI_SYSTEM_TABLE.ConOut)
     PUSHn     @R0(0,+16)
     PUSHn     R1
-    CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+    ; CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+    MOV       R1, @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+    CALLEX    R1
     MOV       R0, R0(+2,0)
     RET
 
@@ -296,7 +298,7 @@ use_fetch:
     JMP FETCH
 
     ;; Arg0 already on stack =)
-    MOVI R1, (SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+    ; MOVI R1, (SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
     PUSH R1
     STORESP R6, [IP]
     JMP FETCHOFFSET
