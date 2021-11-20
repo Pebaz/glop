@@ -1,3 +1,11 @@
+-- Program using only assembly routines?
+@push-u64(4)
+@push-u64(5)
+@add()
+@emit-digit()
+
+@global-var(3)  -- `@` means "compiler intrinsic", not "assembly routine"
+
 let global-str = "Hello World!"  -- DATA section
 let global-int: u64              -- Reserved section
 

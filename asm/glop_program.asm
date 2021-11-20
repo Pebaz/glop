@@ -260,6 +260,77 @@ ADDU64:
     JMP32 R6(+0, +2)
 
 
+print1:
+    MOVREL    R1, system_table
+    MOV       R1, @R1
+    MOVn      R1, @R1(EFI_SYSTEM_TABLE.ConOut)
+    PUSHn     @R0(0,+16)
+    PUSHn     R1
+    CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+    MOV       R0, R0(+2,0)
+    RET
+
+
+;; Pops a ptr off the stack, dereferences it, and pushes the result onto the
+;; stack.
+;; MOVREL R1, system_table
+;; PUSH R1
+;; ASMCALL FETCH
+FETCH:
+    POP R1
+    MOV R1, @R1
+    PUSH R1
+    JMP32 R6(+0, +2)
+
+FETCHOFFSET:
+    POP R2
+    POP R1
+    MOV R1, @R2
+    PUSH R1
+    JMP32 R6(+0, +2)
+
+use_fetch:
+    MOVREL R1, system_table
+    PUSH R1
+    STORESP R6, [IP]
+    JMP FETCH
+
+    ;; Arg0 already on stack =)
+    MOVI R1, (SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+    PUSH R1
+    STORESP R6, [IP]
+    JMP FETCHOFFSET
+
+
+
+
+;; Heap Stuff:
+;; https://edk2-docs.gitbook.io/edk-ii-uefi-driver-writer-s-guide/5_uefi_services/51_services_that_uefi_drivers_commonly_use/511_memory_allocation_services
+
+;; Pops a u64 off the stack and allocates that much memory on the heap.
+MEMORYRESERVE:
+    ;; For small struct (8b aligned)
+    ;; AllocatePool()
+    ;; AllocateZeroPool()
+    ;; AllocateCopyPool()  ;; Copies SIZE bytes from a ptr to the new location!
+
+    ;; For large buffers (4kb aligned
+    ;; Can allocate more than 4GB if the system has that much memory
+    ;; AllocatePages(AllocateAnyPages)
+
+    ;; Make sure to check return code to see if it worked
+    ;; Make sure structures and values are naturally aligned (ptr addr % struct size = 0)
+
+    JMP32 R6(+0, +2)
+
+;; Pops a ptr off the stack and frees the memory it points to.
+MEMORYRELEASE:
+    ;; FreePool()
+    ;; FreePages()
+    JMP32 R6(+0, +2)
+
+
+
 
 efi_main:
     ;; First order of business, store the pointer to the system table
