@@ -10,10 +10,6 @@ entry efi_main
 ;; This is for all the assembly for the whole program
 section 'CODE' code executable readable
 
-struct Foo
-    name UINT8
-ends
-
 include 'instructions.inc'
 
 ;; Not yet. All code is global in this file.
@@ -26,27 +22,4 @@ efi_main:
     MOVn @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
 
     ;; BEGIN OWN INSTRUCTIONS
-
-    STORESP R6, [IP]
-    JMP CLEARSCREEN
-
-    STORESP R6, [IP]
-    JMP CLEARSCREEN
-
-    STORESP R6, [IP]
-    JMP CLEARSCREEN
-
-
-
-    ;; END OWN INSTRUCTIONS
-
-    looop:
-        JMP looop
-    RET
-
-;; TODO(pbz): This is temporary. Will want to control this from compiler
-;; This is for uninitialized global variables and is used in leu of malloc
-section 'RESERVED' data readable writeable
-    system_table: dq ?
-    some_struct: db sizeof Foo
 
