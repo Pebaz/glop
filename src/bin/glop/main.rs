@@ -9,12 +9,7 @@ const POSTLUDE: &'static str = include_str!("../../../asm/postlude.inc");
 #[inline]
 fn is_space(chr: char) -> bool
 {
-    let m0 = chr == '\n';
-    let m1 = chr == '\r';
-    let m2 = chr == ' ';
-    let m3 = chr == '\t';
-
-    m0 | m1 | m2 | m3
+    chr == '\n' || chr == '\r' || chr == ' ' || chr == '\t'
 }
 
 /// If this character is there, great, if not, no worries
@@ -52,13 +47,35 @@ fn expect_char(mut ptr: &mut Peekable<Chars>, chr: char) -> bool
 /// Skips whitespace
 fn expect_string(mut ptr: &mut Peekable<Chars>, out_string: &mut String) -> bool
 {
+    if let Some(ch) = ptr.peek()
+    {
+        if *ch == '"'
+        {
+            ptr.next();
+            while let Some(ch2) = ptr.peek()
+            {
+                if *ch2 == '"'
+                {
+                    ptr.next();
+                    return true;
+                }
+                else
+                {
+                    out_string.push(*ch2);
+                    ptr.next();
+                }
+            }
+        }
+    }
+
     while let Some(character) = ptr.peek()
     {
         let m0 = *character >= 'a' && *character <= 'z';
         let m1 = *character >= 'A' && *character <= 'Z';
-        let m2 = *character == '-' || *character == '_';
+        let m2 = *character >= '0' && *character <= '9';
+        let m3 = *character == '-' || *character == '_';
 
-        if m0 | m1 | m2
+        if m0 | m1 | m2 | m3
         {
             out_string.push(*character);
             ptr.next();
@@ -70,13 +87,6 @@ fn expect_string(mut ptr: &mut Peekable<Chars>, out_string: &mut String) -> bool
     }
     out_string.len() > 0
 }
-
-/// Don't skip whitespace
-fn accept_int() { }
-
-/// Don't skip whitespace
-fn accept_string() { }
-
 
 fn main()
 {
@@ -101,6 +111,13 @@ fn main()
         // It's ok for a comma from the previous line to be here
         accept_char(ptr, ',');
 
+        if let None = ptr.peek()
+        {
+            break;
+        }
+
+        println!("-----> {:?}", ptr.peek());
+
         // Must have opening compiler intrinsic call
         if !expect_char(ptr, '@')
         {
@@ -124,10 +141,21 @@ fn main()
             return;
         }
 
-        if !expect_char(ptr, ')')
+        while !accept_char(ptr, ')')
         {
-            println!("ERROR: Expected closing parenthesis");
-            return;
+            // println!("ERROR: Expected closing parenthesis");
+            // return;
+
+            accept_char(ptr, ',');  // From last iteration
+
+            if !expect_string(ptr, &mut symbol)
+            {
+                println!("ERROR: Expected number, symbol, or string");
+                return;
+            }
+
+            println!("ARGUMENT: {:?}", symbol);
+            symbol.clear();
         }
     }
 
