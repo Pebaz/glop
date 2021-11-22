@@ -45,7 +45,10 @@ fn expect_char(mut ptr: &mut Peekable<Chars>, chr: char) -> bool
 
 /// This character NEEDS to be there.
 /// Skips whitespace
-fn expect_string(mut ptr: &mut Peekable<Chars>, out_string: &mut String) -> bool
+fn expect_symbol(
+    mut ptr: &mut Peekable<Chars>,
+    out_string: &mut String
+) -> bool
 {
     if let Some(ch) = ptr.peek()
     {
@@ -88,6 +91,60 @@ fn expect_string(mut ptr: &mut Peekable<Chars>, out_string: &mut String) -> bool
     out_string.len() > 0
 }
 
+fn expect_string(
+    mut ptr: &mut Peekable<Chars>,
+    out_string: &mut String,
+    delimiter: char
+) -> bool
+{
+    if !expect_char(ptr, delimiter)
+    {
+        return false;
+    }
+
+    while let Some(ch) = ptr.next()
+    {
+        if ch == '"'
+        {
+            return true;
+        }
+
+        out_string.push(ch);
+    }
+
+    false
+}
+
+/// Tokens store their beginning index but not their end. The line/columns can
+/// can be calculated when needed.
+enum Token
+{
+    Intrinsic(u32),
+    Symbol(u32),
+    CallOpen(u32),
+    CallClose(u32),
+    String(u32),
+    Comma(u32),
+    Equals(u32),
+    Number(u32),
+}
+
+/// Tokens store their beginning index as an offset from the previous token or
+/// beginning of file. To calculate file/line numbers, get true offset by
+/// summing all the previous token's offsets and then reiterating back through
+/// the file to get to that offset to find the file/line.
+// enum Token  // Total size: 16 bytes =)
+// {
+//     Intrinsic(u16),
+//     Symbol(u16),
+//     CallOpen(u16),
+//     CallClose(u16),
+//     String(u16),
+//     Comma(u16),
+//     Equals(u16),
+//     Number(u16),
+// }
+
 fn main()
 {
     let filename = std::env::args().skip(1).next().unwrap();
@@ -104,7 +161,9 @@ fn main()
 
     let mut ptr = &mut source_code.chars().peekable();
     ptr.peek().unwrap();
-    let mut symbol = String::with_capacity(64);
+    let mut buffer = String::with_capacity(64);
+    // let mut arguments: [Argument; 16];
+    let mut tokens: [Token; 8192];
 
     loop
     {
@@ -116,24 +175,22 @@ fn main()
             break;
         }
 
-        println!("-----> {:?}", ptr.peek());
-
         // Must have opening compiler intrinsic call
         if !expect_char(ptr, '@')
         {
-            println!("ERROR: Expected call to compiler intrinsic");
+            // println!("ERROR: Expected call to compiler intrinsic");
             return;
         }
 
         // Must have intrinsic call name
-        if !expect_string(ptr, &mut symbol)
+        if !expect_symbol(ptr, &mut buffer)
         {
             println!("ERROR: Expected symbol");
             return;
         }
 
-        println!("INTRINSIC CALL: {}", symbol);
-        symbol.clear();
+        println!("INTRINSIC CALL: {}", buffer);
+        buffer.clear();
 
         if !expect_char(ptr, '(')
         {
@@ -148,14 +205,26 @@ fn main()
 
             accept_char(ptr, ',');  // From last iteration
 
-            if !expect_string(ptr, &mut symbol)
+            if accept_char(ptr, '"')
+            {
+                while let Some(ch) = ptr.next()
+                {
+                    if ch == '"'
+                    {
+                        break;
+                    }
+                    buffer.push(ch);
+                }
+            }
+
+            else if !expect_symbol(ptr, &mut buffer)
             {
                 println!("ERROR: Expected number, symbol, or string");
                 return;
             }
 
-            println!("ARGUMENT: {:?}", symbol);
-            symbol.clear();
+            println!("ARGUMENT: {:?}", buffer);
+            buffer.clear();
         }
     }
 
