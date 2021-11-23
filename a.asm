@@ -24,16 +24,10 @@ efi_main:
     ;; BEGIN OWN INSTRUCTIONS
 
     STORESP R6, [IP]
-    JMP32 clear-screen
+    JMP32 CLEARSCREEN
 
     STORESP R6, [IP]
-    JMP32 emit-string
-
-    STORESP R6, [IP]
-    JMP32 bu
-
-    STORESP R6, [IP]
-    JMP32 baz
+    JMP32 EMITSTR
 
     MOVREL R1, const_u64_0
     PUSH R1
@@ -41,24 +35,10 @@ efi_main:
     PUSH R1
     MOVREL R1, const_u64_2
     PUSH R1
+    MOVREL R1, const_u64_3
+    PUSH R1
+    MOVREL R1, const_u64_4
+    PUSH R1
     STORESP R6, [IP]
-    JMP32 pbz
+    JMP32 DRAWPIXEL
 
-
-
-    ;; END OWN INSTRUCTIONS
-
-    looop:
-        JMP looop
-    RET
-
-;; TODO(pbz): This is temporary. Will want to control this from compiler
-;; This is for uninitialized global variables and is used in leu of malloc
-section 'RESERVED' data readable writeable
-    system_table: dq ?
-
-;; This is for initialized global variables
-section 'DATA' data readable writeable
-    const_u64_0: dq 1
-    const_u64_1: dq 2
-    const_u64_2: dq 3

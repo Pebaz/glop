@@ -1,5 +1,3 @@
 @clear-screen(),
 @emit-string("Hello World!"),
-@bu()
-@baz("asdf", "asdf2")
-@pbz(1, 2, 3)
+@draw-pixel(64, 64, 255, 200, 0),

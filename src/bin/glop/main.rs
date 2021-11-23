@@ -255,11 +255,10 @@ fn main()
 
         }
 
-        output_file.write_fmt(format_args!("    STORESP R6, [IP]\n    JMP32 {}\n\n", intrinsic_call_name)).unwrap();
+        output_file.write_fmt(format_args!("    STORESP R6, [IP]\n    JMP32 {}\n\n", lookup_intrinsic(&intrinsic_call_name))).unwrap();
     }
 
     output_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
-
     output_file.write_fmt(format_args!(";; This is for initialized global variables\n")).unwrap();
     output_file.write_fmt(format_args!("section 'DATA' data readable writeable\n")).unwrap();
 
@@ -276,6 +275,7 @@ fn lookup_intrinsic<'a>(name: &'a str) -> &'static str
     {
         "clear-screen" => "CLEARSCREEN",
         "emit-string" => "EMITSTR",
+        "draw-pixel" => "DRAWPIXEL",
         _ => unreachable!(),
     }
 }
