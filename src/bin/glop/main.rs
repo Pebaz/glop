@@ -163,7 +163,9 @@ fn main()
     ptr.peek().unwrap();
     let mut buffer = String::with_capacity(64);
     // let mut arguments: [Argument; 16];
-    let mut tokens: [Token; 8192];
+
+    let mut u64_constants = Vec::with_capacity(64);
+    let mut str_constants = Vec::with_capacity(64);
 
     loop
     {
@@ -185,17 +187,16 @@ fn main()
         // Must have intrinsic call name
         if !expect_symbol(ptr, &mut buffer)
         {
-            println!("ERROR: Expected symbol");
-            return;
+            return println!("ERROR: Expected symbol");
         }
 
+        let intrinsic_call_name = buffer.clone();
         println!("INTRINSIC CALL: {}", buffer);
         buffer.clear();
 
         if !expect_char(ptr, '(')
         {
-            println!("ERROR: Expected opening parenthesis");
-            return;
+            return println!("ERROR: Expected opening parenthesis");
         }
 
         while !accept_char(ptr, ')')
@@ -215,63 +216,57 @@ fn main()
                     }
                     buffer.push(ch);
                 }
+
+                // String constant
+                str_constants.push(buffer.clone());
             }
 
-            else if !expect_symbol(ptr, &mut buffer)
+            else if expect_symbol(ptr, &mut buffer)
             {
-                println!("ERROR: Expected number, symbol, or string");
-                return;
+                // Integer constant or variable
+
+                // Integer constant
+                if buffer.chars().next().unwrap().is_numeric()
+                {
+                    u64_constants.push(buffer.clone());
+
+                    output_file.write_fmt(
+                        format_args!(
+                            "    MOVREL R1, const_u64_{}\n    PUSH R1\n",
+                            u64_constants.len() - 1
+                        )
+                    ).unwrap();
+                }
+
+                // Variable
+                else
+                {
+                    return println!("ERROR: Expected number");
+                }
+            }
+
+            else
+            {
+                return println!("ERROR: Expected number, symbol, or string");
             }
 
             println!("ARGUMENT: {:?}", buffer);
             buffer.clear();
-        }
-    }
 
-    return;
-
-    let mut source_code = String::with_capacity(2048);
-    source_file.read_to_string(&mut source_code).unwrap();
-
-    let intrinsic_calls: Vec<&str> = source_code.split("@")
-        .map(|s| s.trim())
-        .collect();
-
-    for intrinsic_call in intrinsic_calls
-    {
-        if intrinsic_call.trim().is_empty()
-        {
-            continue;
         }
 
-        let mut elements = intrinsic_call.split("(").collect::<Vec<&str>>();
-
-        let intrinsic_name = elements.remove(0);
-
-        println!("CALL {}", intrinsic_name);
-
-        let mut elements = elements.remove(0).split(",").collect::<Vec<&str>>();
-        println!("{:?}", elements);
-
-        for argument in elements
-        {
-            if argument == ")"
-            {
-                break;
-            }
-
-            println!("ARGUMENT: {}", argument);
-        }
-
-        output_file.write_fmt(
-            format_args!(
-                "    STORESP R6, [IP]\n    JMP {}\n\n",
-                lookup_intrinsic(intrinsic_name)
-            )
-        ).unwrap();
+        output_file.write_fmt(format_args!("    STORESP R6, [IP]\n    JMP32 {}\n\n", intrinsic_call_name)).unwrap();
     }
 
     output_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
+
+    output_file.write_fmt(format_args!(";; This is for initialized global variables\n")).unwrap();
+    output_file.write_fmt(format_args!("section 'DATA' data readable writeable\n")).unwrap();
+
+    for (i, u64_constant) in u64_constants.into_iter().enumerate()
+    {
+        output_file.write_fmt(format_args!("    const_u64_{}: dq {}\n", i, u64_constant)).unwrap();
+    }
 }
 
 
