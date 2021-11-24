@@ -85,8 +85,8 @@ __set_pen_color:
 
 
 
-    ::::::::::::::::::
-    Is the return address 16 bit? Why did this work?
+    ; ::::::::::::::::::
+    ; Is the return address 16 bit? Why did this work?
 
 
     ; POP R7  ;; Save return address
@@ -112,28 +112,52 @@ CLEARSCREEN:
 
 
 DRAWPIXEL:
-    MOVi R5, 255
-    PUSH64 R5
-    MOVi R5, 200
-    PUSH64 R5
-    MOVi R5, 0
-    PUSH64 R5
 
-    ; PUSH64 @R0(+1, 0)
-    ; PUSH64 @R0(+3, 0)
-    ; PUSH64 @R0(+5, 0)
+        MOVREL R5, graphics_color
+        POP64 R1
+        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), R1
+        POP64 R1
+        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), R1
+        MOVI R1, 255
+        ; POP64 R1  <---------------- Something isn't right.
+        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), R1
 
-    CALL __set_pen_color
-    POP64 R1  ;; FFI call args
+
+    ; POP R1
+    ; POP R1
+    ; POP R1
+    ; POP R1
+    ; POP R1
+
+    ; MOVi R5, 255
+    ; PUSH64 R5
+    ; MOVi R5, 200
+    ; PUSH64 R5
+    ; MOVi R5, 0
+    ; PUSH64 R5
+
+    ; ; PUSH64 @R0(+1, 0)
+    ; ; PUSH64 @R0(+3, 0)
+    ; ; PUSH64 @R0(+5, 0)
+
+    ; CALL __set_pen_color
+    ; POP64 R1  ;; FFI call args
+    ; POP64 R1
+    ; POP64 R1
+
+    ; POP64 R1  ;; User args
+    ; POP64 R1
+    ; POP64 R1
+
     POP64 R1
     POP64 R1
 
-    POP64 R1  ;; User args
-    POP64 R1
-    POP64 R1
-
-    ; PUSHn @R0(+1, 0)
-    ; PUSHn @R0(+2, 0)
+    ; ; PUSHn @R0(+1, 0)
+    ; ; PUSHn @R0(+2, 0)
+    MOVi R4, 192
+    PUSH R4
+    MOVi R4, 64
+    PUSH R4
     CALL __draw_pixel
     POPn R1
     POPn R1
