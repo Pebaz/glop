@@ -1,47 +1,49 @@
 class Decimal:
     "https://docs.oracle.com/javadb/10.6.2.1/ref/rrefsqlj36146.html"
 
-    def __init__(self, integer, decimal):
-        self.integer = integer
-        self.decimal = decimal
-        self.precision = self.num_digits(integer) + self.num_digits(decimal)
-        self.scale = self.num_digits(decimal)
-
-    def num_digits(self, number):
-        count = 0
-        while number > 0:
-            count += 1
-            number //= 10
-        return count
+    def __init__(self, value):
+        self.value = value
 
     def __add__(self, other):
-        new_precision = 2 * (self.precision - self.scale) + self.scale
-        new_scale = max(self.scale, other.scale)  # And all others
+        integer1, decimal1 = self.value.split('.')
+        integer2, decimal2 = other.value.split('.')
+        new_integer = int(integer1) + int(integer2)
+        difference = abs(len(decimal1) - len(decimal2))
 
-        new_integer = self.integer + other.integer
-        new_decimal = self.decimal + other.decimal
+        if len(decimal1) > len(decimal2):
+            decimal2 += '0' * difference
 
-        self.integer = new_integer
-        self.decimal = new_decimal
+        elif len(decimal1) < len(decimal2):
+            decimal1 += '0' * difference
 
+        new_decimal = ''
+        carry = 0
+        for i in reversed(range(len(decimal1))):
+            l = int(decimal1[i])
+            r = int(decimal2[i])
+
+            new = l + r + carry
+            carry = int(new >= 10)
+
+            if carry:
+                new %= 10
+
+            new_decimal = f'{new}{new_decimal}'
+
+        if carry:
+            new_integer += carry
+
+        self.value = f'{new_integer}.{new_decimal}'
         return self
 
-
     def __mul__(self, other):
-        new_precision = self.precision + other.precision
-        new_scale = self.scale + other.scale
-
+        return self
 
     def __div__(self, other):
-        new_scale = self.precision - self.scale + other.precision + max(
-            self.scale + other.precision - other.scale + 1,
-            4
-        )
-        new_scale = 31 - self.precision + self.scale - other.scale
+        return self
 
     def __str__(self):
-        decimal = ''.join(reversed(str(self.decimal)))
-        return f'{self.integer}.{decimal}'
+        return self.value
 
     def __repr__(self):
-        return str(self)
+        return self.value
