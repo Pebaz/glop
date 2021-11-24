@@ -1,0 +1,3 @@
+@clear-screen(),
+@emit-string("Hello World!"),
+@draw-pixel(64, 64, 255, 200, 0),

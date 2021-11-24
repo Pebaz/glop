@@ -21,5 +21,23 @@ efi_main:
     MOVREL R1, system_table
     MOVn @R1, @R0(EFI_MAIN_PARAMETERS.SystemTable)
 
+    ;; LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, 0, (void**)&gop);
+    MOVREL    R3, system_table
+    MOV       R3, @R3
+    MOVn      R3, @R3(EFI_SYSTEM_TABLE.BootServices)
+
+    MOVREL    R5, graphics_output_protocol
+    PUSHn     R5
+    MOVi      R5, 0
+    PUSHn     R5
+    MOVREL    R5, efi_graphics_protocol_guid
+    PUSHn     R5
+
+    CALLEX    @R3(EFI_BOOT_SERVICES.LocateProtocol)
+
+    POPn      R5
+    POPn      R5
+    POPn      R5
+
     ;; BEGIN OWN INSTRUCTIONS
 

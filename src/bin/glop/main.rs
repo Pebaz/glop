@@ -152,7 +152,8 @@ fn main()
     let mut source_code = String::with_capacity(2048);
     source_file.read_to_string(&mut source_code).unwrap();
 
-    let mut output_file = std::fs::File::create("a.asm").unwrap();
+    let out_filename = std::env::args().skip(2).next().unwrap();
+    let mut output_file = std::fs::File::create(out_filename).unwrap();
     output_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 
     // TODO(pbz): Refine the parser at each stage
@@ -181,7 +182,7 @@ fn main()
         if !expect_char(ptr, '@')
         {
             // println!("ERROR: Expected call to compiler intrinsic");
-            return;
+            break;
         }
 
         // Must have intrinsic call name
@@ -255,12 +256,23 @@ fn main()
 
         }
 
-        output_file.write_fmt(format_args!("    STORESP R6, [IP]\n    JMP32 {}\n\n", lookup_intrinsic(&intrinsic_call_name))).unwrap();
+        output_file.write_fmt(
+            format_args!(
+                "    STORESP R6, [IP]\n    JMP {}\n\n",
+                lookup_intrinsic(&intrinsic_call_name)
+            )
+        ).unwrap();
     }
 
-    output_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
-    output_file.write_fmt(format_args!(";; This is for initialized global variables\n")).unwrap();
-    output_file.write_fmt(format_args!("section 'DATA' data readable writeable\n")).unwrap();
+    output_file.write_fmt(
+        format_args!("{}", POSTLUDE)
+    ).unwrap();
+    output_file.write_fmt(
+        format_args!(";; This is for initialized global variables\n")
+    ).unwrap();
+    output_file.write_fmt(
+        format_args!("section 'DATA' data readable writeable\n")
+    ).unwrap();
 
     for (i, u64_constant) in u64_constants.into_iter().enumerate()
     {
