@@ -71,11 +71,6 @@ __draw_pixel:
 
     MOV R0, R0(+10, 0)
 
-    MOVREL R1, temporary_string_status
-    PUSH R1
-    CALL print
-    POP R1
-
     RET
 
 ;; void set_pen_color(char r, char g, char b);
@@ -114,6 +109,7 @@ CLEARSCREEN:
 ;; Caller is pushing references to the variable's memory, not by value.
 DRAWPIXEL:
 
+    ;; Fetch memory pointed to by arg2, arg3, and arg4
     MOVREL R5, graphics_color
     POP64 R1
     MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), @R1
@@ -128,23 +124,9 @@ DRAWPIXEL:
     PUSH64 @R1
     PUSH64 @R2
 
-    ; ; PUSHn @R0(+1, 0)
-    ; ; PUSHn @R0(+2, 0)
-    ; MOVi R4, 192
-    ; PUSH R4
-    ; MOVi R4, 64
-    ; PUSH R4
     CALL __draw_pixel
     POPn R1
     POPn R1
-
-    MOVREL R1, temporary_string_status
-    PUSH R1
-    CALL print
-    POP R1
-
-    loop_forever2:
-        JMP loop_forever2
 
     JMP32 R6(+0, +2)
 

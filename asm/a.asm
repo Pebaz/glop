@@ -48,18 +48,51 @@ efi_main:
     PUSH R1
     MOVREL R1, const_u64_1
     PUSH R1
+    MOVREL R1, const_u64_2
+    PUSH R1
+    MOVREL R1, const_u64_3
+    PUSH R1
+    MOVREL R1, const_u64_4
+    PUSH R1
+    STORESP R6, [IP]
+    JMP DRAWPIXEL
 
-    MOVRELq R1, const_u64_2
-    PUSH64 R1
-    MOVRELq R1, const_u64_3
-    PUSH64 R1
-    MOVRELq R1, const_u64_4
-    PUSH64 R1
+    MOVREL R1, const_u64_5
+    PUSH R1
+    MOVREL R1, const_u64_6
+    PUSH R1
+    MOVREL R1, const_u64_7
+    PUSH R1
+    MOVREL R1, const_u64_8
+    PUSH R1
+    MOVREL R1, const_u64_9
+    PUSH R1
+    STORESP R6, [IP]
+    JMP DRAWPIXEL
 
-    ; MOVI R1, 255
-    ; PUSH R1
-    ; PUSH R1
-    ; PUSH R1
+    MOVREL R1, const_u64_10
+    PUSH R1
+    MOVREL R1, const_u64_11
+    PUSH R1
+    MOVREL R1, const_u64_12
+    PUSH R1
+    MOVREL R1, const_u64_13
+    PUSH R1
+    MOVREL R1, const_u64_14
+    PUSH R1
+    STORESP R6, [IP]
+    JMP DRAWPIXEL
+
+    MOVREL R1, const_u64_15
+    PUSH R1
+    MOVREL R1, const_u64_16
+    PUSH R1
+    MOVREL R1, const_u64_17
+    PUSH R1
+    MOVREL R1, const_u64_18
+    PUSH R1
+    MOVREL R1, const_u64_19
+    PUSH R1
     STORESP R6, [IP]
     JMP DRAWPIXEL
 
@@ -80,12 +113,26 @@ section 'RESERVED' data readable writeable
         EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
     graphics_output_protocol: dq ?
     temporary_string_status: du "<HERE>", 0x0D, 0x0A, 0x00
-    temporary_var_storage: dq ?
 
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
-    const_u64_0: dq 4
-    const_u64_1: dq 4
+    const_u64_0: dq 64
+    const_u64_1: dq 64
     const_u64_2: dq 255
     const_u64_3: dq 200
-    const_u64_4: dq 0
+    const_u64_4: dq 55
+    const_u64_5: dq 64
+    const_u64_6: dq 128
+    const_u64_7: dq 255
+    const_u64_8: dq 200
+    const_u64_9: dq 55
+    const_u64_10: dq 32
+    const_u64_11: dq 64
+    const_u64_12: dq 255
+    const_u64_13: dq 200
+    const_u64_14: dq 55
+    const_u64_15: dq 32
+    const_u64_16: dq 128
+    const_u64_17: dq 55
+    const_u64_18: dq 200
+    const_u64_19: dq 200
