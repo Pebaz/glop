@@ -48,12 +48,18 @@ efi_main:
     PUSH R1
     MOVREL R1, const_u64_1
     PUSH R1
-    MOVREL R1, const_u64_2
-    PUSH R1
-    MOVREL R1, const_u64_3
-    PUSH R1
-    MOVREL R1, const_u64_4
-    PUSH R1
+
+    MOVRELq R1, const_u64_2
+    PUSH64 R1
+    MOVRELq R1, const_u64_3
+    PUSH64 R1
+    MOVRELq R1, const_u64_4
+    PUSH64 R1
+
+    ; MOVI R1, 255
+    ; PUSH R1
+    ; PUSH R1
+    ; PUSH R1
     STORESP R6, [IP]
     JMP DRAWPIXEL
 
@@ -74,10 +80,12 @@ section 'RESERVED' data readable writeable
         EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
     graphics_output_protocol: dq ?
     temporary_string_status: du "<HERE>", 0x0D, 0x0A, 0x00
+    temporary_var_storage: dq ?
+
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
     const_u64_0: dq 64
     const_u64_1: dq 64
     const_u64_2: dq 255
     const_u64_3: dq 200
-    const_u64_4: dq 55
+    const_u64_4: dq 0

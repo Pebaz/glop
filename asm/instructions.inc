@@ -114,13 +114,63 @@ CLEARSCREEN:
 DRAWPIXEL:
 
         MOVREL R5, graphics_color
+
+        ;; 1. Move stack value to the left 7 bytes
+        ;; stack value = @R0(+1, 0)
+        ;; Move the 8th byte of the 64-bit stack value to the 1st byte's loc
+        ;; MOVb @R0(+1, 0), @R0(+1, -7)
+
+        ; MOVb @R0(+1, 0), @R0(+1, -7)
+        ; POP64 R1
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), R1
+
+        ; MOVb @R0(+1, 0), @R0(+1, -7)
+        ; POP64 R1
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), R1
+
+        ; MOVb @R0(+1, 0), @R0(+1, -7)
+        ; POP64 R1
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), R1
+
+        ;; 2. Move stack value into memory address
+        ;; MOVREL R1, var_address
+        ;; Move the 8th byte of the 64-bit variable to R1's 1st byte location
+        ;; MOVb R1, @R1(0, -7)
+
+        ; MOVREL R1, temporary_var_storage
+        ; POP64 R2
+        ; ; MOVq @R1, R2
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), @R1(0, -7)  ;; + because in RESERVED section, not on stack
+
+        ; MOVREL R1, temporary_var_storage
+        ; POP64 R2
+        ; ; MOVq @R1, R2
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), @R1(0, -7)  ;; + because in RESERVED section, not on stack
+
+        ; MOVREL R1, temporary_var_storage
+        ; POP64 R2
+        ; ; MOVq @R1, R2
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R1(0, -7)  ;; + because in RESERVED section, not on stack
+
+
+        ;; Caller is pushing references to the variable's memory, not by value.
+
         POP64 R1
-        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), R1
+        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), @R1
         POP64 R1
-        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), R1
-        MOVI R1, 255
-        ; POP64 R1  <---------------- Something isn't right.
-        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), R1
+        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), @R1
+        POP64 R1
+        MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R1
+
+        ; MOVREL R1, const_u64_4
+        ; MOVb R1, @R1
+        ; ; MOVIq R1, 255
+        ; PUSH64 R1
+        ; PUSH64 R1
+        ; PUSH64 R1
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), @R0(+0, 0)
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), @R0(+1, 0)
+        ; MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R0(+2, 0)
 
 
     ; POP R1
