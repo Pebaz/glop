@@ -41,7 +41,7 @@ __clear_screen:
 ;; void __draw_pixel(char x, char y);
 __draw_pixel:
     ;; graphics_output_protocol is now useable!
-    ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, 256, 256, 1, 1, 0);
+    ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, x, y, 1, 1, 0);
 
     MOVi R4, 0
     PUSHn R4
@@ -49,9 +49,9 @@ __draw_pixel:
     PUSHn R4
     MOVi R4, 1
     PUSHn R4
-    MOV R4, @R0(+5, 0)  ;; +3 previous PUSHes
+    MOVn R4, @R0(+5, 0)  ;; +3 previous PUSHes
     PUSHn R4
-    MOV R4, @R0(+7, 0)  ;; +4 previous PUSHes
+    MOVn R4, @R0(+7, 0)  ;; +4 previous PUSHes
     PUSHn R4
     MOVi R4, 0
     PUSHn R4
@@ -73,32 +73,13 @@ __draw_pixel:
 
     RET
 
-;; void set_pen_color(char r, char g, char b);
-;; Arguments should be pushed on stack.
-;; Uses registers R5-R6.
-__set_pen_color:
-
-
-
-    ; ::::::::::::::::::
-    ; Is the return address 16 bit? Why did this work?
-
-
-    ; POP R7  ;; Save return address
-    MOVREL R5, graphics_color
-
-    MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Blue), @R0(+1, 16)
-    MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Green), @R0(+2, 16)
-    MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R0(+3, 16)
-
-    ; PUSH R7  ;; Put the return address back
-    RET
 
 ;; Pops pointer to string off the stack and prints the string it points to.
 EMITSTR:
     CALL __print
     POP R1
     JMP32 R6(+0, +2)
+
 
 ;; Clears the screen. Does not modify the stack.
 CLEARSCREEN:
@@ -125,8 +106,8 @@ DRAWPIXEL:
     PUSH64 @R2
 
     CALL __draw_pixel
-    POPn R1
-    POPn R1
+    POP64 R1
+    POP64 R1
 
     JMP32 R6(+0, +2)
 

@@ -96,6 +96,19 @@ efi_main:
     STORESP R6, [IP]
     JMP DRAWPIXEL
 
+    MOVREL R1, const_u64_20
+    PUSH R1
+    MOVREL R1, const_u64_21
+    PUSH R1
+    MOVREL R1, const_u64_22
+    PUSH R1
+    MOVREL R1, const_u64_23
+    PUSH R1
+    MOVREL R1, const_u64_24
+    PUSH R1
+    STORESP R6, [IP]
+    JMP DRAWPIXEL
+
 
 
     ;; END OWN INSTRUCTIONS
@@ -136,3 +149,8 @@ section 'DATA' data readable writeable
     const_u64_17: dq 55
     const_u64_18: dq 200
     const_u64_19: dq 200
+    const_u64_20: dq 32
+    const_u64_21: dq 132
+    const_u64_22: dq 55
+    const_u64_23: dq 200
+    const_u64_24: dq 200
