@@ -84,8 +84,8 @@ section 'RESERVED' data readable writeable
 
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
-    const_u64_0: dq 64
-    const_u64_1: dq 64
+    const_u64_0: dq 4
+    const_u64_1: dq 4
     const_u64_2: dq 255
     const_u64_3: dq 200
     const_u64_4: dq 0
