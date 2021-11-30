@@ -12,6 +12,21 @@ struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL
     Reserved    UINT8
 ends
 
+
+;; Reversed parameters due to C calling convention
+struct FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT
+    Delta UINT64
+    Height UINT64  ;; <- Can already draw rectangle pixels!
+    Width UINT64
+    DestinationY UINT64
+    DestinationX UINT64
+    SourceY UINT64
+    SourceX UINT64
+    BltOperation UINT64
+    BltBuffer EFI_GRAPHICS_OUTPUT_BLT_PIXEL
+    This UINT64
+ends
+
 EfiBltVideoFill = 0
 
 __print:
@@ -43,27 +58,30 @@ __draw_pixel:
     ;; graphics_output_protocol is now useable!
     ;; gop->Blt(gop, &GraphicsColor, EfiBltVideoFill, 0, 0, x, y, 1, 1, 0);
 
+    ; MOVq R3, @R0(+1, 0)
+    ; MOVq R5, @R0(+2, 0)
+
     MOVi R4, 0
-    PUSHn R4
+    PUSH64 R4
     MOVi R4, 1
-    PUSHn R4
+    PUSH64 R4
     MOVi R4, 1
-    PUSHn R4
+    PUSH64 R4
     MOVn R4, @R0(+5, 0)  ;; +3 previous PUSHes
-    PUSHn R4
+    PUSH64 R4
     MOVn R4, @R0(+7, 0)  ;; +4 previous PUSHes
-    PUSHn R4
+    PUSH64 R4
     MOVi R4, 0
-    PUSHn R4
+    PUSH64 R4
     MOVi R4, 0
-    PUSHn R4
+    PUSH64 R4
     MOVi R4, EfiBltVideoFill
-    PUSHn R4
+    PUSH64 R4
     MOVREL R2, graphics_color  ;; This is a pointer to a struct
-    PUSHn R2
+    PUSH64 R2
     MOVREL R2, graphics_output_protocol  ;; This is a pointer to a pointer
     MOV R2, @R2
-    PUSHn R2
+    PUSH64 R2
 
     MOVREL R3, graphics_output_protocol
     MOV R3, @R3
@@ -100,24 +118,59 @@ DRAWPIXEL:
     MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R1
 
     ;; Fetch memory pointed to by arg0 and arg1
-    POP64 R1
-    POP64 R2
-    PUSH64 @R1
-    PUSH64 @R2
+    POP64 R4
+    POP64 R3
 
-    CALL __draw_pixel
-    POP64 R1
-    POP64 R1
+    MOV R1, R0
+    MOV R0, R0(0, -sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
+
+    MOVREL @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.This), graphics_output_protocol
+    MOVREL R2, graphics_color
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.BltBuffer), R2
+    MOVi R2, EfiBltVideoFill
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.BltOperation), R2
+    MOVi R2, 0
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.SourceX), R2
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.SourceY), R2
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.DestinationX), @R3
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.DestinationY), @R4
+    MOVi R2, 1
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Width), R2
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Height), R2
+    MOVi R2, 0
+    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Delta), R2
+
+    MOVREL R3, graphics_output_protocol
+    MOV R3, @R3
+    CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
+
+    MOV R0, R0(0, sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
 
     JMP32 R6(+0, +2)
 
 
-print:
+; print:
+;     MOVREL    R1, system_table
+;     MOV       R1, @R1
+;     MOVn      R1, @R1(EFI_SYSTEM_TABLE.ConOut)
+;     PUSHn     @R0(0,+16)
+;     PUSHn     R1
+;     CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
+;     MOV       R0, R0(+2,0)
+;     RET
+
+
+EMITSTRING:
     MOVREL    R1, system_table
     MOV       R1, @R1
     MOVn      R1, @R1(EFI_SYSTEM_TABLE.ConOut)
-    PUSHn     @R0(0,+16)
-    PUSHn     R1
+
+    ;; Arg0 already pushed!
+    PUSH64 R1
+
     CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
-    MOV       R0, R0(+2,0)
-    RET
+
+    POP64 R1
+    POP64 R1  ;; Arg0
+
+    JMP32 R6(+0, +2)
