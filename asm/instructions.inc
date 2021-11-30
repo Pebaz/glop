@@ -93,16 +93,20 @@ __draw_pixel:
 
 
 ;; Pops pointer to string off the stack and prints the string it points to.
-EMITSTR:
-    CALL __print
-    POP R1
-    JMP32 R6(+0, +2)
+; EMITSTR:
+;     CALL __print
+;     POP R1
+;     JMP32 R6(+0, +6)
 
 
 ;; Clears the screen. Does not modify the stack.
 CLEARSCREEN:
+    PUSHn R6(0, +6)
+
     CALL __clear_screen
-    JMP32 R6(+0, +2)
+
+    POPn R6
+    JMP32 R6
 
 
 ;; Caller is pushing references to the variable's memory, not by value.
@@ -121,32 +125,43 @@ DRAWPIXEL:
     POP64 R4
     POP64 R3
 
-    MOV R1, R0
-    MOV R0, R0(0, -sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
+    PUSHn R6(0, +6)
 
-    MOVREL @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.This), graphics_output_protocol
-    MOVREL R2, graphics_color
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.BltBuffer), R2
-    MOVi R2, EfiBltVideoFill
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.BltOperation), R2
-    MOVi R2, 0
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.SourceX), R2
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.SourceY), R2
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.DestinationX), @R3
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.DestinationY), @R4
-    MOVi R2, 1
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Width), R2
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Height), R2
-    MOVi R2, 0
-    MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Delta), R2
+    MOVREL R2, 64
+    PUSH64 @R4
+    PUSH64 @R3
+    CALL __draw_pixel
+    POP64 R1
+    POP64 R1
 
-    MOVREL R3, graphics_output_protocol
-    MOV R3, @R3
-    CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
+    ; MOV R1, R0
+    ; MOV R0, R0(0, -sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
+
+    ; MOVREL @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.This), graphics_output_protocol
+    ; MOVREL R2, graphics_color
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.BltBuffer), R2
+    ; MOVi R2, EfiBltVideoFill
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.BltOperation), R2
+    ; MOVi R2, 0
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.SourceX), R2
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.SourceY), R2
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.DestinationX), @R3
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.DestinationY), @R4
+    ; MOVi R2, 1
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Width), R2
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Height), R2
+    ; MOVi R2, 0
+    ; MOV @R1(FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT.Delta), R2
+
+    ; MOVREL R3, graphics_output_protocol
+    ; MOV R3, @R3
+    ; CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
+
+    POPn R6
 
     MOV R0, R0(0, sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
 
-    JMP32 R6(+0, +2)
+    JMP32 R6
 
 
 ; print:
@@ -161,11 +176,14 @@ DRAWPIXEL:
 
 
 EMITSTRING:
+    POP64 R2  ;; Arg0
+    PUSHn R6(0, +6)
+
     MOVREL    R1, system_table
     MOV       R1, @R1
     MOVn      R1, @R1(EFI_SYSTEM_TABLE.ConOut)
 
-    ;; Arg0 already pushed!
+    PUSH64 R2  ;; Arg0
     PUSH64 R1
 
     CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
@@ -173,4 +191,5 @@ EMITSTRING:
     POP64 R1
     POP64 R1  ;; Arg0
 
-    JMP32 R6(+0, +2)
+    POPn R6
+    JMP32 R6

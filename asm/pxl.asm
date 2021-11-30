@@ -42,233 +42,189 @@ efi_main:
     ;; BEGIN OWN INSTRUCTIONS
 
     STORESP R6, [IP]
-    JMP CLEARSCREEN
+    JMP32 R0(CLEARSCREEN)
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
-
-    ;; POP64 R1
-    ;; POP64 R1
-    ;; POP64 R1
-    ;; POP64 R1  ;; This pop kills the stack!
-
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-    ; POP64 R1
-
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
-
-    ;; DIES HERE...
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP EMITSTRING
+    JMP32 R0(EMITSTRING)
     ;; ------------------------------
-
-
-    ; MOVREL R1, string_a
-    ; PUSH R1
-    ; CALL __print
-    ; POP R1
-
-    ; MOVREL R1, const_u64_0
-    ; PUSH R1
-    ; MOVREL R1, const_u64_1
-    ; PUSH R1
-    ; MOVREL R1, const_u64_2
-    ; PUSH R1
-    ; MOVREL R1, const_u64_3
-    ; PUSH R1
-    ; MOVREL R1, const_u64_4
-    ; PUSH R1
-    ; STORESP R6, [IP]
-    ; JMP DRAWPIXEL
-
-    ; MOVREL R1, const_u64_5
-    ; PUSH R1
-    ; MOVREL R1, const_u64_6
-    ; PUSH R1
-    ; MOVREL R1, const_u64_7
-    ; PUSH R1
-    ; MOVREL R1, const_u64_8
-    ; PUSH R1
-    ; MOVREL R1, const_u64_9
-    ; PUSH R1
-    ; STORESP R6, [IP]
-    ; JMP DRAWPIXEL
-
-    ; MOVREL R1, const_u64_10
-    ; PUSH R1
-    ; MOVREL R1, const_u64_11
-    ; PUSH R1
-    ; MOVREL R1, const_u64_12
-    ; PUSH R1
-    ; MOVREL R1, const_u64_13
-    ; PUSH R1
-    ; MOVREL R1, const_u64_14
-    ; PUSH R1
-    ; STORESP R6, [IP]
-    ; JMP DRAWPIXEL
-
-    ; MOVREL R1, string_b
-    ; PUSH R1
-    ; CALL __print
-    ; POP R1
-
-    ; ; STORESP R6, [IP]
-    ; ; JMP CLEARSCREEN
-
-    ; MOVREL R1, const_u64_15
-    ; PUSH R1
-    ; MOVREL R1, const_u64_16
-    ; PUSH R1
-    ; MOVREL R1, const_u64_17
-    ; PUSH R1
-    ; MOVREL R1, const_u64_18
-    ; PUSH R1
-    ; MOVREL R1, const_u64_19
-    ; PUSH R1
-    ; STORESP R6, [IP]
-    ; JMP DRAWPIXEL
-
-    ; MOVREL R1, temporary_string_status
-    ; PUSH R1
-    ; CALL __print
-    ; POP R1
-
-    ; MOVREL R1, const_u64_20
-    ; PUSH R1
-    ; MOVREL R1, const_u64_21
-    ; PUSH R1
-    ; MOVREL R1, const_u64_22
-    ; PUSH R1
-    ; MOVREL R1, const_u64_23
-    ; PUSH R1
-    ; MOVREL R1, const_u64_24
-    ; PUSH R1
-    ; STORESP R6, [IP]
-    ; JMP DRAWPIXEL
 
     MOVREL R1, temporary_string_status
+    PUSH64 R1
+    STORESP R6, [IP]
+    JMP32 R0(EMITSTRING)
+
+    MOVREL R1, const_u64_0
     PUSH R1
-    CALL __print
-    POP R1
+    MOVREL R1, const_u64_1
+    PUSH R1
+    MOVREL R1, const_u64_2
+    PUSH R1
+    MOVREL R1, const_u64_3
+    PUSH R1
+    MOVREL R1, const_u64_4
+    PUSH R1
+    STORESP R6, [IP]
+    JMP32 R0(DRAWPIXEL)
 
+    MOVREL R1, const_u64_5
+    PUSH R1
+    MOVREL R1, const_u64_6
+    PUSH R1
+    MOVREL R1, const_u64_7
+    PUSH R1
+    MOVREL R1, const_u64_8
+    PUSH R1
+    MOVREL R1, const_u64_9
+    PUSH R1
+    STORESP R6, [IP]
+    JMP32 R0(DRAWPIXEL)
 
+    MOVREL R1, const_u64_10
+    PUSH R1
+    MOVREL R1, const_u64_11
+    PUSH R1
+    MOVREL R1, const_u64_12
+    PUSH R1
+    MOVREL R1, const_u64_13
+    PUSH R1
+    MOVREL R1, const_u64_14
+    PUSH R1
+    STORESP R6, [IP]
+    JMP32 R0(DRAWPIXEL)
+
+    MOVREL R1, const_u64_15
+    PUSH R1
+    MOVREL R1, const_u64_16
+    PUSH R1
+    MOVREL R1, const_u64_17
+    PUSH R1
+    MOVREL R1, const_u64_18
+    PUSH R1
+    MOVREL R1, const_u64_19
+    PUSH R1
+    STORESP R6, [IP]
+    JMP32 R0(DRAWPIXEL)
+
+    MOVREL R1, const_u64_20
+    PUSH R1
+    MOVREL R1, const_u64_21
+    PUSH R1
+    MOVREL R1, const_u64_22
+    PUSH R1
+    MOVREL R1, const_u64_23
+    PUSH R1
+    MOVREL R1, const_u64_24
+    PUSH R1
+    STORESP R6, [IP]
+    JMP32 R0(DRAWPIXEL)
 
     ;; END OWN INSTRUCTIONS
+
+    MOVREL R1, temporary_string_status
+    PUSH64 R1
+    STORESP R6, [IP]
+    JMP32 R0(EMITSTRING)
 
     loop_forever:
         JMP loop_forever
@@ -283,6 +239,7 @@ section 'RESERVED' data readable writeable
         EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
     graphics_output_protocol: dq ?
     temporary_string_status: du "<HERE>", 0x0D, 0x0A, 0x00
+    string_success: du "<YES>", 0x0D, 0x0A, 0x00
     string_a: du "<a>", 0x0D, 0x0A, 0x00
     string_b: du "<b>", 0x0D, 0x0A, 0x00
     string_c: du "<c>", 0x0D, 0x0A, 0x00
