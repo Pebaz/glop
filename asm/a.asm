@@ -42,7 +42,7 @@ efi_main:
     ;; BEGIN OWN INSTRUCTIONS
 
     STORESP R6, [IP]
-    JMP CLEARSCREEN
+    JMP32 R0(CLEARSCREEN)
 
     MOVREL R1, const_u64_0
     PUSH R1
@@ -55,7 +55,7 @@ efi_main:
     MOVREL R1, const_u64_4
     PUSH R1
     STORESP R6, [IP]
-    JMP DRAWPIXEL
+    JMP32 R0(DRAWPIXEL)
 
     MOVREL R1, const_u64_5
     PUSH R1
@@ -68,7 +68,7 @@ efi_main:
     MOVREL R1, const_u64_9
     PUSH R1
     STORESP R6, [IP]
-    JMP DRAWPIXEL
+    JMP32 R0(DRAWPIXEL)
 
     MOVREL R1, const_u64_10
     PUSH R1
@@ -81,7 +81,7 @@ efi_main:
     MOVREL R1, const_u64_14
     PUSH R1
     STORESP R6, [IP]
-    JMP DRAWPIXEL
+    JMP32 R0(DRAWPIXEL)
 
     MOVREL R1, const_u64_15
     PUSH R1
@@ -94,20 +94,7 @@ efi_main:
     MOVREL R1, const_u64_19
     PUSH R1
     STORESP R6, [IP]
-    JMP DRAWPIXEL
-
-    MOVREL R1, const_u64_20
-    PUSH R1
-    MOVREL R1, const_u64_21
-    PUSH R1
-    MOVREL R1, const_u64_22
-    PUSH R1
-    MOVREL R1, const_u64_23
-    PUSH R1
-    MOVREL R1, const_u64_24
-    PUSH R1
-    STORESP R6, [IP]
-    JMP DRAWPIXEL
+    JMP32 R0(DRAWPIXEL)
 
 
 
@@ -149,8 +136,3 @@ section 'DATA' data readable writeable
     const_u64_17: dq 55
     const_u64_18: dq 200
     const_u64_19: dq 200
-    const_u64_20: dq 32
-    const_u64_21: dq 132
-    const_u64_22: dq 55
-    const_u64_23: dq 200
-    const_u64_24: dq 200

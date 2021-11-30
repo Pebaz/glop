@@ -47,112 +47,112 @@ efi_main:
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
     ;; ------------------------------
 
     MOVREL R1, string_a
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_b
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_c
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, string_d
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
     ;; ------------------------------
 
     MOVREL R1, temporary_string_status
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     MOVREL R1, const_u64_0
     PUSH R1
@@ -224,7 +224,7 @@ efi_main:
     MOVREL R1, temporary_string_status
     PUSH64 R1
     STORESP R6, [IP]
-    JMP32 R0(EMITSTRING)
+    JMP32 R0(EMITSTR)
 
     loop_forever:
         JMP loop_forever

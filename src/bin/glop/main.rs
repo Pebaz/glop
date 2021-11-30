@@ -192,7 +192,7 @@ fn main()
         }
 
         let intrinsic_call_name = buffer.clone();
-        println!("INTRINSIC CALL: {}", buffer);
+        // println!("INTRINSIC CALL: {}", buffer);
         buffer.clear();
 
         if !expect_char(ptr, '(')
@@ -251,14 +251,14 @@ fn main()
                 return println!("ERROR: Expected number, symbol, or string");
             }
 
-            println!("ARGUMENT: {:?}", buffer);
+            // println!("ARGUMENT: {:?}", buffer);
             buffer.clear();
 
         }
 
         output_file.write_fmt(
             format_args!(
-                "    STORESP R6, [IP]\n    JMP {}\n\n",
+                "    STORESP R6, [IP]\n    JMP32 R0({})\n\n",
                 lookup_intrinsic(&intrinsic_call_name)
             )
         ).unwrap();

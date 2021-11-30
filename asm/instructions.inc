@@ -92,13 +92,6 @@ __draw_pixel:
     RET
 
 
-;; Pops pointer to string off the stack and prints the string it points to.
-; EMITSTR:
-;     CALL __print
-;     POP R1
-;     JMP32 R6(+0, +6)
-
-
 ;; Clears the screen. Does not modify the stack.
 CLEARSCREEN:
     PUSHn R6(0, +6)
@@ -164,17 +157,7 @@ DRAWPIXEL:
     JMP32 R6
 
 
-; print:
-;     MOVREL    R1, system_table
-;     MOV       R1, @R1
-;     MOVn      R1, @R1(EFI_SYSTEM_TABLE.ConOut)
-;     PUSHn     @R0(0,+16)
-;     PUSHn     R1
-;     CALLEX    @R1(SIMPLE_TEXT_OUTPUT_INTERFACE.OutputString)
-;     MOV       R0, R0(+2,0)
-;     RET
-
-
+;; Pops pointer to string off the stack and prints the string it points to.
 EMITSTRING:
     POP64 R2  ;; Arg0
     PUSHn R6(0, +6)
