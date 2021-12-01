@@ -9,23 +9,27 @@ loop.a
     [
         break.a,
     ]
-
-    loop.b
+    else
     [
-        if @u64-gte(x, 64)
+        loop.b
         [
-            break.b,
+            if @u64-gte(x, 64)
+            [
+                break.b,
+            ]
+            else
+            [
+                @draw-pixel(
+                    x,
+                    y,
+                    @u64-add(150, x),
+                    @u64-add(150, y),
+                    @u64-add(50, @u64-add(x, y)),
+                ),
+            ]
+
+            set x = @u64-add(x, 1),
         ]
-
-        @draw-pixel(
-            x,
-            y,
-            @u64-add(150, x),
-            @u64-add(150, y),
-            @u64-add(50, @u64-add(x, y)),
-        ),
-
-        set x = @u64-add(x, 1),
     ]
 
     set y = @u64-add(y, 1),

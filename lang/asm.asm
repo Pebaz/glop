@@ -15,6 +15,10 @@ macro ASMCALL routine_name
     JMP32 R0(routine_name)
 end macro
 
+macro PASS
+    OR64 R0, R0
+end macro
+
 ;; Uses register R1 and pushes a natural value to account for x32 and x64.
 macro PUSHADDR var_name
     MOVREL R1, var_name
@@ -89,7 +93,6 @@ BRANCHIF:
     JMP32cc R2         ;; Both blocks must pop and jump to R6 when done
 
 
-;; GOAL: Break -> implement as ret.loop-name?
 ;; GOAL: Struct
 ;; GOAL: Function
 
@@ -100,6 +103,7 @@ block_2:
 
     POPn R6
     JMP32 R6
+
 
 block_1:  ;; Basic blocks are named. Need a handle to their address
     PUSHADDR string_true
@@ -146,12 +150,46 @@ LOOPBLOCK:
 
 
 block_3:  ;; The block to loop
-    ;; How does it know how to break out of the loop?
 
     PUSHADDR string_status
     ASMCALL EMITSTR
 
     ASMCALL LOOPCONTINUE
+
+
+block_4:
+    XOR R1, R1
+    PUSH64 R1
+
+    PUSHADDR block_6  ;; Falsey block
+    PUSHADDR block_5  ;; Truthy block
+    ASMCALL BRANCHIF
+
+    PUSHADDR string_status
+    ASMCALL EMITSTR
+
+    ASMCALL LOOPCONTINUE
+
+
+block_5:
+    PUSHADDR string_b
+    ASMCALL EMITSTR
+
+    POPn R6  ;; Have to exit the if statement to preserve stack correctly.
+             ;; This would be compounded per if statement encountered. When
+             ;; generating code, make sure to keep track of this invariant.
+    ASMCALL LOOPBREAK
+
+    POPn R6
+    JMP32 R6
+
+
+block_6:
+    PUSHADDR string_c
+    ASMCALL EMITSTR
+
+    POPn R6
+    JMP32 R6
 
 
 efi_main:
@@ -178,7 +216,7 @@ efi_main:
         ASMCALL BRANCHIF  ;; Will continue from here after one block is run
 
     ;; GOAL: Loop
-        PUSHADDR block_3
+        PUSHADDR block_4
         ASMCALL LOOPBLOCK
         ; STORESP R6, [IP]  ;; Store beginning of block
         ; PUSHn R6(0, +6)
@@ -216,6 +254,8 @@ section 'RESERVED' data readable writeable
     string_true: du "<true>", 0x0D, 0x0A, 0x00
     string_false: du "<false>", 0x0D, 0x0A, 0x00
     string_a: du "<a>", 0x0D, 0x0A, 0x00
+    string_b: du "<b>", 0x0D, 0x0A, 0x00
+    string_c: du "<c>", 0x0D, 0x0A, 0x00
 
     ;; GOAL: Declare Variable
         var_x: rb 8
