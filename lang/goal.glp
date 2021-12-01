@@ -3,18 +3,18 @@
 let x = 0,
 let y = 0,
 
-loop
+loop.a
 [
     if @u64-gte(y, 64)
     [
-        @break()
+        break.a,
     ]
 
-    loop
+    loop.b
     [
         if @u64-gte(x, 64)
         [
-            @break()
+            break.b,
         ]
 
         @draw-pixel(
