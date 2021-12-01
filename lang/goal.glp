@@ -3,19 +3,19 @@
 let x = 0,
 let y = 0,
 
-loop.a
+loop
 [
     if @u64-gte(y, 64)
     [
-        break.a,
+        break,
     ]
     else
     [
-        loop.b
+        loop
         [
             if @u64-gte(x, 64)
             [
-                break.b,
+                break,
             ]
             else
             [

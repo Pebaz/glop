@@ -99,9 +99,6 @@ BRANCHIF:
     JMP32cc R2         ;; Both blocks must pop and jump to R6 when done
 
 
-;; GOAL: Struct
-;; GOAL: Function
-
 ;; Block index counter is incremented each new block no matter the type
 block_2:
     PUSHADDR string_false
