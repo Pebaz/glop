@@ -209,6 +209,34 @@ block_6:
     JMP32 R6
 
 
+
+;; u64-gte(a, b) -> return a >= b
+U64GTE:
+    ; POPn R2  ;; b
+    ; POPn R1  ;; a
+    ; MOVREL R1, const_0
+    ; PUSH64 @R1
+    ; JMP32 R6(0, +6)
+
+    POPn R2  ;; b
+    POPn R1  ;; a
+    CMP64ugte @R1, @R2
+    MOVREL R3, U64GTE_truthy
+    MOVREL R4, U64GTE_falsey
+    JMP32cs R3
+    JMP32cc R4
+
+    U64GTE_truthy:
+        MOVREL R1, const_1
+        PUSH64 @R1
+        JMP32 R6(0, +6)
+
+    U64GTE_falsey:
+        XOR R1, R1
+        PUSH64 R1
+        JMP32 R6(0, +6)
+
+
 efi_main:
     ;; First order of business, store the pointer to the system table
     MOVREL R1, system_table
@@ -217,6 +245,10 @@ efi_main:
     ;; GOAL: Assign to Variable
         PUSHADDR const_u64_0
         PUSHADDR var_x
+        ASMCALL ASSIGNU64
+
+        PUSHADDR const_u64_1
+        PUSHADDR var_end
         ASMCALL ASSIGNU64
 
     ;; GOAL: If
@@ -231,6 +263,41 @@ efi_main:
         PUSHADDR block_2  ;; Falsey block
         PUSHADDR block_1  ;; Truthy block
         ASMCALL BRANCHIF  ;; Will continue from here after one block is run
+
+    ;; GOAL: If v2
+
+        ;; PUSH A u64 VALUE ONTO THE STACK. 0 = false, 1 = true
+        ;; (<THE CONDITION EXPRESSION CALL HERE>)
+
+        ; MOVIq R1, 0
+        ; PUSH64 R1
+
+        ;; u64-gte(x, 0)  <- X truly is greater than or equal to 0
+        PUSHADDR var_x
+        PUSHADDR var_end
+        ASMCALL U64GTE
+
+        PUSHADDR string_a
+        ASMCALL EMITSTR
+
+        POP64 R1
+        CMPI64eq R1, 0
+
+        MOVREL R1, if_1_falsey
+        JMP32cs R1
+
+        MOVREL R1, if_1_truthy
+        JMP32cc R1
+
+        if_1_truthy:
+            PUSHADDR string_if_1_truthy
+            ASMCALL EMITSTR
+            JMP32 R0(if_1_endif)
+        if_1_falsey:
+            PUSHADDR string_if_1_falsey
+            ASMCALL EMITSTR
+            JMP32 R0(if_1_endif)
+        if_1_endif: PASS
 
     ;; GOAL: Loop
         PUSHADDR block_4
@@ -279,7 +346,8 @@ efi_main:
 ;; This is for uninitialized global variables and is used in leu of malloc
 section 'RESERVED' data readable writeable
     system_table: dq ?
-    const_1: db 1
+    const_0: dq 0  ;; I don't see any other way to make this work
+    const_1: dq 1  ;; I don't see any other way to make this work
     string_done: du "<DONE>", 0x0D, 0x0A, 0x00
     string_status: du "<HERE>", 0x0D, 0x0A, 0x00
     string_true: du "<true>", 0x0D, 0x0A, 0x00
@@ -287,10 +355,14 @@ section 'RESERVED' data readable writeable
     string_a: du "<a>", 0x0D, 0x0A, 0x00
     string_b: du "<b>", 0x0D, 0x0A, 0x00
     string_c: du "<c>", 0x0D, 0x0A, 0x00
+    string_if_1_truthy: du "<if_1_truthy>", 0x0D, 0x0A, 0x00
+    string_if_1_falsey: du "<if_1_falsey>", 0x0D, 0x0A, 0x00
 
     ;; GOAL: Declare Variable
         var_x: rb 8
+        var_end: rb 8
 
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
     const_u64_0: dq 64
+    const_u64_1: dq 0
