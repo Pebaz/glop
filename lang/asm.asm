@@ -268,27 +268,17 @@ efi_main:
 
         ;; PUSH A u64 VALUE ONTO THE STACK. 0 = false, 1 = true
         ;; (<THE CONDITION EXPRESSION CALL HERE>)
-
-        ; MOVIq R1, 0
-        ; PUSH64 R1
-
         ;; u64-gte(x, 0)  <- X truly is greater than or equal to 0
         PUSHADDR var_x
         PUSHADDR var_end
         ASMCALL U64GTE
 
-        PUSHADDR string_a
-        ASMCALL EMITSTR
-
         POP64 R1
         CMPI64eq R1, 0
-
         MOVREL R1, if_1_falsey
         JMP32cs R1
-
         MOVREL R1, if_1_truthy
         JMP32cc R1
-
         if_1_truthy:
             PUSHADDR string_if_1_truthy
             ASMCALL EMITSTR
