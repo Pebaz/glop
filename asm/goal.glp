@@ -1,14 +1,32 @@
 @clear-screen(),
-@emit-string("Hello World!"),
 
 let x = 0,
+let y = 0,
 
 loop
 [
-    if @u64-gte(x, 64)
+    if @u64-gte(y, 64)
     [
         @break()
     ]
 
-    @draw-pixel(x, x, 255, 200, 0)
+    loop
+    [
+        if @u64-gte(x, 64)
+        [
+            @break()
+        ]
+
+        @draw-pixel(
+            x,
+            y,
+            @u64-add(150, x),
+            @u64-add(150, y),
+            @u64-add(50, @u64-add(x, y)),
+        ),
+
+        set x = @u64-add(x, 1),
+    ]
+
+    set y = @u64-add(y, 1),
 ]
