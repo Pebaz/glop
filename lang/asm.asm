@@ -19,6 +19,12 @@ macro PASS
     OR64 R0, R0
 end macro
 
+macro FETCHU64 address
+    MOVREL R1, address
+    MOVq R1, @R1
+    PUSH64 R1
+end macro
+
 ;; Uses register R1 and pushes a natural value to account for x32 and x64.
 macro PUSHADDR var_name
     MOVREL R1, var_name
@@ -58,7 +64,7 @@ ASSIGNU64:
     JMP32 R6(0, +6)
 
 ;; Push b first then a. Returns 0 if a == b. Returns 1 if a != b.
-COMPAREU64EQ:
+CMPU64EQ:
     POPn R1  ;; a
     POPn R2  ;; b
     CMP64eq @R1, @R2
@@ -158,8 +164,13 @@ block_3:  ;; The block to loop
 
 
 block_4:
+    ;; Need to have better ways of examining the condition
     XOR R1, R1
     PUSH64 R1
+
+    ; FETCHU64 var_x
+    ; FETCHU64 var_x
+    ; ASMCALL CMPU64EQ
 
     PUSHADDR block_6  ;; Falsey block
     PUSHADDR block_5  ;; Truthy block
@@ -171,13 +182,19 @@ block_4:
     ASMCALL LOOPCONTINUE
 
 
+;; This is incremented upon IF only, since BREAK only applies to LOOP
+block_5_scope_depth: dw 1  ;; Store it right in the binary? =D
 block_5:
     PUSHADDR string_b
     ASMCALL EMITSTR
 
+    ; SCOPECLEANUP block_5_scope_depth
     POPn R6  ;; Have to exit the if statement to preserve stack correctly.
              ;; This would be compounded per if statement encountered. When
              ;; generating code, make sure to keep track of this invariant.
+             ;; This will most likely be the case for ret also.
+             ;; Is this a problem since this block should know it's inside an
+             ;; if statement anyway?
     ASMCALL LOOPBREAK
 
     POPn R6
@@ -230,7 +247,7 @@ efi_main:
 
         ;     PUSHADDR var_x
         ;     PUSHADDR var_x
-        ;     ASMCALL COMPAREU64EQ
+        ;     ASMCALL CMPU64EQ
 
         ;     POP64 R1
         ;     MOViq R1, 1
