@@ -254,6 +254,20 @@ efi_main:
         ;     CMP64eq R1, R1
         ;     JMPcs loop_a
 
+    ;; GOAL: Loop v2
+    ;; Need to turn loop [] into something
+        loop_1:  ;; Special blocks start with their name?
+            loop_2:  ;; Special blocks start with their name?
+                JMP32 R0(loop_2_break)  ;; Break the loop
+
+                JMP32 R0(loop_2)
+            loop_2_break: PASS
+
+            JMP32 R0(loop_1_break)  ;; Break the loop
+
+            JMP32 R0(loop_1)
+        loop_1_break: PASS
+
     PUSHADDR string_done
     ASMCALL EMITSTR
 
