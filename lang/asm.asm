@@ -108,6 +108,52 @@ block_1:  ;; Basic blocks are named. Need a handle to their address
     POPn R6
     JMP32 R6
 
+
+;; Loops store their break address before looping the block. Doing an extra pop
+;; results in not returning back to the LOOPBLOCK instruction, but after it.
+LOOPBREAK:  ;; Break.label tells how many times to repeat this instruction?
+    ;; Ignore caller return address, we want to go to after the loop
+    JMP32 R0(LOOPBLOCK_break)
+
+
+LOOPCONTINUE:
+    ;; Ignore caller return address, we want to go back to LOOPBLOCK's control
+    JMP32 R0(LOOPBLOCK_continue)
+
+
+;; Push address of block to loop forever.
+LOOPBLOCK:
+    POPn R1  ;; Block address
+
+    ;; Return address to use after breaking the loop is in R6
+    PUSHn R6(0, +6)
+
+    ;; Top of the stack is reserved for the block address
+    PUSHn R1
+
+    ASMCALL LOOPCONTINUE
+
+    LOOPBLOCK_continue:
+        POPn R1  ;; Block address
+        PUSHn R1
+        JMP32 R1
+
+
+    LOOPBLOCK_break:
+        POPn R6  ;; Get rid of the loop block address
+        POPn R6  ;; The address to continue past the loop
+        JMP32 R6
+
+
+block_3:  ;; The block to loop
+    ;; How does it know how to break out of the loop?
+
+    PUSHADDR string_status
+    ASMCALL EMITSTR
+
+    ASMCALL LOOPCONTINUE
+
+
 efi_main:
     ;; First order of business, store the pointer to the system table
     MOVREL R1, system_table
@@ -118,8 +164,22 @@ efi_main:
         PUSHADDR var_x
         ASMCALL ASSIGNU64
 
+    ;; GOAL: If
+        ;; `if @foo() [] else []` is actually `@foo(), if [] else []`
+
+        ;; <CALL SOME FUNCTION HERE THAT RETURNS U64 VALUE ON THE STACK>
+        ;; This shall represent the condition
+        XOR R1, R1  ;; Push 0 (true for purposes of comparison)
+        PUSH64 R1
+
+        ;; Value to compare is already on stack!
+        PUSHADDR block_2  ;; Falsey block
+        PUSHADDR block_1  ;; Truthy block
+        ASMCALL BRANCHIF  ;; Will continue from here after one block is run
 
     ;; GOAL: Loop
+        PUSHADDR block_3
+        ASMCALL LOOPBLOCK
         ; STORESP R6, [IP]  ;; Store beginning of block
         ; PUSHn R6(0, +6)
 
@@ -138,21 +198,6 @@ efi_main:
         ;     MOViq R1, 1
         ;     CMP64eq R1, R1
         ;     JMPcs loop_a
-
-
-    ;; GOAL: If
-        ;; `if @foo() [] else []` is actually `@foo(), if [] else []`
-
-        ;; <CALL SOME FUNCTION HERE THAT RETURNS U64 VALUE ON THE STACK>
-        ;; This shall represent the condition
-        XOR R1, R1  ;; Push 0 (true for purposes of comparison)
-        PUSH64 R1
-
-        ;; Value to compare is already on stack!
-        PUSHADDR block_2  ;; Falsey block
-        PUSHADDR block_1  ;; Truthy block
-        ASMCALL BRANCHIF  ;; Will continue from here after one block is run
-
 
     PUSHADDR string_done
     ASMCALL EMITSTR
