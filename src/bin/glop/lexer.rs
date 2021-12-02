@@ -1,7 +1,7 @@
 use logos::*;
 
 #[derive(Logos, Debug, PartialEq)]
-pub enum Token
+pub enum Token<'a>
 {
     // Keywords
     #[token("if")]
@@ -45,11 +45,11 @@ pub enum Token
     CallClose,
 
     // Values
-    #[regex(r"[a-zA-Z_\-]+")]
-    Symbol,
+    #[regex(r"[a-zA-Z_\-]+", |lex| lex.slice())]
+    Symbol(&'a str),
 
-    #[regex("[0-9]+")]
-    U64,
+    #[regex("[0-9]+", |lex| lex.slice().parse())]
+    U64(u64),
 
     #[error]
     #[regex(r"[] \t\n\r]+", skip)]
