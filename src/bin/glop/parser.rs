@@ -113,9 +113,14 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
 
 }
 
+pub fn parse_block(tokens: &mut Peekable<Iter<Token>>)
+{
+    // parse_block(tokens);
+}
+
 pub fn parse_loop(tokens: &mut Peekable<Iter<Token>>)
 {
-
+    parse_block(tokens);
 }
 
 pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
