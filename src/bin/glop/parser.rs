@@ -25,6 +25,11 @@ pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>) -> bool
     if let Some(Token::Comma) = tokens.next() { true } else { false }
 }
 
+pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>) -> bool
+{
+    if let Some(Token::Equal) = tokens.next() { true } else { false }
+}
+
 // pub fn accept_token(tokens: &mut Peekable<Iter<Token>>) -> bool
 // {
 //     if let Some(Token::CallOpen) = tokens.next()
@@ -115,7 +120,23 @@ pub fn parse_loop(tokens: &mut Peekable<Iter<Token>>)
 
 pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
 {
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::Symbol(symbol) =>
+            {
+                assert!(
+                    expect_equal(tokens),
+                    "PARSE ERROR: Expected equal sign"
+                );
 
+                parse_argument(tokens);
+            }
+
+            _ => panic!("Expected Symbol. Found: {:?}", token),
+        }
+    }
 }
 
 pub fn parse_set(tokens: &mut Peekable<Iter<Token>>)
