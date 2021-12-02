@@ -45,7 +45,7 @@ pub enum Token<'a>
     CallClose,
 
     // Values
-    #[regex(r"[a-zA-Z_\-]+", |lex| lex.slice())]
+    #[regex(r"[a-zA-Z_\-][a-zA-Z_\-0-9]*", |lex| lex.slice())]
     Symbol(&'a str),
 
     #[regex("[0-9]+", |lex| lex.slice().parse())]
