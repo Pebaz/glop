@@ -1,61 +1,10 @@
+mod lexer;
+mod parser;
+
 use std::io::{Read, Write};
 use logos::*;
-
-#[derive(Logos, Debug, PartialEq)]
-enum Token
-{
-    // Keywords
-    #[token("if")]
-    If,
-
-    #[token("else")]
-    Else,
-
-    #[token("loop")]
-    Loop,
-
-    #[token("break")]
-    Break,
-
-    #[token("let")]
-    Let,
-
-    #[token("set")]
-    Set,
-
-    // Symbols
-    #[token("@")]
-    Intrinsic,
-
-    #[token(",")]
-    Comma,
-
-    #[token("=")]
-    Equal,
-
-    #[token("[")]
-    BlockOpen,
-
-    #[token("]")]
-    BlockClose,
-
-    #[token("(")]
-    CallOpen,
-
-    #[token(")")]
-    CallClose,
-
-    // Values
-    #[regex(r"[a-zA-Z_\-]+")]
-    Symbol,
-
-    #[regex("[0-9]+")]
-    U64,
-
-    #[error]
-    #[regex(r"[] \t\n\r]+", skip)]
-    Error,
-}
+use lexer::Token;
+use parser::parse;
 
 fn main()
 {
@@ -66,19 +15,22 @@ fn main()
 
     let out_filename = std::env::args().skip(2).next().unwrap();
     let mut output_file = std::fs::File::create(out_filename).unwrap();
-
     let mut lexer = Token::lexer(&source_code);
+    let mut tokens = Vec::new();
 
-    for i in lexer
+    while let Some(i) = lexer.next()
     {
         if let Token::Error = i
         {
-            println!("ERROR: {:?}", i);
+            println!("ERROR AT: {:?}", lexer.slice());
             break;
         }
         else
         {
-            println!("TOKEN: {:?}", i);
+            // * println!("TOKEN: {:?}", i);
+            tokens.push(i);
         }
     }
+
+    parse(tokens);
 }
