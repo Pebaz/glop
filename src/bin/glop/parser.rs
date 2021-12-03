@@ -5,44 +5,100 @@ use crate::lexer::Token;
 
 enum AstNode
 {
-
-
     // Block(AstNode),
 }
 
-pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::CallOpen) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::CallOpen => return,
+            _ => panic!("PARSE ERROR: Expected open paren, found {:?}", token),
+        }
+    }
 }
 
-pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::CallClose) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::CallClose => return,
+            _ => panic!(
+                "PARSE ERROR: Expected closing paren, found {:?}",
+                token
+            ),
+        }
+    }
 }
 
-pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::Comma) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::Comma => return,
+            _ => panic!("PARSE ERROR: Expected comma, found {:?}", token),
+        }
+    }
 }
 
-pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::Equal) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::Equal => return,
+            _ => panic!("PARSE ERROR: Expected equal sign, found {:?}", token),
+        }
+    }
 }
 
-pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::BlockOpen) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::BlockOpen => return,
+            _ => panic!("PARSE ERROR: Expected open block, found {:?}", token),
+        }
+    }
 }
 
-pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::BlockClose) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::BlockClose => return,
+            _ => panic!(
+                "PARSE ERROR: Expected closing block, found {:?}",
+                token
+            ),
+        }
+    }
 }
 
-pub fn expect_else(tokens: &mut Peekable<Iter<Token>>) -> bool
+pub fn expect_else(tokens: &mut Peekable<Iter<Token>>)
 {
-    if let Some(Token::Else) = tokens.next() { true } else { false }
+    if let Some(token) = tokens.next()
+    {
+        match token
+        {
+            Token::Else => return,
+            _ => panic!(
+                "PARSE ERROR: Expected else keyword, found {:?}",
+                token
+            ),
+        }
+    }
 }
 
 // pub fn accept_token(tokens: &mut Peekable<Iter<Token>>) -> bool
@@ -85,7 +141,7 @@ pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
 {
     if let Some(Token::Symbol(symbol)) = tokens.next()
     {
-        assert!(expect_call_open(tokens), "PARSE ERROR: Expected open paren");
+        expect_call_open(tokens);
 
         while let Some(token) = tokens.peek()
         {
@@ -102,10 +158,7 @@ pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
             };
         }
 
-        assert!(
-            expect_call_close(tokens),
-            "PARSE ERROR: Expected closed paren"
-        );
+        expect_call_close(tokens);
 
         // if let Some(Token::BlockOpen) = tokens.peek() { }
         // else
@@ -127,7 +180,7 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
 
     parse_argument(tokens);
 
-    assert!(expect_block_open(tokens), "PARSE ERROR: Expected open block");
+    expect_block_open(tokens);
 
     while let Some(token) = tokens.peek()
     {
@@ -146,9 +199,9 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
         }
     }
 
-    assert!(expect_else(tokens), "PARSE ERROR: Expected else keyword");
+    expect_else(tokens);
 
-    assert!(expect_block_open(tokens), "PARSE ERROR: Expected open block");
+    expect_block_open(tokens);
 
     while let Some(token) = tokens.peek()
     {
@@ -171,7 +224,7 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
 /// Intrinsic, If+Else, Loop, Break, Let, Set
 pub fn parse_block(tokens: &mut Peekable<Iter<Token>>)
 {
-    assert!(expect_block_open(tokens), "PARSE ERROR: Expected open block");
+    expect_block_open(tokens);
 
     while let Some(token) = tokens.peek()
     {
@@ -196,7 +249,7 @@ pub fn parse_loop(tokens: &mut Peekable<Iter<Token>>)
 
 pub fn parse_break(tokens: &mut Peekable<Iter<Token>>)
 {
-    assert!(expect_comma(tokens), "Expected comma to end statement");
+    expect_comma(tokens);
 }
 
 pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
@@ -207,10 +260,7 @@ pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
         {
             Token::Symbol(symbol) =>
             {
-                assert!(
-                    expect_equal(tokens),
-                    "PARSE ERROR: Expected equal sign"
-                );
+                expect_equal(tokens);
 
                 parse_argument(tokens);
             }
@@ -219,7 +269,7 @@ pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
         }
     }
 
-    assert!(expect_comma(tokens), "Expected comma to end statement");
+    expect_comma(tokens);
 }
 
 pub fn parse_set(tokens: &mut Peekable<Iter<Token>>)
@@ -230,10 +280,7 @@ pub fn parse_set(tokens: &mut Peekable<Iter<Token>>)
         {
             Token::Symbol(symbol) =>
             {
-                assert!(
-                    expect_equal(tokens),
-                    "PARSE ERROR: Expected equal sign"
-                );
+                expect_equal(tokens);
 
                 parse_argument(tokens);
             }
@@ -242,7 +289,7 @@ pub fn parse_set(tokens: &mut Peekable<Iter<Token>>)
         }
     }
 
-    assert!(expect_comma(tokens), "Expected comma to end statement");
+    expect_comma(tokens);
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
@@ -258,10 +305,7 @@ pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>)
                 parse_intrinsic_call(tokens);
 
                 // Top-level statement, expect a comma.
-                assert!(
-                    expect_comma(tokens),
-                    "Expected comma to end statement"
-                );
+                expect_comma(tokens);
             }
 
             Token::If => parse_if(tokens),
