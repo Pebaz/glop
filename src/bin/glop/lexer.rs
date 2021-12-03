@@ -52,6 +52,6 @@ pub enum Token<'a>
     U64(u64),
 
     #[error]
-    #[regex(r"[] \t\n\r]+", skip)]
+    #[regex(r"[ \t\n\r]+", skip)]
     Error,
 }
