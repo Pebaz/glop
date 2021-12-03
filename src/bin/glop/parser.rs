@@ -1,14 +1,32 @@
 use std::iter::Peekable;
 use std::slice::Iter;
 use logos::*;
+use indextree::Arena;
 use crate::lexer::Token;
 
-enum AstNode
+#[derive(Debug)]
+pub enum AstNode<'a>
 {
-    // Block(AstNode),
+    Program,
+
+    Block,  // [Statements ...]
+
+    IfElse,  // [Condition, Truthy Block, Falsey Block]
+
+    Loop,  // [Loop Block]
+
+    Let(&'a str),  // [Value]
+
+    Set(&'a str),  // [Value]
+
+    Intrinsic(&'a str),  // [Arguments ...]
+
+    Symbol(&'a str),
+
+    U64(u64),
 }
 
-pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -20,7 +38,7 @@ pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -35,7 +53,7 @@ pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -47,7 +65,7 @@ pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -59,7 +77,7 @@ pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -71,7 +89,7 @@ pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -86,7 +104,7 @@ pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-pub fn expect_else(tokens: &mut Peekable<Iter<Token>>)
+pub fn expect_else(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -101,7 +119,7 @@ pub fn expect_else(tokens: &mut Peekable<Iter<Token>>)
     }
 }
 
-// pub fn accept_token(tokens: &mut Peekable<Iter<Token>>) -> bool
+// pub fn accept_token(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>) -> bool
 // {
 //     if let Some(Token::CallOpen) = tokens.next()
 //     {
@@ -114,7 +132,7 @@ pub fn expect_else(tokens: &mut Peekable<Iter<Token>>)
 // }
 
 /// U64, Intrinsic, Symbol
-fn parse_argument(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
+fn parse_argument(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)  // -> AstNode
 {
     if let Some(token) = tokens.next()
     {
@@ -125,7 +143,7 @@ fn parse_argument(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
 
             }
 
-            Token::Intrinsic => parse_intrinsic_call(tokens),
+            Token::Intrinsic => parse_intrinsic_call(tokens, ast),
 
             Token::Symbol(symbol) =>
             {
@@ -137,11 +155,11 @@ fn parse_argument(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
     }
 }
 
-pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
+pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)  // -> AstNode
 {
     if let Some(Token::Symbol(symbol)) = tokens.next()
     {
-        expect_call_open(tokens);
+        expect_call_open(tokens, ast);
 
         while let Some(token) = tokens.peek()
         {
@@ -154,16 +172,16 @@ pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
 
                 Token::CallClose => break,
 
-                _ => parse_argument(tokens),
+                _ => parse_argument(tokens, ast),
             };
         }
 
-        expect_call_close(tokens);
+        expect_call_close(tokens, ast);
 
         // if let Some(Token::BlockOpen) = tokens.peek() { }
         // else
         // {
-        //     assert!(expect_comma(tokens), "PARSE ERROR: Expected comma");
+        //     assert!(expect_comma(tokens, ast), "PARSE ERROR: Expected comma");
         // }
 
         println!("      INTRINSIC CALL: {:?}", symbol);
@@ -174,13 +192,13 @@ pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>)  // -> AstNode
     }
 }
 
-pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_if(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     println!("PARSE IF");
 
-    parse_argument(tokens);
+    parse_argument(tokens, ast);
 
-    expect_block_open(tokens);
+    expect_block_open(tokens, ast);
 
     while let Some(token) = tokens.peek()
     {
@@ -195,13 +213,13 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
         else
         {
             println!("    IF BLOCK STATEMENT: {:?}", token);
-            parse_statement(tokens);
+            parse_statement(tokens, ast);
         }
     }
 
-    expect_else(tokens);
+    expect_else(tokens, ast);
 
-    expect_block_open(tokens);
+    expect_block_open(tokens, ast);
 
     while let Some(token) = tokens.peek()
     {
@@ -216,15 +234,15 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>)
         else
         {
             println!("    ELSE BLOCK STATEMENT: {:?}", token);
-            parse_statement(tokens);
+            parse_statement(tokens, ast);
         }
     }
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
-pub fn parse_block(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_block(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
-    expect_block_open(tokens);
+    expect_block_open(tokens, ast);
 
     while let Some(token) = tokens.peek()
     {
@@ -237,22 +255,22 @@ pub fn parse_block(tokens: &mut Peekable<Iter<Token>>)
         }
         else
         {
-            parse_statement(tokens);
+            parse_statement(tokens, ast);
         }
     }
 }
 
-pub fn parse_loop(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_loop(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
-    parse_block(tokens);
+    parse_block(tokens, ast);
 }
 
-pub fn parse_break(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_break(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
-    expect_comma(tokens);
+    expect_comma(tokens, ast);
 }
 
-pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_let(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -260,19 +278,19 @@ pub fn parse_let(tokens: &mut Peekable<Iter<Token>>)
         {
             Token::Symbol(symbol) =>
             {
-                expect_equal(tokens);
+                expect_equal(tokens, ast);
 
-                parse_argument(tokens);
+                parse_argument(tokens, ast);
             }
 
             _ => panic!("Expected Symbol. Found: {:?}", token),
         }
     }
 
-    expect_comma(tokens);
+    expect_comma(tokens, ast);
 }
 
-pub fn parse_set(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_set(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -280,20 +298,20 @@ pub fn parse_set(tokens: &mut Peekable<Iter<Token>>)
         {
             Token::Symbol(symbol) =>
             {
-                expect_equal(tokens);
+                expect_equal(tokens, ast);
 
-                parse_argument(tokens);
+                parse_argument(tokens, ast);
             }
 
             _ => panic!("Expected Symbol. Found: {:?}", token),
         }
     }
 
-    expect_comma(tokens);
+    expect_comma(tokens, ast);
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
-pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>)
+pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>, ast: &mut Vec<AstNode>)
 {
     if let Some(token) = tokens.next()
     {
@@ -302,21 +320,21 @@ pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>)
         {
             Token::Intrinsic =>
             {
-                parse_intrinsic_call(tokens);
+                parse_intrinsic_call(tokens, ast);
 
                 // Top-level statement, expect a comma.
-                expect_comma(tokens);
+                expect_comma(tokens, ast);
             }
 
-            Token::If => parse_if(tokens),
+            Token::If => parse_if(tokens, ast),
 
-            Token::Loop => parse_loop(tokens),
+            Token::Loop => parse_loop(tokens, ast),
 
-            Token::Break => parse_break(tokens),
+            Token::Break => parse_break(tokens, ast),
 
-            Token::Let => parse_let(tokens),
+            Token::Let => parse_let(tokens, ast),
 
-            Token::Set => parse_set(tokens),
+            Token::Set => parse_set(tokens, ast),
 
             // Token::Comma => return,
 
@@ -328,7 +346,7 @@ pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>)
         }
     }
 
-    // assert!(expect_comma(tokens), "Expected comma to end statement");
+    // assert!(expect_comma(tokens, ast), "Expected comma to end statement");
 }
 
 pub fn parse(tokens: Vec<Token>)
@@ -339,15 +357,34 @@ pub fn parse(tokens: Vec<Token>)
     let mut it = tokens.iter().peekable();
     it.peek();
 
+    let mut ast = &mut Arena::new();
+    let root = ast.new_node(AstNode::Program);
+
+    // Program -> Intrinsic("print") -> U64(123)
+    let a = ast.new_node(AstNode::Intrinsic("print"));
+    root.append(a, ast);
+
+    let b = ast.new_node(AstNode::U64(123));
+    a.append(b, ast);
+
+    for child in root.children(ast)
+    {
+        println!("ASTNODE: {:?}", ast[child].get());
+    }
+
+    // let node = root;
+    // while let Some(node) = node.next_sibling()
+    // {
+
+    // }
+
+
+    let mut ast = Vec::with_capacity(1024);
+
     while let Some(token) = it.peek()
     {
         println!("PARSER STATE: {:?}", token);
 
-        parse_statement(&mut it);
-    }
-
-    for i in it
-    {
-        println!("{:?}", i);
+        parse_statement(&mut it, &mut ast);
     }
 }

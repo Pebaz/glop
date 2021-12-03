@@ -6,6 +6,7 @@ license = "Zlib"
 default-run = "glop"
 
 [dependencies]
-colored = "*"
+colored = "2.0.0"
 fasmg-ebc-rs = { git = "https://github.com/Pebaz/fasmg-ebc-rs" }
-logos = "*"
+logos = "0.12.0"
+indextree = "4.3.1"
