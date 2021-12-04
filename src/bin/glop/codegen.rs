@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::io::Write;
 use std::fs::File;
 use indextree::{Arena, NodeId};
@@ -44,9 +44,13 @@ fn depth_first_search(ast: &Arena<AstNode>, node: NodeId, depth: usize)
 //     }
 // }
 
-
-// TODO(pbz): This needs to be able to lookup constant values
-fn generate_argument(section: &mut String, ast: &Arena<AstNode>, node: NodeId, variable_name: String)
+fn generate_argument(
+    section: &mut String,
+    ast: &Arena<AstNode>,
+    node: NodeId,
+    variable_name: String,
+    constants: &mut HashMap<u64, String>
+) -> ()
 {
     let mut stack = Vec::with_capacity(32);
     stack.push(node);
@@ -57,7 +61,16 @@ fn generate_argument(section: &mut String, ast: &Arena<AstNode>, node: NodeId, v
         {
             AstNode::U64(value) =>
             {
+                if !constants.contains_key(value)
+                {
+                    constants.insert(*value, String::from(format!("const_{}", constants.len())));
+                }
+
+                let constant_name = constants.get(value).unwrap();
+
                 *section += &format!("    MOVREL R1, {}\n", variable_name);
+                *section += &format!("    MOVREL R2, {}\n", constant_name);
+                *section += &format!("    MOVq R1, R2\n\n");
             }
 
             ast_node @ _ => panic!(
@@ -67,6 +80,8 @@ fn generate_argument(section: &mut String, ast: &Arena<AstNode>, node: NodeId, v
         }
     }
 }
+
+fn generate_constants() { }
 
 pub fn generate_efi_bytecode_asm(
     mut out_file: File,
@@ -81,6 +96,7 @@ pub fn generate_efi_bytecode_asm(
     let mut variable_section = String::with_capacity(1024);
     let mut variable_init_section = String::with_capacity(1024);
 
+    let mut constants = HashMap::new();
     let mut variables = HashSet::new();
     // let mut variable_initializers = Vec::with_capacity(32);
     let mut stack = Vec::with_capacity(32);
@@ -130,7 +146,8 @@ pub fn generate_efi_bytecode_asm(
                     &mut variable_init_section,
                     ast,
                     ast[node].first_child().unwrap(),
-                    variable_name
+                    variable_name,
+                    &mut constants
                 );
             }
 

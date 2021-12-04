@@ -42,8 +42,17 @@ efi_main:
     ;; BEGIN OWN INSTRUCTIONS
 
     MOVREL R1, pbz
+    MOVREL R2, const_0
+    MOVq R1, R2
+
     MOVREL R1, some_variable
+    MOVREL R2, const_0
+    MOVq R1, R2
+
     MOVREL R1, something_else
+    MOVREL R2, const_0
+    MOVq R1, R2
+
 
 
     ;; END OWN INSTRUCTIONS
