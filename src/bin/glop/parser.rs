@@ -440,26 +440,28 @@ pub fn parse_statement(
     }
 }
 
-pub fn parse(tokens: Vec<Token>)
+pub fn parse(tokens: Vec<Token>) -> Arena<AstNode>
 {
     // println!("TOKENS: {:?}", tokens);
 
     let mut it = tokens.iter().peekable();
     it.peek();
 
-    let ast = &mut Arena::new();
-    let root = ast.new_node(AstNode::Program);
+    let mut ast = Arena::new();
+    let root = &mut ast.new_node(AstNode::Program);
 
     while let Some(token) = it.peek()
     {
         println!("PARSER STATE: {:?}", token);
 
-        parse_statement(&mut it, ast, root);
+        parse_statement(&mut it, &mut ast, *root);
     }
 
     println!("\n---------------\n");
 
-    emit_ast_node(ast, root, 0);
+    emit_ast_node(&ast, *root, 0);
+
+    ast
 }
 
 fn emit_ast_node(ast: &Arena<AstNode>, node: NodeId, depth: usize)

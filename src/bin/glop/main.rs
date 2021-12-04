@@ -1,10 +1,13 @@
 mod lexer;
 mod parser;
+mod codegen;
 
-use std::io::{Read, Write};
+use std::io::Read;
 use logos::*;
+use fasmg_ebc_rs::assemble_ebc;
 use lexer::Token;
 use parser::parse;
+use codegen::generate_efi_bytecode_asm;
 
 fn main()
 {
@@ -14,7 +17,7 @@ fn main()
     source_file.read_to_string(&mut source_code).unwrap();
 
     let out_filename = std::env::args().skip(2).next().unwrap();
-    let mut output_file = std::fs::File::create(out_filename).unwrap();
+    let mut output_file = std::fs::File::create(&out_filename).unwrap();
     let mut lexer = Token::lexer(&source_code);
     let mut tokens = Vec::new();
 
@@ -32,5 +35,9 @@ fn main()
         }
     }
 
-    parse(tokens);
+    let ast = parse(tokens);
+
+    generate_efi_bytecode_asm(output_file, ast);
+
+    assemble_ebc(&out_filename, "yay.ebc");
 }
