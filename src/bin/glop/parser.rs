@@ -440,7 +440,7 @@ pub fn parse_statement(
     }
 }
 
-pub fn parse(tokens: Vec<Token>) -> Arena<AstNode>
+pub fn parse(tokens: Vec<Token>) -> (Arena<AstNode>, NodeId)
 {
     // println!("TOKENS: {:?}", tokens);
 
@@ -461,7 +461,7 @@ pub fn parse(tokens: Vec<Token>) -> Arena<AstNode>
 
     emit_ast_node(&ast, *root, 0);
 
-    ast
+    (ast, *root)
 }
 
 fn emit_ast_node(ast: &Arena<AstNode>, node: NodeId, depth: usize)

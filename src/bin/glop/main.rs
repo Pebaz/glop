@@ -35,9 +35,9 @@ fn main()
         }
     }
 
-    let ast = parse(tokens);
+    let (ast, root) = parse(tokens);
 
-    generate_efi_bytecode_asm(output_file, ast);
+    generate_efi_bytecode_asm(output_file, ast, root);
 
     assemble_ebc(&out_filename, "yay.ebc");
 }
