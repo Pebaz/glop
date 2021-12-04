@@ -21,7 +21,8 @@ pub enum AstNode
 
     Intrinsic(String),  // [Arguments ...]
 
-    Symbol(String),
+    // * No need for this since Let/Set/Intrinsic store their names
+    // Symbol(String),
 
     Lookup(String),
 
@@ -169,10 +170,8 @@ fn parse_argument(
 
             Token::Symbol(symbol) =>
             {
-                // TODO(pbz): Look at parent and add Lookup/etc. based on that
-
                 parent.append(
-                    ast.new_node(AstNode::Symbol(symbol.to_string())),
+                    ast.new_node(AstNode::Lookup(symbol.to_string())),
                     ast
                 );
             }
@@ -193,7 +192,12 @@ pub fn parse_intrinsic_call(
 {
     if let Some(Token::Symbol(symbol)) = tokens.next()
     {
-        expect_call_open(tokens, ast, parent);
+        let intrinsic_call = ast.new_node(
+            AstNode::Intrinsic(symbol.to_string())
+        );
+        parent.append(intrinsic_call, ast);
+
+        expect_call_open(tokens, ast, intrinsic_call);
 
         while let Some(token) = tokens.peek()
         {
@@ -206,11 +210,11 @@ pub fn parse_intrinsic_call(
 
                 Token::CallClose => break,
 
-                _ => parse_argument(tokens, ast, parent),
+                _ => parse_argument(tokens, ast, intrinsic_call),
             };
         }
 
-        expect_call_close(tokens, ast, parent);
+        expect_call_close(tokens, ast, intrinsic_call);
 
         println!("      INTRINSIC CALL: {:?}", symbol);
     }
@@ -429,22 +433,18 @@ pub fn parse(tokens: Vec<Token>)
 
     println!("\n---------------\n");
 
-
-
-
-    // // Program -> Intrinsic("print") -> U64(123)
-    // let a = ast.new_node(AstNode::Intrinsic("print"));
-    // root.append(a, ast);
-
-    // let b = ast.new_node(AstNode::U64(123));
-    // a.append(b, ast);
-
     emit_ast_node(ast, root, 0);
 }
 
 fn emit_ast_node(ast: &Arena<AstNode>, node: NodeId, depth: usize)
 {
     let tab = "    ".repeat(depth);
+    // let parent = match ast[node].parent()
+    // {
+    //     Some(parent) => Some(ast[parent].get()),
+    //     None => None,
+    // };
+    // println!("{}{:?} -> {:?}", tab, ast[node].get(), parent);
     println!("{}{:?}", tab, ast[node].get());
 
     for child in node.children(ast)
