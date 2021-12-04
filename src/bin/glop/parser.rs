@@ -318,9 +318,14 @@ pub fn parse_let(
         {
             Token::Symbol(symbol) =>
             {
-                expect_equal(tokens, ast, parent);
+                let let_statement = ast.new_node(
+                    AstNode::Let(symbol.to_string())
+                );
+                parent.append(let_statement, ast);
 
-                parse_argument(tokens, ast, parent);
+                expect_equal(tokens, ast, let_statement);
+
+                parse_argument(tokens, ast, let_statement);
             }
 
             _ => panic!("Expected Symbol. Found: {:?}", token),
@@ -342,9 +347,14 @@ pub fn parse_set(
         {
             Token::Symbol(symbol) =>
             {
-                expect_equal(tokens, ast, parent);
+                let set_statement = ast.new_node(
+                    AstNode::Set(symbol.to_string())
+                );
+                parent.append(set_statement, ast);
 
-                parse_argument(tokens, ast, parent);
+                expect_equal(tokens, ast, set_statement);
+
+                parse_argument(tokens, ast, set_statement);
             }
 
             _ => panic!("Expected Symbol. Found: {:?}", token),

@@ -1,6 +1,7 @@
 @clear-screen(),
 @clear-screen(a, 123, @foo-bar()),
 
+let foo = bar,
 let x = 0,
 let y = 0,
 
