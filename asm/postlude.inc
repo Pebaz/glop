@@ -16,3 +16,5 @@ section 'RESERVED' data readable writeable
     graphics_output_protocol: dq ?
     temporary_string_status: du "<HERE>", 0x0D, 0x0A, 0x00
 
+;; This is for initialized global variables
+section 'DATA' data readable writeable

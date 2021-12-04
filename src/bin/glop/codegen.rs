@@ -6,6 +6,8 @@ use crate::parser::AstNode;
 
 const PRELUDE: &'static str = include_str!("../../../asm/prelude.inc");
 const POSTLUDE: &'static str = include_str!("../../../asm/postlude.inc");
+const CRATE_NAME: &'static str = env!("CARGO_PKG_NAME");
+const CRATE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn depth_first_search(ast: &Arena<AstNode>, node: NodeId, depth: usize)
 {
@@ -15,6 +17,18 @@ fn depth_first_search(ast: &Arena<AstNode>, node: NodeId, depth: usize)
     for child in node.children(ast)
     {
         depth_first_search(ast, child, depth + 1);
+    }
+}
+
+pub fn generate_variable_declarations(
+    mut out_file: &mut File,
+    variables: HashSet<&String>
+) -> ()
+{
+    for variable in variables.into_iter()
+    {
+        let variable = variable.replace('-', "_");
+        out_file.write_fmt(format_args!("    {}: rb 8\n", variable)).unwrap();
     }
 }
 
@@ -28,6 +42,7 @@ pub fn generate_efi_bytecode_asm(
 
     out_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 
+    let mut variables = HashSet::new();
     let mut stack = Vec::with_capacity(32);
     stack.push(root);
 
@@ -50,6 +65,21 @@ pub fn generate_efi_bytecode_asm(
                 }
             }
 
+            AstNode::Let(variable_name) =>
+            {
+                if variables.contains(variable_name)
+                {
+                    panic!(
+                        "Duplicate variable declaration for {:?}. \
+                        {} supports only a global scope as of v{}.",
+                        variable_name,
+                        CRATE_NAME,
+                        CRATE_VERSION
+                    );
+                }
+                variables.insert(variable_name);
+            }
+
             // Block,
             // IfElse,
             // IfElseCondition,
@@ -63,15 +93,27 @@ pub fn generate_efi_bytecode_asm(
             // Lookup(String),
             // U64(u64),
 
-            _ => panic!("Unexpected AstNode: {:?}", node),
+            _ =>
+            {
+                println!("\n-------------------\n");
+                println!("- CODE GENERATOR STATE -");
+
+                for variable in variables.iter()
+                {
+                    println!("VARIABLE: {}", variable);
+                }
+
+                println!("\n-------------------\n");
+
+                // panic!("Unexpected AstNode: {:?}", ast[node].get());
+                break;
+            }
         }
     }
 
-    let mut variables = HashSet::new();
-
-    variables.insert(String::from("HI"));
-
     out_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
+
+    generate_variable_declarations(&mut out_file, variables);
 }
 
 /*
