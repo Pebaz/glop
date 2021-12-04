@@ -11,7 +11,13 @@ pub enum AstNode
 
     Block,  // [Statements ...]
 
-    IfElse,  // [Condition, Truthy Block, Falsey Block]
+    IfElse,
+
+    IfElseCondition,
+
+    IfElseTruthyBlock,
+
+    IfElseFalseyBlock,
 
     Loop,  // [Loop Block]
 
@@ -234,9 +240,21 @@ pub fn parse_if(
 {
     println!("PARSE IF");
 
-    parse_argument(tokens, ast, parent);
+    let if_statement = ast.new_node(AstNode::IfElse);
+    parent.append(if_statement, ast);
 
-    expect_block_open(tokens, ast, parent);
+    let condition = ast.new_node(AstNode::IfElseCondition);
+    if_statement.append(condition, ast);
+
+    let truthy_block = ast.new_node(AstNode::IfElseTruthyBlock);
+    if_statement.append(truthy_block, ast);
+
+    let falsey_block = ast.new_node(AstNode::IfElseFalseyBlock);
+    if_statement.append(falsey_block, ast);
+
+    parse_argument(tokens, ast, condition);
+
+    expect_block_open(tokens, ast, if_statement);
 
     while let Some(token) = tokens.peek()
     {
@@ -251,13 +269,13 @@ pub fn parse_if(
         else
         {
             println!("    IF BLOCK STATEMENT: {:?}", token);
-            parse_statement(tokens, ast, parent);
+            parse_statement(tokens, ast, truthy_block);
         }
     }
 
-    expect_else(tokens, ast, parent);
+    expect_else(tokens, ast, if_statement);
 
-    expect_block_open(tokens, ast, parent);
+    expect_block_open(tokens, ast, if_statement);
 
     while let Some(token) = tokens.peek()
     {
@@ -272,7 +290,7 @@ pub fn parse_if(
         else
         {
             println!("    ELSE BLOCK STATEMENT: {:?}", token);
-            parse_statement(tokens, ast, parent);
+            parse_statement(tokens, ast, falsey_block);
         }
     }
 }
