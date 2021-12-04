@@ -15,6 +15,8 @@ pub enum AstNode
 
     Loop,  // [Loop Block]
 
+    Break,
+
     Let(String),  // [Value]
 
     Set(String),  // [Value]
@@ -306,7 +308,10 @@ pub fn parse_loop(
     parent: NodeId
 ) -> ()
 {
-    parse_block(tokens, ast, parent);
+    let loop_statement = ast.new_node(AstNode::Loop);
+    parent.append(loop_statement, ast);
+
+    parse_block(tokens, ast, loop_statement);
 }
 
 pub fn parse_break(
@@ -315,7 +320,10 @@ pub fn parse_break(
     parent: NodeId
 ) -> ()
 {
-    expect_comma(tokens, ast, parent);
+    let break_statement = ast.new_node(AstNode::Break);
+    parent.append(break_statement, ast);
+
+    expect_comma(tokens, ast, break_statement);
 }
 
 pub fn parse_let(
