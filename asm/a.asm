@@ -41,6 +41,9 @@ efi_main:
 
     ;; BEGIN OWN INSTRUCTIONS
 
+    MOVREL R1, pbz
+    MOVREL R1, some_variable
+    MOVREL R1, something_else
 
 
     ;; END OWN INSTRUCTIONS

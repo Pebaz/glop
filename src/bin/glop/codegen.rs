@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::fs::File;
 use indextree::{Arena, NodeId};
 use crate::parser::AstNode;
@@ -20,15 +20,51 @@ fn depth_first_search(ast: &Arena<AstNode>, node: NodeId, depth: usize)
     }
 }
 
-pub fn generate_variable_declarations(
-    mut out_file: &mut File,
-    variables: HashSet<&String>
-) -> ()
+// pub fn generate_variable_initializers(
+//     mut out_file: &mut File,
+//     ast: &Arena<AstNode>,
+//     initializers: Vec<NodeId>,
+// ) -> ()
+// {
+//     for node in initializers.into_iter()
+//     {
+//         if let Some(variable) = ast[node].get()
+//         {
+//             let variable = variable.replace('-', "_");
+
+//             out_file.write_fmt(
+//                 format_args!(
+//                     "    MOVREL R1 {}\n \
+
+//                     ",
+//                     variable
+//                 )
+//             ).unwrap();
+//         }
+//     }
+// }
+
+
+// TODO(pbz): This needs to be able to lookup constant values
+fn generate_argument(section: &mut String, ast: &Arena<AstNode>, node: NodeId, variable_name: String)
 {
-    for variable in variables.into_iter()
+    let mut stack = Vec::with_capacity(32);
+    stack.push(node);
+
+    while let Some(node) = stack.pop()
     {
-        let variable = variable.replace('-', "_");
-        out_file.write_fmt(format_args!("    {}: rb 8\n", variable)).unwrap();
+        match ast[node].get()
+        {
+            AstNode::U64(value) =>
+            {
+                *section += &format!("    MOVREL R1, {}\n", variable_name);
+            }
+
+            ast_node @ _ => panic!(
+                "INTERNAL ERROR: Unexpected AstNode in variable assignment: {:?}",
+                ast_node
+            ),
+        }
     }
 }
 
@@ -42,7 +78,11 @@ pub fn generate_efi_bytecode_asm(
 
     out_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 
+    let mut variable_section = String::with_capacity(1024);
+    let mut variable_init_section = String::with_capacity(1024);
+
     let mut variables = HashSet::new();
+    // let mut variable_initializers = Vec::with_capacity(32);
     let mut stack = Vec::with_capacity(32);
     stack.push(root);
 
@@ -78,6 +118,20 @@ pub fn generate_efi_bytecode_asm(
                     );
                 }
                 variables.insert(variable_name);
+
+                let variable_name = variable_name.replace('-', "_");
+
+                variable_section += &format!(
+                    "    {}: rb 8\n",
+                    variable_name
+                );
+
+                generate_argument(
+                    &mut variable_init_section,
+                    ast,
+                    ast[node].first_child().unwrap(),
+                    variable_name
+                );
             }
 
             // Block,
@@ -111,9 +165,11 @@ pub fn generate_efi_bytecode_asm(
         }
     }
 
-    out_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
+    // generate_variable_initializers(&mut out_file, ast, variable_initializers);
+    out_file.write_fmt(format_args!("{}", variable_init_section)).unwrap();
 
-    generate_variable_declarations(&mut out_file, variables);
+    out_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
+    out_file.write_fmt(format_args!("{}", variable_section)).unwrap();
 }
 
 /*

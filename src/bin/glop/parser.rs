@@ -1,6 +1,5 @@
 use std::iter::Peekable;
 use std::slice::Iter;
-use logos::*;
 use indextree::{Arena, NodeId};
 use crate::lexer::Token;
 
