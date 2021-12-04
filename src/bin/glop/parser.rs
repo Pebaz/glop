@@ -150,10 +150,10 @@ pub fn expect_else(
 }
 
 /// U64, Intrinsic, Symbol
-fn parse_argument(tokens:
-     &mut Peekable<Iter<Token>>, ast:
-     &mut Arena<AstNode>,
-     parent: NodeId
+fn parse_argument(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
 ) -> ()
 {
     if let Some(token) = tokens.next()
@@ -169,10 +169,18 @@ fn parse_argument(tokens:
 
             Token::Symbol(symbol) =>
             {
-                parent.append(ast.new_node(AstNode::Symbol((*symbol).to_string())), ast);
+                // TODO(pbz): Look at parent and add Lookup/etc. based on that
+
+                parent.append(
+                    ast.new_node(AstNode::Symbol(symbol.to_string())),
+                    ast
+                );
             }
 
-            _ => panic!("Expected a U64, Intrinsic Call, or Symbol. Found: {:?}", token),
+            _ => panic!(
+                "Expected a U64, Intrinsic Call, or Symbol. Found: {:?}",
+                token
+            ),
         }
     }
 }
@@ -431,8 +439,16 @@ pub fn parse(tokens: Vec<Token>)
     // let b = ast.new_node(AstNode::U64(123));
     // a.append(b, ast);
 
-    for child in root.children(ast)
+    emit_ast_node(ast, root, 0);
+}
+
+fn emit_ast_node(ast: &Arena<AstNode>, node: NodeId, depth: usize)
+{
+    let tab = "    ".repeat(depth);
+    println!("{}{:?}", tab, ast[node].get());
+
+    for child in node.children(ast)
     {
-        println!("ASTNODE: {:?}", ast[child].get());
+        emit_ast_node(ast, child, depth + 1);
     }
 }

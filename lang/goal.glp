@@ -2,6 +2,7 @@
 @clear-screen(a, 123, @foo-bar()),
 
 let foo = bar,
+set foo = baz,
 let x = 0,
 let y = 0,
 
