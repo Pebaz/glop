@@ -5,7 +5,7 @@ use indextree::{Arena, NodeId};
 use crate::lexer::Token;
 
 #[derive(Debug)]
-pub enum AstNode<'a>
+pub enum AstNode
 {
     Program,
 
@@ -15,13 +15,13 @@ pub enum AstNode<'a>
 
     Loop,  // [Loop Block]
 
-    Let(&'a str),  // [Value]
+    Let(String),  // [Value]
 
-    Set(&'a str),  // [Value]
+    Set(String),  // [Value]
 
-    Intrinsic(&'a str),  // [Arguments ...]
+    Intrinsic(String),  // [Arguments ...]
 
-    Symbol(&'a str),
+    Symbol(String),
 
     U64(u64),
 }
@@ -147,7 +147,7 @@ fn parse_argument(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, 
 
             Token::Symbol(symbol) =>
             {
-
+                parent.append(ast.new_node(AstNode::Symbol((*symbol).to_string())), ast);
             }
 
             _ => panic!("Expected a U64, Intrinsic Call, or Symbol. Found: {:?}", token),
@@ -356,7 +356,7 @@ pub fn parse(tokens: Vec<Token>)
     let mut it = tokens.iter().peekable();
     it.peek();
 
-    let mut ast = &mut Arena::new();
+    let ast = &mut Arena::new();
     let root = ast.new_node(AstNode::Program);
 
     while let Some(token) = it.peek()
