@@ -23,10 +23,16 @@ pub enum AstNode
 
     Symbol(String),
 
+    Lookup(String),
+
     U64(u64),
 }
 
-pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_call_open(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -38,7 +44,11 @@ pub fn expect_call_open(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstN
     }
 }
 
-pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_call_close(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -53,7 +63,11 @@ pub fn expect_call_close(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<Ast
     }
 }
 
-pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_comma(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -65,7 +79,11 @@ pub fn expect_comma(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>
     }
 }
 
-pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_equal(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -77,7 +95,11 @@ pub fn expect_equal(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>
     }
 }
 
-pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_block_open(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -89,7 +111,11 @@ pub fn expect_block_open(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<Ast
     }
 }
 
-pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_block_close(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -104,7 +130,11 @@ pub fn expect_block_close(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<As
     }
 }
 
-pub fn expect_else(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn expect_else(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -119,20 +149,12 @@ pub fn expect_else(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>,
     }
 }
 
-// pub fn accept_token(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId) -> bool
-// {
-//     if let Some(Token::CallOpen) = tokens.next()
-//     {
-//         true
-//     }
-//     else
-//     {
-//         false
-//     }
-// }
-
 /// U64, Intrinsic, Symbol
-fn parse_argument(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)  // -> AstNode
+fn parse_argument(tokens:
+     &mut Peekable<Iter<Token>>, ast:
+     &mut Arena<AstNode>,
+     parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -155,7 +177,11 @@ fn parse_argument(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, 
     }
 }
 
-pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)  // -> AstNode
+pub fn parse_intrinsic_call(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(Token::Symbol(symbol)) = tokens.next()
     {
@@ -178,12 +204,6 @@ pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<
 
         expect_call_close(tokens, ast, parent);
 
-        // if let Some(Token::BlockOpen) = tokens.peek() { }
-        // else
-        // {
-        //     assert!(expect_comma(tokens, ast), "PARSE ERROR: Expected comma", parent);
-        // }
-
         println!("      INTRINSIC CALL: {:?}", symbol);
     }
     else
@@ -192,7 +212,11 @@ pub fn parse_intrinsic_call(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<
     }
 }
 
-pub fn parse_if(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_if(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     println!("PARSE IF");
 
@@ -240,7 +264,11 @@ pub fn parse_if(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, pa
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
-pub fn parse_block(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_block(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     expect_block_open(tokens, ast, parent);
 
@@ -260,17 +288,29 @@ pub fn parse_block(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>,
     }
 }
 
-pub fn parse_loop(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_loop(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     parse_block(tokens, ast, parent);
 }
 
-pub fn parse_break(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_break(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     expect_comma(tokens, ast, parent);
 }
 
-pub fn parse_let(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_let(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -290,7 +330,11 @@ pub fn parse_let(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, p
     expect_comma(tokens, ast, parent);
 }
 
-pub fn parse_set(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_set(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -311,7 +355,11 @@ pub fn parse_set(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, p
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
-pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNode>, parent: NodeId)
+pub fn parse_statement(
+    tokens: &mut Peekable<Iter<Token>>,
+    ast: &mut Arena<AstNode>,
+    parent: NodeId
+) -> ()
 {
     if let Some(token) = tokens.next()
     {
@@ -336,17 +384,12 @@ pub fn parse_statement(tokens: &mut Peekable<Iter<Token>>, ast: &mut Arena<AstNo
 
             Token::Set => parse_set(tokens, ast, parent),
 
-            // Token::Comma => return,
-
-            // _ => unreachable!(),
             _ =>
             {
                 panic!("ERROR: Found token {:?} instead of statement", token);
             }
         }
     }
-
-    // assert!(expect_comma(tokens, ast), "Expected comma to end statement", parent);
 }
 
 pub fn parse(tokens: Vec<Token>)
