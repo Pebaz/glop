@@ -66,20 +66,18 @@ loop_0:
 
     ASMCALL U64GTE 
 
-    ;; POP OFF CONDITION RESULT HERE
+if_0:  ;; UNUSED LABEL
+    POP64 R1
+    CMPI64eq R1, 0
+    MOVREL R1, if_0_falsey
+    JMP32cs R1
+    MOVREL R1, if_0_truthy
+    JMP32cc R1
+if_0_truthy:
+    JMP32 R0(loop_0_break)
 
-    ;; POP OFF CONDITION RESULT HERE
-
-    ;; POP OFF CONDITION RESULT HERE
-
-    JMP32 R0(loop_0_break): PASS
-
-    ;; GEN ELSE BLOCK LABELS HERE
-
-    ;; GEN ELSE BLOCK LABELS HERE
-
-    ;; GEN ELSE BLOCK LABELS HERE
-
+    JMP32 R0(if_0_end)
+if_0_falsey:
 loop_1:
 
     MOVREL R1, x
@@ -90,20 +88,18 @@ loop_1:
 
     ASMCALL U64GTE 
 
-    ;; POP OFF CONDITION RESULT HERE
+if_1:  ;; UNUSED LABEL
+    POP64 R1
+    CMPI64eq R1, 0
+    MOVREL R1, if_1_falsey
+    JMP32cs R1
+    MOVREL R1, if_1_truthy
+    JMP32cc R1
+if_1_truthy:
+    JMP32 R0(loop_1_break)
 
-    ;; POP OFF CONDITION RESULT HERE
-
-    ;; POP OFF CONDITION RESULT HERE
-
-    JMP32 R0(loop_1_break): PASS
-
-    ;; GEN ELSE BLOCK LABELS HERE
-
-    ;; GEN ELSE BLOCK LABELS HERE
-
-    ;; GEN ELSE BLOCK LABELS HERE
-
+    JMP32 R0(if_1_end)
+if_1_falsey:
     MOVREL R1, x
     PUSH64 R1
 
@@ -141,11 +137,8 @@ loop_1:
 
     ASMCALL DRAWPIXEL 
 
-    ;; FINISH UP IF STATEMENT HERE
-
-    ;; FINISH UP IF STATEMENT HERE
-
-    ;; FINISH UP IF STATEMENT HERE
+    JMP32 R0(if_1_end)
+if_1_end: PASS
 
     MOVREL R1, x
     PUSH64 R1
@@ -162,11 +155,8 @@ loop_1:
     JMP32 R0(loop_1)
 loop_1_break: PASS
 
-    ;; FINISH UP IF STATEMENT HERE
-
-    ;; FINISH UP IF STATEMENT HERE
-
-    ;; FINISH UP IF STATEMENT HERE
+    JMP32 R0(if_0_end)
+if_0_end: PASS
 
     MOVREL R1, y
     PUSH64 R1
@@ -208,8 +198,8 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
+    const_2: dq 150
+    const_1: dq 64
     const_0: dq 0
     const_3: dq 50
-    const_2: dq 150
     const_4: dq 1
-    const_1: dq 64

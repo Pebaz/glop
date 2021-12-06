@@ -20,74 +20,6 @@ fn depth_first_search(ast: &Arena<AstNode>, node: NodeId, depth: usize)
     }
 }
 
-// pub fn generate_variable_initializers(
-//     mut out_file: &mut File,
-//     ast: &Arena<AstNode>,
-//     initializers: Vec<NodeId>,
-// ) -> ()
-// {
-//     for node in initializers.into_iter()
-//     {
-//         if let Some(variable) = ast[node].get()
-//         {
-//             let variable = variable.replace('-', "_");
-
-//             out_file.write_fmt(
-//                 format_args!(
-//                     "    MOVREL R1 {}\n \
-
-//                     ",
-//                     variable
-//                 )
-//             ).unwrap();
-//         }
-//     }
-// }
-
-// fn generate_argument(
-//     section: &mut String,
-//     ast: &Arena<AstNode>,
-//     node: NodeId,
-//     variable_name: String,
-//     constants: &mut HashMap<u64, String>
-// ) -> ()
-// {
-//     let mut stack = Vec::with_capacity(32);
-//     stack.push(node);
-
-//     while let Some(node) = stack.pop()
-//     {
-//         match ast[node].get()
-//         {
-//             AstNode::U64(value) =>
-//             {
-//                 if !constants.contains_key(value)
-//                 {
-//                     constants.insert(*value, String::from(format!("const_{}", constants.len())));
-//                 }
-
-//                 let constant_name = constants.get(value).unwrap();
-
-//                 *section += &format!("    MOVREL R1, {}\n", variable_name);
-//                 *section += &format!("    MOVREL R2, {}\n", constant_name);
-//                 *section += &format!("    MOVq R1, R2\n\n");
-//             }
-
-//             AstNode::Lookup(symbol) =>
-//             {
-//                 // *section += &format!("    MOVREL R1, {}\n", variable_name);
-//                 // *section += &format!("    MOVREL R2, {}\n", symbol);
-//                 // *section += &format!("    MOVq R1, R2\n\n");
-//             }
-
-//             ast_node @ _ => panic!(
-//                 "INTERNAL ERROR: Unexpected AstNode in variable assignment: {:?}",
-//                 ast_node
-//             ),
-//         }
-//     }
-// }
-
 /// Pushes a U64, Symbol Lookup, or Intrinsic Call to the stack.
 fn generate_push_argument(
     section: &mut String,
@@ -97,6 +29,7 @@ fn generate_push_argument(
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
+    if_counter: &mut u16,
 ) -> ()
 {
     match ast[node].get()
@@ -124,7 +57,16 @@ fn generate_push_argument(
 
         AstNode::Intrinsic(_) =>
         {
-            generate_intrinsic(section, variable_section, ast, node, variables, constants, loop_stack);
+            generate_intrinsic(
+                section,
+                variable_section,
+                ast,
+                node,
+                variables,
+                constants,
+                loop_stack,
+                if_counter,
+            );
         }
 
         ast_node @ _ => panic!(
@@ -145,6 +87,7 @@ fn generate_intrinsic(
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
+    if_counter: &mut u16,
 ) -> ()
 {
     let function_name = match ast[node].get()
@@ -156,7 +99,16 @@ fn generate_intrinsic(
     // Push each argument onto the stack
     for child in node.children(ast)
     {
-        generate_push_argument(section, variable_section, ast, child, variables, constants, loop_stack);
+        generate_push_argument(
+            section,
+            variable_section,
+            ast,
+            child,
+            variables,
+            constants,
+            loop_stack,
+            if_counter,
+        );
     }
 
     *section += &format!("    ASMCALL {} \n\n", function_name);
@@ -183,6 +135,7 @@ fn generate_loop(
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
+    if_counter: &mut u16,
 ) -> ()
 {
     match ast[node].get()
@@ -207,7 +160,8 @@ fn generate_loop(
             child,
             variables,
             constants,
-            loop_stack
+            loop_stack,
+            if_counter,
         );
     }
 
@@ -224,13 +178,15 @@ fn generate_break(
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
+    if_counter: &mut u16,
 ) -> ()
 {
     let loop_name = &loop_stack[loop_stack.len() - 1].0;
-    *section += &format!("    JMP32 R0({}_break): PASS\n\n", loop_name);
+    *section += &format!("    JMP32 R0({}_break)\n\n", loop_name);
 }
 
 /// Condition argument must push something to compare.
+// TODO(pbz): How to tell if it's a variable or not?
 fn generate_if_else(
     section: &mut String,
     variable_section: &mut String,
@@ -239,15 +195,11 @@ fn generate_if_else(
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
+    if_counter: &mut u16,
 ) -> ()
 {
     /*
-    POP64 R1
-    CMPI64eq R1, 0
-    MOVREL R1, if_1_falsey
-    JMP32cs R1
-    MOVREL R1, if_1_truthy
-    JMP32cc R1
+
     if_1_truthy:
         PUSHADDR string_if_1_truthy
         ASMCALL EMITSTR
@@ -259,23 +211,11 @@ fn generate_if_else(
     if_1_endif: PASS
     */
 
-    // IfElse,
-
-    // IfElseCondition,
-
-    // IfElseTruthyBlock,
-
-    // IfElseFalseyBlock,
-
-    // generate_if(
-    //     section,
-    //     variable_section,
-    //     ast,
-    //     node,
-    //     variables,
-    //     constants,
-    //     loop_stack
-    // );
+    let if_name = format!("if_{}", if_counter);
+    let true_name = format!("{}_truthy", if_name);
+    let false_name = format!("{}_falsey", if_name);
+    let end_if_name = format!("{}_end", if_name);
+    *if_counter += 1;
 
     let condition = ast[node].first_child().unwrap();
     let truthy_block = ast[condition].next_sibling().unwrap();
@@ -288,12 +228,19 @@ fn generate_if_else(
         ast[condition].first_child().unwrap(),
         variables,
         constants,
-        loop_stack
+        loop_stack,
+        if_counter,
     );
 
-    *section += &format!("    ;; POP OFF CONDITION RESULT HERE\n\n");
-    *section += &format!("    ;; POP OFF CONDITION RESULT HERE\n\n");
-    *section += &format!("    ;; POP OFF CONDITION RESULT HERE\n\n");
+    *section += &format!("{}:  ;; UNUSED LABEL\n", if_name);
+    *section += &format!("    POP64 R1\n");
+    *section += &format!("    CMPI64eq R1, 0\n");
+    *section += &format!("    MOVREL R1, {}\n", false_name);
+    *section += &format!("    JMP32cs R1\n");
+    *section += &format!("    MOVREL R1, {}\n", true_name);
+    *section += &format!("    JMP32cc R1\n");
+
+    *section += &format!("{}:\n", true_name);
 
     for child in truthy_block.children(ast)
     {
@@ -304,13 +251,14 @@ fn generate_if_else(
             child,
             variables,
             constants,
-            loop_stack
+            loop_stack,
+            if_counter,
         );
     }
 
-    *section += &format!("    ;; GEN ELSE BLOCK LABELS HERE\n\n");
-    *section += &format!("    ;; GEN ELSE BLOCK LABELS HERE\n\n");
-    *section += &format!("    ;; GEN ELSE BLOCK LABELS HERE\n\n");
+    *section += &format!("    JMP32 R0({})\n", end_if_name);
+
+    *section += &format!("{}:\n", false_name);
 
     for child in falsey_block.children(ast)
     {
@@ -321,13 +269,14 @@ fn generate_if_else(
             child,
             variables,
             constants,
-            loop_stack
+            loop_stack,
+            if_counter,
         );
     }
 
-    *section += &format!("    ;; FINISH UP IF STATEMENT HERE\n\n");
-    *section += &format!("    ;; FINISH UP IF STATEMENT HERE\n\n");
-    *section += &format!("    ;; FINISH UP IF STATEMENT HERE\n\n");
+    *section += &format!("    JMP32 R0({})\n", end_if_name);
+
+    *section += &format!("{}: PASS\n\n", end_if_name);
 }
 
 fn generate_statement(
@@ -338,6 +287,7 @@ fn generate_statement(
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
+    if_counter: &mut u16,
 ) -> ()
 {
     match ast[node].get()
@@ -370,7 +320,8 @@ fn generate_statement(
                 ast[node].first_child().unwrap(),
                 variables,
                 constants,
-                loop_stack
+                loop_stack,
+                if_counter,
             );
 
             // The top of the stack now contains the value to assign
@@ -395,7 +346,8 @@ fn generate_statement(
                 ast[node].first_child().unwrap(),
                 variables,
                 constants,
-                loop_stack
+                loop_stack,
+                if_counter,
             );
 
             // The top of the stack now contains the value to assign
@@ -413,7 +365,8 @@ fn generate_statement(
                 node,
                 variables,
                 constants,
-                loop_stack
+                loop_stack,
+                if_counter,
             );
         }
 
@@ -426,7 +379,8 @@ fn generate_statement(
                 node,
                 variables,
                 constants,
-                loop_stack
+                loop_stack,
+                if_counter,
             );
         }
 
@@ -439,7 +393,8 @@ fn generate_statement(
                 node,
                 variables,
                 constants,
-                loop_stack
+                loop_stack,
+                if_counter,
             );
         }
 
@@ -452,7 +407,8 @@ fn generate_statement(
                 node,
                 variables,
                 constants,
-                loop_stack
+                loop_stack,
+                if_counter,
             );
         }
 
@@ -486,6 +442,7 @@ pub fn generate_efi_bytecode_asm(
     let mut body_section = String::with_capacity(1024);
     let mut constants = HashMap::new();
     let mut variables = HashSet::new();
+    let mut if_counter = 0u16;
 
     let mut loop_stack = Vec::with_capacity(8);
     loop_stack.push((String::from("PLACEHOLDER"), 0));
@@ -494,7 +451,16 @@ pub fn generate_efi_bytecode_asm(
 
     for child in root.children(ast)
     {
-        generate_statement(&mut body_section, &mut variable_section, ast, child, &mut variables, &mut constants, &mut loop_stack);
+        generate_statement(
+            &mut body_section,
+            &mut variable_section,
+            ast,
+            child,
+            &mut variables,
+            &mut constants,
+            &mut loop_stack,
+            &mut if_counter,
+        );
     }
 
     out_file.write_fmt(format_args!("    ;; Initialize Variables\n")).unwrap();

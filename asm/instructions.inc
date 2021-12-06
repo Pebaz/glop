@@ -186,6 +186,7 @@ EMITSTRING:
     POPn R6
     JMP32 R6
 
+
 ;; Addds two numbers and pushes the result onto the stack.
 U64ADD:
     POP64 R2  ;; Arg1
@@ -195,3 +196,30 @@ U64ADD:
     PUSH64 R1
 
     JMP32 R6(0, +6)
+
+
+;; u64-gte(a, b) -> return a >= b
+U64GTE:
+    ; POPn R2  ;; b
+    ; POPn R1  ;; a
+    ; MOVREL R1, const_0
+    ; PUSH64 @R1
+    ; JMP32 R6(0, +6)
+
+    POPn R2  ;; b
+    POPn R1  ;; a
+    CMP64ugte @R1, @R2
+    MOVREL R3, U64GTE_truthy
+    MOVREL R4, U64GTE_falsey
+    JMP32cs R3
+    JMP32cc R4
+
+    U64GTE_truthy:
+        MOVREL R1, const_1
+        PUSH64 @R1
+        JMP32 R6(0, +6)
+
+    U64GTE_falsey:
+        XOR R1, R1
+        PUSH64 R1
+        JMP32 R6(0, +6)
