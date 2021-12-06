@@ -182,11 +182,19 @@ pub fn generate_efi_bytecode_asm(
         }
     }
 
-    // generate_variable_initializers(&mut out_file, ast, variable_initializers);
+    out_file.write_fmt(format_args!("    ;; Initialize Variables\n")).unwrap();
     out_file.write_fmt(format_args!("{}", variable_init_section)).unwrap();
-
     out_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
-    out_file.write_fmt(format_args!("{}", variable_section)).unwrap();
+    out_file.write_fmt(format_args!("    ;; Variables\n")).unwrap();
+    out_file.write_fmt(format_args!("{}\n", variable_section)).unwrap();
+    out_file.write_fmt(format_args!("    ;; Constants\n")).unwrap();
+
+    for (constant, name) in constants.iter()
+    {
+        out_file.write_fmt(
+            format_args!("    {}: dq {}\n", name, constant)
+        ).unwrap();
+    }
 }
 
 /*

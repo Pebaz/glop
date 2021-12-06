@@ -41,6 +41,7 @@ efi_main:
 
     ;; BEGIN OWN INSTRUCTIONS
 
+    ;; Initialize Variables
     MOVREL R1, pbz
     MOVREL R2, const_0
     MOVq R1, R2
@@ -51,6 +52,10 @@ efi_main:
 
     MOVREL R1, something_else
     MOVREL R2, const_0
+    MOVq R1, R2
+
+    MOVREL R1, u
+    MOVREL R2, const_1
     MOVq R1, R2
 
 
@@ -73,6 +78,12 @@ section 'RESERVED' data readable writeable
 
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
+    ;; Variables
     pbz: rb 8
     some_variable: rb 8
     something_else: rb 8
+    u: rb 8
+
+    ;; Constants
+    const_0: dq 0
+    const_1: dq 1

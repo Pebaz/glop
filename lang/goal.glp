@@ -1,6 +1,7 @@
 let pbz = 0,
 let some-variable = 0,
 let something-else = 0,
+let u = 1,
 
 @clear-screen(),
 @clear-screen(a, 123, @foo-bar()),
