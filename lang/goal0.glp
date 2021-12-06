@@ -1,0 +1,5 @@
+let x = 64,
+let y = 64,
+
+@clear-screen(),
+@draw-pixel(x, y, 255, 255, 255),

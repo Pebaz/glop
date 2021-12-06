@@ -39,5 +39,5 @@ fn main()
 
     generate_efi_bytecode_asm(output_file, ast, root);
 
-    assemble_ebc(&out_filename, "yay.ebc");
+    assemble_ebc(&out_filename, "drive/EFI/BOOT/BOOTX64.efi");
 }

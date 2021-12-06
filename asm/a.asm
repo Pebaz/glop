@@ -56,7 +56,10 @@ efi_main:
     MOVREL R1, y
     MOVq @R1, @R2
 
-loop_0:
+    ASMCALL CLEARSCREEN 
+
+    MOVREL R1, x
+    PUSH64 R1
 
     MOVREL R1, y
     PUSH64 R1
@@ -64,114 +67,13 @@ loop_0:
     MOVREL R1, const_1
     PUSH64 R1
 
-    ASMCALL U64GTE 
-
-if_0:  ;; UNUSED LABEL
-    POP64 R1
-    CMPI64eq R1, 0
-    MOVREL R1, if_0_falsey
-    JMP32cs R1
-    MOVREL R1, if_0_truthy
-    JMP32cc R1
-if_0_truthy:
-    JMP32 R0(loop_0_break)
-
-    JMP32 R0(if_0_end)
-if_0_falsey:
-loop_1:
-
-    MOVREL R1, x
+    MOVREL R1, const_1
     PUSH64 R1
 
     MOVREL R1, const_1
     PUSH64 R1
-
-    ASMCALL U64GTE 
-
-if_1:  ;; UNUSED LABEL
-    POP64 R1
-    CMPI64eq R1, 0
-    MOVREL R1, if_1_falsey
-    JMP32cs R1
-    MOVREL R1, if_1_truthy
-    JMP32cc R1
-if_1_truthy:
-    JMP32 R0(loop_1_break)
-
-    JMP32 R0(if_1_end)
-if_1_falsey:
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, y
-    PUSH64 R1
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    ASMCALL U64ADD 
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, y
-    PUSH64 R1
-
-    ASMCALL U64ADD 
-
-    MOVREL R1, const_3
-    PUSH64 R1
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, y
-    PUSH64 R1
-
-    ASMCALL U64ADD 
-
-    ASMCALL U64ADD 
 
     ASMCALL DRAWPIXEL 
-
-    JMP32 R0(if_1_end)
-if_1_end: PASS
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    ASMCALL U64ADD 
-
-    POP64 R2
-    MOVREL R1, x
-    MOVq @R1, @R2
-
-    JMP32 R0(loop_1)
-loop_1_break: PASS
-
-    JMP32 R0(if_0_end)
-if_0_end: PASS
-
-    MOVREL R1, y
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    ASMCALL U64ADD 
-
-    POP64 R2
-    MOVREL R1, y
-    MOVq @R1, @R2
-
-    JMP32 R0(loop_0)
-loop_0_break: PASS
 
 
 
@@ -198,8 +100,5 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
-    const_2: dq 150
-    const_1: dq 64
-    const_0: dq 0
-    const_3: dq 50
-    const_4: dq 1
+    const_0: dq 64
+    const_1: dq 255
