@@ -42,21 +42,33 @@ efi_main:
     ;; BEGIN OWN INSTRUCTIONS
 
     ;; Initialize Variables
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    POP64 R2
     MOVREL R1, pbz
-    MOVREL R2, const_0
-    MOVq R1, R2
+    MOVq @R1, @R2
 
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    POP64 R2
     MOVREL R1, some_variable
-    MOVREL R2, const_0
-    MOVq R1, R2
+    MOVq @R1, @R2
 
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    POP64 R2
     MOVREL R1, something_else
-    MOVREL R2, const_0
-    MOVq R1, R2
+    MOVq @R1, @R2
 
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    POP64 R2
     MOVREL R1, u
-    MOVREL R2, const_1
-    MOVq R1, R2
+    MOVq @R1, @R2
 
 
 
@@ -85,5 +97,5 @@ section 'DATA' data readable writeable
     u: rb 8
 
     ;; Constants
-    const_0: dq 0
     const_1: dq 1
+    const_0: dq 0
