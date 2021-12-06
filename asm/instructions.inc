@@ -160,8 +160,8 @@ DRAWPIXEL:
     ; CALLEX @R3(EFI_GRAPHICS_OUTPUT_PROTOCOL.Blt)
 
     POPn R6
+    ; MOV R0, R0(0, sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
 
-    MOV R0, R0(0, sizeof FFI_FN_EFI_GRAPHICS_OUTPUT_PROTOCOL_BLT)
 
     JMP32 R6
 
@@ -200,11 +200,11 @@ U64ADD:
 
 ;; u64-gte(a, b) -> return a >= b
 U64GTE:
-    ; POPn R2  ;; b
-    ; POPn R1  ;; a
-    ; MOVREL R1, literal_1
-    ; PUSH64 @R1
-    ; JMP32 R6(0, +6)
+            POPn R2  ;; b
+            POPn R1  ;; a
+            MOVREL R1, literal_0
+            PUSH64 @R1
+            JMP32 R6(0, +6)
 
     POPn R2  ;; b
     POPn R1  ;; a

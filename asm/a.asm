@@ -60,10 +60,10 @@ efi_main:
 
 loop_0:
 
-    MOVREL R1, x
+    MOVREL R1, const_2
     PUSH64 R1
 
-    MOVREL R1, const_2
+    MOVREL R1, const_3
     PUSH64 R1
 
     ASMCALL U64GTE 
@@ -76,10 +76,7 @@ if_0:  ;; UNUSED LABEL
     MOVREL R1, if_0_truthy
     JMP32cc R1
 if_0_truthy:
-    MOVREL R1, const_3
-    PUSH64 R1
-
-    MOVREL R1, const_3
+    MOVREL R1, const_4
     PUSH64 R1
 
     MOVREL R1, const_4
@@ -89,6 +86,9 @@ if_0_truthy:
     PUSH64 R1
 
     MOVREL R1, const_6
+    PUSH64 R1
+
+    MOVREL R1, const_7
     PUSH64 R1
 
     ASMCALL DRAWPIXEL 
@@ -103,13 +103,13 @@ if_0_falsey:
     MOVREL R1, y
     PUSH64 R1
 
-    MOVREL R1, const_4
+    MOVREL R1, const_5
     PUSH64 R1
 
-    MOVREL R1, const_4
+    MOVREL R1, const_5
     PUSH64 R1
 
-    MOVREL R1, const_4
+    MOVREL R1, const_5
     PUSH64 R1
 
     ASMCALL DRAWPIXEL 
@@ -117,7 +117,7 @@ if_0_falsey:
     MOVREL R1, x
     PUSH64 R1
 
-    MOVREL R1, const_7
+    MOVREL R1, const_8
     PUSH64 R1
 
     ASMCALL U64ADD 
@@ -159,11 +159,12 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
-    const_4: dq 255
-    const_2: dq 72
+    const_5: dq 255
+    const_7: dq 55
+    const_3: dq 1000
+    const_6: dq 0
     const_0: dq 10
-    const_5: dq 0
-    const_7: dq 1
-    const_6: dq 55
-    const_3: dq 8
     const_1: dq 64
+    const_4: dq 8
+    const_8: dq 1
+    const_2: dq 10000000000
