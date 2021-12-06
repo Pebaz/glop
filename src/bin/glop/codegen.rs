@@ -168,6 +168,8 @@ fn generate_loop(
     *section += &format!("    JMP32 R0({})\n", loop_name);
 
     *section += &format!("{}_break: PASS\n\n", loop_name);
+
+    loop_stack.pop().unwrap();
 }
 
 fn generate_break(

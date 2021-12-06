@@ -202,7 +202,7 @@ U64ADD:
 U64GTE:
     ; POPn R2  ;; b
     ; POPn R1  ;; a
-    ; MOVREL R1, const_0
+    ; MOVREL R1, literal_1
     ; PUSH64 @R1
     ; JMP32 R6(0, +6)
 
@@ -215,7 +215,7 @@ U64GTE:
     JMP32cc R4
 
     U64GTE_truthy:
-        MOVREL R1, const_1
+        MOVRELq R1, literal_1
         PUSH64 @R1
         JMP32 R6(0, +6)
 
