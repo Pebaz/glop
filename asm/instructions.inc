@@ -185,3 +185,13 @@ EMITSTRING:
 
     POPn R6
     JMP32 R6
+
+;; Addds two numbers and pushes the result onto the stack.
+U64ADD:
+    POP64 R2  ;; Arg1
+    POP64 R1  ;; Arg0
+
+    ADD64 R1, R2
+    PUSH64 R1
+
+    JMP32 R6(0, +6)

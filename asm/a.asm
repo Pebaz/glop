@@ -58,6 +58,18 @@ efi_main:
 
 loop_0:
 
+    MOVREL R1, y
+    PUSH64 R1
+
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    ASMCALL U64ADD 
+
+    POP64 R2
+    MOVREL R1, y
+    MOVq @R1, @R2
+
     JMP32 R0(loop_0)
 loop_0_break: PASS
 
@@ -87,3 +99,4 @@ section 'DATA' data readable writeable
 
     ;; Constants
     const_0: dq 0
+    const_1: dq 1

@@ -30,5 +30,5 @@ loop
         ]
     ]
 
-    set y = @u64-end(y, 1),
+    set y = @u64-add(y, 1),
 ]

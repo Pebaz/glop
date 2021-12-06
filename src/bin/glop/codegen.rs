@@ -200,7 +200,15 @@ fn generate_loop(
     // Process each child statement
     for child in node.children(ast)
     {
-        generate_statement(section, variable_section, ast, child, variables, constants, loop_stack);
+        generate_statement(
+            section,
+            variable_section,
+            ast,
+            child,
+            variables,
+            constants,
+            loop_stack
+        );
     }
 
     *section += &format!("    JMP32 R0({})\n", loop_name);
@@ -213,6 +221,7 @@ fn generate_break(
     variable_section: &mut String,
     ast: &Arena<AstNode>,
     node: NodeId,
+    variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
 ) -> ()
@@ -270,25 +279,30 @@ fn generate_statement(
             *section += &format!("    MOVq @R1, @R2\n\n");
         }
 
-        // AstNode::Intrinsic(intrinsic_name) =>
-        // {
-        //     let intrinsic_name = intrinsic_name.to_uppercase().replace("-", "");
+        AstNode::Set(variable_name) =>
+        {
+            if !variables.contains(variable_name)
+            {
+                panic!("Undeclared variable {:?}.", variable_name);
+            }
 
-        //     println!("INTRINSIC: {}", intrinsic_name);
-        // }
+            let variable_name = variable_name.replace('-', "_");
 
-        // Block,
-        // IfElse,
-        // IfElseCondition,
-        // IfElseTruthyBlock,
-        // IfElseFalseyBlock,
-        // Loop,
-        // Break,
-        // Let(String),
-        // Set(String),
-        // Intrinsic(String),
-        // Lookup(String),
-        // U64(u64),
+            generate_push_argument(
+                section,
+                variable_section,
+                ast,
+                ast[node].first_child().unwrap(),
+                variables,
+                constants,
+                loop_stack
+            );
+
+            // The top of the stack now contains the value to assign
+            *section += &format!("    POP64 R2\n");
+            *section += &format!("    MOVREL R1, {}\n", variable_name);
+            *section += &format!("    MOVq @R1, @R2\n\n");
+        }
 
         AstNode::Intrinsic(_) =>
         {
@@ -306,6 +320,19 @@ fn generate_statement(
         AstNode::Loop =>
         {
             generate_loop(
+                section,
+                variable_section,
+                ast,
+                node,
+                variables,
+                constants,
+                loop_stack
+            );
+        }
+
+        AstNode::Break =>
+        {
+            generate_break(
                 section,
                 variable_section,
                 ast,
