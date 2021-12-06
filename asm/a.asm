@@ -70,6 +70,21 @@ efi_main:
     MOVREL R1, u
     MOVq @R1, @R2
 
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    MOVREL R1, const_3
+    PUSH64 R1
+
+    MOVREL R1, const_4
+    PUSH64 R1
+
+    ASMCALL CLEARSCREEN 
+
+    POP64 R2
+    MOVREL R1, baz
+    MOVq @R1, @R2
+
 
 
     ;; END OWN INSTRUCTIONS
@@ -95,7 +110,11 @@ section 'DATA' data readable writeable
     some_variable: rb 8
     something_else: rb 8
     u: rb 8
+    baz: rb 8
 
     ;; Constants
-    const_0: dq 0
+    const_4: dq 6
     const_1: dq 1
+    const_3: dq 5
+    const_2: dq 4
+    const_0: dq 0

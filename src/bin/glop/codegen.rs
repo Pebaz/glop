@@ -93,7 +93,6 @@ fn generate_push_argument(
     section: &mut String,
     ast: &Arena<AstNode>,
     node: NodeId,
-    variable_name: &String,
     constants: &mut HashMap<u64, String>
 ) -> ()
 {
@@ -120,6 +119,11 @@ fn generate_push_argument(
             *section += &format!("    PUSH64 R1\n\n");
         }
 
+        AstNode::Intrinsic(_) =>
+        {
+            generate_intrinsic(section, ast, node, constants);
+        }
+
         ast_node @ _ => panic!(
             "INTERNAL ERROR: Unexpected AstNode as argument: {:?}",
             ast_node
@@ -134,44 +138,22 @@ fn generate_intrinsic(
     section: &mut String,
     ast: &Arena<AstNode>,
     node: NodeId,
-    variable_name: &String,
     constants: &mut HashMap<u64, String>
 ) -> ()
 {
-    let mut stack = Vec::with_capacity(32);
-    stack.push(node);
-
-    while let Some(node) = stack.pop()
+    let function_name = match ast[node].get()
     {
-        match ast[node].get()
-        {
-            AstNode::U64(value) =>
-            {
-                if !constants.contains_key(value)
-                {
-                    constants.insert(*value, String::from(format!("const_{}", constants.len())));
-                }
+        AstNode::Intrinsic(symbol_name) => symbol_name.to_uppercase().replace('-', ""),
+        _ => panic!("Expected an intrinsic call, got {:?}", node),
+    };
 
-                let constant_name = constants.get(value).unwrap();
-
-                // PushU64
-                *section += &format!("    MOVREL R1, {}\n", constant_name);
-                *section += &format!("    PUSH64 R1\n\n");
-            }
-
-            AstNode::Lookup(symbol) =>
-            {
-                // Push Address (remember to lookup)
-                *section += &format!("    MOVREL R1, {}\n", symbol);
-                *section += &format!("    PUSH64 R1\n\n");
-            }
-
-            ast_node @ _ => panic!(
-                "INTERNAL ERROR: Unexpected AstNode in variable assignment: {:?}",
-                ast_node
-            ),
-        }
+    // Push each argument onto the stack
+    for child in node.children(ast)
+    {
+        generate_push_argument(section, ast, child, constants);
     }
+
+    *section += &format!("    ASMCALL {} \n\n", function_name);
 }
 
 pub fn generate_efi_bytecode_asm(
@@ -237,7 +219,6 @@ pub fn generate_efi_bytecode_asm(
                     &mut body_section,
                     ast,
                     ast[node].first_child().unwrap(),
-                    &variable_name,
                     &mut constants
                 );
 

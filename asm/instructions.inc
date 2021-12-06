@@ -1,3 +1,9 @@
+macro ASMCALL routine_name
+    STORESP R6, [IP]
+    JMP32 R0(routine_name)
+end macro
+
+
 struct EFI_GRAPHICS_OUTPUT_PROTOCOL
     QueryMode   VOID_PTR
     SetMode     VOID_PTR
