@@ -230,6 +230,106 @@ fn generate_break(
     *section += &format!("    JMP32 R0({}_break): PASS\n\n", loop_name);
 }
 
+/// Condition argument must push something to compare.
+fn generate_if_else(
+    section: &mut String,
+    variable_section: &mut String,
+    ast: &Arena<AstNode>,
+    node: NodeId,
+    variables: &mut HashSet<String>,
+    constants: &mut HashMap<u64, String>,
+    loop_stack: &mut Vec<(String, u16)>,
+) -> ()
+{
+    /*
+    POP64 R1
+    CMPI64eq R1, 0
+    MOVREL R1, if_1_falsey
+    JMP32cs R1
+    MOVREL R1, if_1_truthy
+    JMP32cc R1
+    if_1_truthy:
+        PUSHADDR string_if_1_truthy
+        ASMCALL EMITSTR
+        JMP32 R0(if_1_endif)
+    if_1_falsey:
+        PUSHADDR string_if_1_falsey
+        ASMCALL EMITSTR
+        JMP32 R0(if_1_endif)
+    if_1_endif: PASS
+    */
+
+    // IfElse,
+
+    // IfElseCondition,
+
+    // IfElseTruthyBlock,
+
+    // IfElseFalseyBlock,
+
+    // generate_if(
+    //     section,
+    //     variable_section,
+    //     ast,
+    //     node,
+    //     variables,
+    //     constants,
+    //     loop_stack
+    // );
+
+    let condition = ast[node].first_child().unwrap();
+    let truthy_block = ast[condition].next_sibling().unwrap();
+    let falsey_block = ast[truthy_block].next_sibling().unwrap();
+
+    generate_statement(
+        section,
+        variable_section,
+        ast,
+        ast[condition].first_child().unwrap(),
+        variables,
+        constants,
+        loop_stack
+    );
+
+    *section += &format!("    ;; POP OFF CONDITION RESULT HERE\n\n");
+    *section += &format!("    ;; POP OFF CONDITION RESULT HERE\n\n");
+    *section += &format!("    ;; POP OFF CONDITION RESULT HERE\n\n");
+
+    for child in truthy_block.children(ast)
+    {
+        generate_statement(
+            section,
+            variable_section,
+            ast,
+            child,
+            variables,
+            constants,
+            loop_stack
+        );
+    }
+
+    *section += &format!("    ;; GEN ELSE BLOCK LABELS HERE\n\n");
+    *section += &format!("    ;; GEN ELSE BLOCK LABELS HERE\n\n");
+    *section += &format!("    ;; GEN ELSE BLOCK LABELS HERE\n\n");
+
+    for child in falsey_block.children(ast)
+    {
+        generate_statement(
+            section,
+            variable_section,
+            ast,
+            child,
+            variables,
+            constants,
+            loop_stack
+        );
+    }
+
+    *section += &format!("    ;; FINISH UP IF STATEMENT HERE\n\n");
+    *section += &format!("    ;; FINISH UP IF STATEMENT HERE\n\n");
+    *section += &format!("    ;; FINISH UP IF STATEMENT HERE\n\n");
+}
+
 fn generate_statement(
     section: &mut String,
     variable_section: &mut String,
@@ -333,6 +433,19 @@ fn generate_statement(
         AstNode::Break =>
         {
             generate_break(
+                section,
+                variable_section,
+                ast,
+                node,
+                variables,
+                constants,
+                loop_stack
+            );
+        }
+
+        AstNode::IfElse =>
+        {
+            generate_if_else(
                 section,
                 variable_section,
                 ast,

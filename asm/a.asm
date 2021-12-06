@@ -64,6 +64,116 @@ loop_0:
     MOVREL R1, const_1
     PUSH64 R1
 
+    ASMCALL U64GTE 
+
+    ;; POP OFF CONDITION RESULT HERE
+
+    ;; POP OFF CONDITION RESULT HERE
+
+    ;; POP OFF CONDITION RESULT HERE
+
+    JMP32 R0(loop_0_break): PASS
+
+    ;; GEN ELSE BLOCK LABELS HERE
+
+    ;; GEN ELSE BLOCK LABELS HERE
+
+    ;; GEN ELSE BLOCK LABELS HERE
+
+loop_1:
+
+    MOVREL R1, x
+    PUSH64 R1
+
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    ASMCALL U64GTE 
+
+    ;; POP OFF CONDITION RESULT HERE
+
+    ;; POP OFF CONDITION RESULT HERE
+
+    ;; POP OFF CONDITION RESULT HERE
+
+    JMP32 R0(loop_1_break): PASS
+
+    ;; GEN ELSE BLOCK LABELS HERE
+
+    ;; GEN ELSE BLOCK LABELS HERE
+
+    ;; GEN ELSE BLOCK LABELS HERE
+
+    MOVREL R1, x
+    PUSH64 R1
+
+    MOVREL R1, y
+    PUSH64 R1
+
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    MOVREL R1, x
+    PUSH64 R1
+
+    ASMCALL U64ADD 
+
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    MOVREL R1, y
+    PUSH64 R1
+
+    ASMCALL U64ADD 
+
+    MOVREL R1, const_3
+    PUSH64 R1
+
+    MOVREL R1, x
+    PUSH64 R1
+
+    MOVREL R1, y
+    PUSH64 R1
+
+    ASMCALL U64ADD 
+
+    ASMCALL U64ADD 
+
+    ASMCALL DRAWPIXEL 
+
+    ;; FINISH UP IF STATEMENT HERE
+
+    ;; FINISH UP IF STATEMENT HERE
+
+    ;; FINISH UP IF STATEMENT HERE
+
+    MOVREL R1, x
+    PUSH64 R1
+
+    MOVREL R1, const_4
+    PUSH64 R1
+
+    ASMCALL U64ADD 
+
+    POP64 R2
+    MOVREL R1, x
+    MOVq @R1, @R2
+
+    JMP32 R0(loop_1)
+loop_1_break: PASS
+
+    ;; FINISH UP IF STATEMENT HERE
+
+    ;; FINISH UP IF STATEMENT HERE
+
+    ;; FINISH UP IF STATEMENT HERE
+
+    MOVREL R1, y
+    PUSH64 R1
+
+    MOVREL R1, const_4
+    PUSH64 R1
+
     ASMCALL U64ADD 
 
     POP64 R2
@@ -99,4 +209,7 @@ section 'DATA' data readable writeable
 
     ;; Constants
     const_0: dq 0
-    const_1: dq 1
+    const_3: dq 50
+    const_2: dq 150
+    const_4: dq 1
+    const_1: dq 64
