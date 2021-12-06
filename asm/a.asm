@@ -97,5 +97,5 @@ section 'DATA' data readable writeable
     u: rb 8
 
     ;; Constants
-    const_1: dq 1
     const_0: dq 0
+    const_1: dq 1

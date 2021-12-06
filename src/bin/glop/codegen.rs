@@ -97,6 +97,47 @@ fn generate_push_argument(
     constants: &mut HashMap<u64, String>
 ) -> ()
 {
+    match ast[node].get()
+    {
+        AstNode::U64(value) =>
+        {
+            if !constants.contains_key(value)
+            {
+                constants.insert(*value, String::from(format!("const_{}", constants.len())));
+            }
+
+            let constant_name = constants.get(value).unwrap();
+
+            // PushU64
+            *section += &format!("    MOVREL R1, {}\n", constant_name);
+            *section += &format!("    PUSH64 R1\n\n");
+        }
+
+        AstNode::Lookup(symbol) =>
+        {
+            // Push Address (remember to lookup)
+            *section += &format!("    MOVREL R1, {}\n", symbol);
+            *section += &format!("    PUSH64 R1\n\n");
+        }
+
+        ast_node @ _ => panic!(
+            "INTERNAL ERROR: Unexpected AstNode as argument: {:?}",
+            ast_node
+        ),
+    }
+}
+
+/// Push result of function onto stack. If the intrinsic doesn't push anything
+/// onto the stack, it shouldn't be used during an assignment or there will be
+/// stack consequences.
+fn generate_intrinsic(
+    section: &mut String,
+    ast: &Arena<AstNode>,
+    node: NodeId,
+    variable_name: &String,
+    constants: &mut HashMap<u64, String>
+) -> ()
+{
     let mut stack = Vec::with_capacity(32);
     stack.push(node);
 
@@ -132,8 +173,6 @@ fn generate_push_argument(
         }
     }
 }
-
-fn generate_constants() { }
 
 pub fn generate_efi_bytecode_asm(
     mut out_file: File,
