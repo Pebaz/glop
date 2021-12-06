@@ -3,6 +3,9 @@ macro ASMCALL routine_name
     JMP32 R0(routine_name)
 end macro
 
+macro PASS
+    OR64 R0, R0
+end macro
 
 struct EFI_GRAPHICS_OUTPUT_PROTOCOL
     QueryMode   VOID_PTR

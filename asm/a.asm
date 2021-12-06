@@ -46,44 +46,20 @@ efi_main:
     PUSH64 R1
 
     POP64 R2
-    MOVREL R1, pbz
+    MOVREL R1, x
     MOVq @R1, @R2
 
     MOVREL R1, const_0
     PUSH64 R1
 
     POP64 R2
-    MOVREL R1, some_variable
+    MOVREL R1, y
     MOVq @R1, @R2
 
-    MOVREL R1, const_0
-    PUSH64 R1
+loop_0:
 
-    POP64 R2
-    MOVREL R1, something_else
-    MOVq @R1, @R2
-
-    MOVREL R1, const_1
-    PUSH64 R1
-
-    POP64 R2
-    MOVREL R1, u
-    MOVq @R1, @R2
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, const_3
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    ASMCALL CLEARSCREEN 
-
-    POP64 R2
-    MOVREL R1, baz
-    MOVq @R1, @R2
+    JMP32 R0(loop_0)
+loop_0_break: PASS
 
 
 
@@ -106,15 +82,8 @@ section 'RESERVED' data readable writeable
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
     ;; Variables
-    pbz: rb 8
-    some_variable: rb 8
-    something_else: rb 8
-    u: rb 8
-    baz: rb 8
+    x: rb 8
+    y: rb 8
 
     ;; Constants
-    const_4: dq 6
-    const_1: dq 1
-    const_3: dq 5
-    const_2: dq 4
     const_0: dq 0

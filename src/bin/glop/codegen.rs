@@ -93,7 +93,8 @@ fn generate_push_argument(
     section: &mut String,
     ast: &Arena<AstNode>,
     node: NodeId,
-    constants: &mut HashMap<u64, String>
+    constants: &mut HashMap<u64, String>,
+    loop_stack: &mut Vec<(String, u16)>,
 ) -> ()
 {
     match ast[node].get()
@@ -121,7 +122,7 @@ fn generate_push_argument(
 
         AstNode::Intrinsic(_) =>
         {
-            generate_intrinsic(section, ast, node, constants);
+            generate_intrinsic(section, ast, node, constants, loop_stack);
         }
 
         ast_node @ _ => panic!(
@@ -138,7 +139,8 @@ fn generate_intrinsic(
     section: &mut String,
     ast: &Arena<AstNode>,
     node: NodeId,
-    constants: &mut HashMap<u64, String>
+    constants: &mut HashMap<u64, String>,
+    loop_stack: &mut Vec<(String, u16)>,
 ) -> ()
 {
     let function_name = match ast[node].get()
@@ -150,10 +152,95 @@ fn generate_intrinsic(
     // Push each argument onto the stack
     for child in node.children(ast)
     {
-        generate_push_argument(section, ast, child, constants);
+        generate_push_argument(section, ast, child, constants, loop_stack);
     }
 
     *section += &format!("    ASMCALL {} \n\n", function_name);
+}
+
+/*
+loop_1:  ;; Special blocks start with their name?
+    loop_2:  ;; Special blocks start with their name?
+        JMP32 R0(loop_2_break)  ;; Break the loop
+
+        JMP32 R0(loop_2)
+    loop_2_break: PASS
+
+    JMP32 R0(loop_1_break)  ;; Break the loop
+
+    JMP32 R0(loop_1)
+loop_1_break: PASS
+*/
+fn generate_loop(
+    section: &mut String,
+    ast: &Arena<AstNode>,
+    node: NodeId,
+    constants: &mut HashMap<u64, String>,
+    loop_stack: &mut Vec<(String, u16)>,
+) -> ()
+{
+    match ast[node].get()
+    {
+        AstNode::Loop => (),
+        _ => panic!("Expected loop, got {:?}", node),
+    }
+
+    let loop_counter = loop_stack[loop_stack.len() - 1].1;
+    let loop_name = format!("loop_{}", loop_counter);
+    loop_stack.push((loop_name.clone(), loop_counter + 1));
+
+    *section += &format!("{}:\n\n", loop_name);
+
+    // Process each child statement
+    for child in node.children(ast)
+    {
+        generate_statement(section, ast, child, constants, loop_stack);
+    }
+
+    *section += &format!("    JMP32 R0({})\n", loop_name);
+
+    *section += &format!("{}_break: PASS\n\n", loop_name);
+}
+
+fn generate_break(
+    section: &mut String,
+    ast: &Arena<AstNode>,
+    node: NodeId,
+    constants: &mut HashMap<u64, String>,
+    loop_stack: &mut Vec<(String, u16)>,
+) -> ()
+{
+    let loop_name = &loop_stack[loop_stack.len() - 1].0;
+    *section += &format!("    JMP32 R0({}_break): PASS\n\n", loop_name);
+}
+
+fn generate_statement(
+    section: &mut String,
+    ast: &Arena<AstNode>,
+    node: NodeId,
+    constants: &mut HashMap<u64, String>,
+    loop_stack: &mut Vec<(String, u16)>,
+) -> ()
+{
+    // match ast[node].get()
+    // {
+    //     AstNode::Loop => (),
+    //     _ => panic!("Expected loop, got {:?}", node),
+    // }
+
+    // let loop_counter = loop_stack[loop_stack.len() - 1].1;
+    // loop_stack.push((
+    //     format!("loop_{}", loop_counter),
+    //     loop_counter + 1
+    // ));
+
+    // // Process each child statement
+    // for child in node.children(ast)
+    // {
+    //     // generate_statement(section, ast, child, constants);
+    // }
+
+    // *section += &format!("    ASMCALL {} \n\n", function_name);
 }
 
 pub fn generate_efi_bytecode_asm(
@@ -174,6 +261,9 @@ pub fn generate_efi_bytecode_asm(
     // let mut variable_initializers = Vec::with_capacity(32);
     let mut stack = Vec::with_capacity(32);
     stack.push(root);
+
+    let mut loop_stack = Vec::with_capacity(8);
+    loop_stack.push((String::from("PLACEHOLDER"), 0));
 
     while let Some(node) = stack.pop()
     {
@@ -219,7 +309,8 @@ pub fn generate_efi_bytecode_asm(
                     &mut body_section,
                     ast,
                     ast[node].first_child().unwrap(),
-                    &mut constants
+                    &mut constants,
+                    &mut loop_stack
                 );
 
                 // The top of the stack now contains the value to assign
@@ -247,6 +338,28 @@ pub fn generate_efi_bytecode_asm(
             // Intrinsic(String),
             // Lookup(String),
             // U64(u64),
+
+            AstNode::Intrinsic(_) =>
+            {
+                generate_intrinsic(
+                    &mut body_section,
+                    ast,
+                    node,
+                    &mut constants,
+                    &mut loop_stack
+                );
+            }
+
+            AstNode::Loop =>
+            {
+                generate_loop(
+                    &mut body_section,
+                    ast,
+                    node,
+                    &mut constants,
+                    &mut loop_stack
+                );
+            }
 
             _ =>
             {
