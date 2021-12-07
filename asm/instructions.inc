@@ -187,7 +187,7 @@ EMITSTR:
     JMP32 R6
 
 
-;; Addds two numbers and pushes the result onto the stack.
+;; Adds two numbers and pushes the result onto the stack.
 U64ADD:
     POP64 R2  ;; Arg1
     POP64 R1  ;; Arg0

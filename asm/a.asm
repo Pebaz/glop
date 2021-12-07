@@ -256,13 +256,18 @@ if_1_falsey:
     MOVREL R1, y
     PUSH64 R1
 
-    MOVREL R1, const_4
+    MOVREL R1, const_8
     PUSH64 R1
 
-    MOVREL R1, const_4
+    MOVREL R1, x
     PUSH64 R1
 
-    MOVREL R1, const_4
+    ASMCALL U64ADD
+
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    MOVREL R1, const_0
     PUSH64 R1
 
     ASMCALL DRAWPIXEL
@@ -319,6 +324,7 @@ section 'RESERVED' data readable writeable
     efi_graphics_protocol_guid:
         EFI_GUID {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
     graphics_output_protocol: dq ?
+    fn_return_storage_u64: dq ?
     literal_0: dq 0  ;; I don't see any other way to make this work
     literal_1: dq 1  ;; I don't see any other way to make this work
     temporary_string_status: du "<HERE>", 0x0D, 0x0A, 0x00
@@ -330,11 +336,12 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
+    const_8: dq 150
     const_2: dq 1
-    const_1: dq 64
-    const_5: dq 128
-    const_6: dq 8
-    const_7: dq 10
-    const_3: dq 55
     const_4: dq 255
+    const_6: dq 8
     const_0: dq 0
+    const_5: dq 128
+    const_1: dq 64
+    const_3: dq 55
+    const_7: dq 10

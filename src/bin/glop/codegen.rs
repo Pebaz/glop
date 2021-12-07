@@ -69,6 +69,17 @@ fn generate_push_argument(
                 if_counter,
                 loop_counter,
             );
+
+            // TODO(pbz): DRAWPIXEL EXPECTS ADDRESSES ONLY. PUSH POINTER TO R0?
+            // PUSH64 R1
+            // R0(0, +8)
+
+            // Convert value to address
+            // *section += &format!("    ;; Convert value to address\n");
+            // *section += &format!("    POP64 R2\n");
+            // *section += &format!("    MOVREL R1, fn_return_storage_u64\n");
+            // *section += &format!("    MOVq @R1, R2\n");
+            // *section += &format!("    PUSH64 R1\n\n");
         }
 
         ast_node @ _ => panic!(

@@ -30,7 +30,13 @@ loop
             ]
             else
             [
-                @draw-pixel(x, y, 255, 255, 255),
+                @draw-pixel(
+                    x,
+                    y,
+                    @u64-add(150, x),
+                    0,
+                    0
+                ),
             ]
 
             set x = @u64-add(x, 1),
