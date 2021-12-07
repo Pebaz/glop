@@ -48,17 +48,15 @@ efi_main:
     PUSH64 R1
 
     POP64 R2
-    MOVq R2, @R2  ;; Assign variable to variable
     MOVREL R1, x
-    MOVq @R1, R2
+    MOVq @R1, @R2
 
     MOVREL R1, const_1
     PUSH64 R1
 
     POP64 R2
-    MOVq R2, @R2  ;; Assign variable to variable
     MOVREL R1, y
-    MOVq @R1, R2
+    MOVq @R1, @R2
 
     MOVREL R1, const_2
     PUSH64 R1
@@ -242,9 +240,8 @@ if_1_truthy:
     PUSH64 R1
 
     POP64 R2
-    MOVq R2, @R2  ;; Assign variable to variable
     MOVREL R1, x
-    MOVq @R1, R2
+    MOVq @R1, @R2
 
     JMP32 R0(loop_1_break)
 
@@ -264,11 +261,16 @@ if_1_falsey:
 
     ASMCALL U64ADD
 
-    MOVREL R1, const_0
+    MOVREL R1, y
     PUSH64 R1
 
-    MOVREL R1, const_0
+    MOVREL R1, x
     PUSH64 R1
+
+    MOVREL R1, y
+    PUSH64 R1
+
+    ASMCALL U64ADD
 
     ASMCALL DRAWPIXEL
 
@@ -285,7 +287,7 @@ if_1_end: PASS
 
     POP64 R2
     MOVREL R1, x
-    MOVq @R1, R2
+    MOVq @R1, @R2
 
     JMP32 R0(loop_1)
 loop_1_break: PASS
@@ -303,7 +305,7 @@ if_0_end: PASS
 
     POP64 R2
     MOVREL R1, y
-    MOVq @R1, R2
+    MOVq @R1, @R2
 
     JMP32 R0(loop_0)
 loop_0_break: PASS
@@ -336,12 +338,12 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
-    const_8: dq 150
+    const_8: dq 100
     const_2: dq 1
-    const_4: dq 255
-    const_6: dq 8
-    const_0: dq 0
-    const_5: dq 128
-    const_1: dq 64
     const_3: dq 55
+    const_1: dq 64
+    const_4: dq 255
+    const_5: dq 128
+    const_6: dq 8
     const_7: dq 10
+    const_0: dq 0

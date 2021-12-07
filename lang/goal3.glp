@@ -33,9 +33,9 @@ loop
                 @draw-pixel(
                     x,
                     y,
-                    @u64-add(150, x),
-                    0,
-                    0
+                    @u64-add(100, x),
+                    y,
+                    @u64-add(x, y),
                 ),
             ]
 

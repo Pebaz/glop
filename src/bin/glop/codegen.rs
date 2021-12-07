@@ -340,13 +340,13 @@ fn generate_statement(
                 &variable_name
             );
 
-            let value_node = ast[ast[node].first_child().unwrap()].get();
-            let value_is_address = match value_node
-            {
-                AstNode::Lookup(_) => true,
-                AstNode::U64(_) => true,
-                _ => false,
-            };
+            // let value_node = ast[ast[node].first_child().unwrap()].get();
+            // let value_is_address = match value_node
+            // {
+            //     AstNode::Lookup(_) => true,
+            //     AstNode::U64(_) => true,
+            //     _ => false,
+            // };
 
             generate_push_argument(
                 section,
@@ -363,15 +363,15 @@ fn generate_statement(
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
 
-            if value_is_address
-            {
-                *section += &format!(
-                    "    MOVq R2, @R2  ;; Assign variable to variable\n"
-                );
-            }
+            // if value_is_address
+            // {
+            //     *section += &format!(
+            //         "    MOVq R2, @R2  ;; Assign variable to variable\n"
+            //     );
+            // }
 
             *section += &format!("    MOVREL R1, {}\n", variable_name);
-            *section += &format!("    MOVq @R1, R2\n\n");
+            *section += &format!("    MOVq @R1, @R2\n\n");
         }
 
         AstNode::Set(variable_name) =>
@@ -383,13 +383,13 @@ fn generate_statement(
 
             let variable_name = variable_name.replace('-', "_");
 
-            let value_node = ast[ast[node].first_child().unwrap()].get();
-            let value_is_address = match value_node
-            {
-                AstNode::Lookup(_) => true,
-                AstNode::U64(_) => true,
-                _ => false,
-            };
+            // let value_node = ast[ast[node].first_child().unwrap()].get();
+            // let value_is_address = match value_node
+            // {
+            //     AstNode::Lookup(_) => true,
+            //     AstNode::U64(_) => true,
+            //     _ => false,
+            // };
 
             generate_push_argument(
                 section,
@@ -406,15 +406,15 @@ fn generate_statement(
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
 
-            if value_is_address
-            {
-                *section += &format!(
-                    "    MOVq R2, @R2  ;; Assign variable to variable\n"
-                );
-            }
+            // if value_is_address
+            // {
+            //     *section += &format!(
+            //         "    MOVq R2, @R2  ;; Assign variable to variable\n"
+            //     );
+            // }
 
             *section += &format!("    MOVREL R1, {}\n", variable_name);
-            *section += &format!("    MOVq @R1, R2\n\n");
+            *section += &format!("    MOVq @R1, @R2\n\n");
         }
 
         AstNode::Intrinsic(_) =>

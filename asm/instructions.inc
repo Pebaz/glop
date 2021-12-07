@@ -195,7 +195,12 @@ U64ADD:
     MOVq R1, @R1
     MOVq R2, @R2
 
-    ADD64 R1, R2
+    ADD64 R2, R1
+    ; PUSH64 R1
+
+    ; POP64 R2
+    MOVREL R1, fn_return_storage_u64
+    MOVq @R1, R2
     PUSH64 R1
 
     JMP32 R6(0, +6)
