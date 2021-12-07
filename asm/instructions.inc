@@ -206,9 +206,11 @@ U64GTE:
             ; PUSH64 @R1
             ; JMP32 R6(0, +6)
 
-    POPn R2  ;; b
-    POPn R1  ;; a
-    CMP64ugte @R1, @R2
+    POP64 R2  ;; b
+    POP64 R1  ;; a
+    MOVq R1, @R1
+    MOVq R2, @R2
+    CMP64ugte R1, R2
     MOVREL R3, U64GTE_truthy
     MOVREL R4, U64GTE_falsey
     JMP32cs R3
@@ -235,7 +237,9 @@ U64EQ:
 
     POP64 R2  ;; b
     POP64 R1  ;; a
-    CMP64eq @R1, @R2
+    MOVq R1, @R1
+    MOVq R2, @R2
+    CMP64eq R1, R2
 
     MOVREL R1, U64EQ_truthy
     JMP32cs R1

@@ -1,6 +1,6 @@
 @clear-screen(),
 
-let x = 64,
+let x = 0,
 let y = 10,
 
 @draw-pixel(1, 1, 55, 255, 0),
@@ -13,15 +13,14 @@ let y = 10,
 
 loop
 [
-    if @u64-eq(0, 0)
+    if @u64-gte(x, 64)
     [
         @draw-pixel(8, 8, 255, 0, 55),
         break,
     ]
     else
     [
-        @draw-pixel(64, 64, 255, 255, 255),
-        break,
+        @draw-pixel(x, 64, 255, 255, 255),
 
         set x = @u64-add(x, 1),
     ]

@@ -111,7 +111,7 @@ fn generate_intrinsic(
         );
     }
 
-    *section += &format!("    ASMCALL {} \n\n", function_name);
+    *section += &format!("    ASMCALL {}\n\n", function_name);
 }
 
 /*
@@ -331,6 +331,7 @@ fn generate_statement(
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
             *section += &format!("    MOVREL R1, {}\n", variable_name);
+            // TODO(pbz): Need to handle value vs address
             *section += &format!("    MOVq @R1, @R2\n\n");
         }
 
@@ -357,6 +358,7 @@ fn generate_statement(
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
             *section += &format!("    MOVREL R1, {}\n", variable_name);
+            // TODO(pbz): Need to handle value vs address
             *section += &format!("    MOVq @R1, @R2\n\n");
         }
 

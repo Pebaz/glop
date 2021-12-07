@@ -59,6 +59,9 @@ efi_main:
     ; MOVq R4, @R2
     CMP64ugte R3, @R2
 
+    ;; SOUNDNESS ERROR: THIS SHOULDN'T BE ABLE TO WORK IN FASMG-EBC.
+    ;; SECTION 22.8 (CMP) STATES THAT OP1 CAN ONLY BE DIRECT (NO @)
+    ;; USE `CMP64eq R1, @R2` instead
     CMP64eq @R1, @R2
 
     MOVREL R4, yes
