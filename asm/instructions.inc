@@ -167,7 +167,7 @@ DRAWPIXEL:
 
 
 ;; Pops pointer to string off the stack and prints the string it points to.
-EMITSTRING:
+EMITSTR:
     POP64 R2  ;; Arg0
     PUSHn R6(0, +6)
 

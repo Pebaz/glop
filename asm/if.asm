@@ -44,6 +44,42 @@ efi_main:
     ;; Initialize Variables
     ASMCALL CLEARSCREEN
 
+    MOVREL R1, const_4
+    PUSH64 R1
+    ; MOVq R1, @R1
+
+    MOVREL R2, literal_1
+    ; MOVq R2, @R2
+    PUSH64 R2
+
+    POP64 R2
+    POP64 R1
+
+    MOVq R3, @R1
+    ; MOVq R4, @R2
+    CMP64ugte R3, @R2
+
+    CMP64eq @R1, @R2
+
+    MOVREL R4, yes
+    JMP32cs R4
+    MOVREL R4, no
+    JMP32cc R4
+
+    yes:
+        MOVREL R1, string_yes
+        PUSHn R1
+        ASMCALL EMITSTR
+        JMP32 R0(end_if)
+
+    no:
+        MOVREL R1, string_no
+        PUSHn R1
+        ASMCALL EMITSTR
+        JMP32 R0(end_if)
+
+    end_if: PASS
+
 
     ;; END OWN INSTRUCTIONS
 
@@ -62,6 +98,8 @@ section 'RESERVED' data readable writeable
     literal_0: dq 0  ;; I don't see any other way to make this work
     literal_1: dq 1  ;; I don't see any other way to make this work
     temporary_string_status: du "<HERE>", 0x0D, 0x0A, 0x00
+    string_yes: du "<YES>", 0x0D, 0x0A, 0x00
+    string_no: du "<NO>", 0x0D, 0x0A, 0x00
 
 ;; This is for initialized global variables
 section 'DATA' data readable writeable
