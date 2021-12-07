@@ -1,7 +1,7 @@
 @clear-screen(),
 
 let x = 64,
-let y = 10,
+let y = 64,
 
 @draw-pixel(1, 1, 55, 255, 0),
 @draw-pixel(64, 1, 55, 255, 0),
@@ -13,19 +13,9 @@ let y = 10,
 
 loop
 [
-    @draw-pixel(x, 64, 0, 155, 255),
-    let adder1 = @u64-add(x, 10),
-    set x = adder1,
+    @draw-pixel(x, y, 0, 155, 255),
 
-    @draw-pixel(x, 64, 0, 155, 255),
-    let adder2 = @u64-add(x, 10),
-    set x = adder2,
+    set x = @u64-add(x, 10),
 
-    @draw-pixel(x, 64, 0, 155, 255),
-    let adder3 = @u64-add(x, 10),
-    set x = adder3,
-
-    @draw-pixel(x, 64, 0, 155, 255),
-    let adder4 = @u64-add(x, 10),
-    set x = adder4,
+    @draw-pixel(x, y, 0, 155, 255),
 ]

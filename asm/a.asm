@@ -48,17 +48,22 @@ efi_main:
     PUSH64 R1
 
     POP64 R2
+    MOVq R2, @R2  ;; Assign variable to variable
     MOVREL R1, x
-    MOVq @R1, @R2
+    MOVq @R1, R2
+
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    POP64 R2
+    MOVq R2, @R2  ;; Assign variable to variable
+    MOVREL R1, y
+    MOVq @R1, R2
 
     MOVREL R1, const_1
     PUSH64 R1
 
-    POP64 R2
-    MOVREL R1, y
-    MOVq @R1, @R2
-
-    MOVREL R1, const_2
+    MOVREL R1, const_1
     PUSH64 R1
 
     MOVREL R1, const_2
@@ -70,10 +75,61 @@ efi_main:
     MOVREL R1, const_4
     PUSH64 R1
 
-    MOVREL R1, const_5
+    ASMCALL DRAWPIXEL
+
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    MOVREL R1, const_3
+    PUSH64 R1
+
+    MOVREL R1, const_4
     PUSH64 R1
 
     ASMCALL DRAWPIXEL
+
+    MOVREL R1, const_5
+    PUSH64 R1
+
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    MOVREL R1, const_3
+    PUSH64 R1
+
+    MOVREL R1, const_4
+    PUSH64 R1
+
+    ASMCALL DRAWPIXEL
+
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    MOVREL R1, const_3
+    PUSH64 R1
+
+    MOVREL R1, const_4
+    PUSH64 R1
+
+    ASMCALL DRAWPIXEL
+
+    MOVREL R1, const_1
+    PUSH64 R1
 
     MOVREL R1, const_0
     PUSH64 R1
@@ -87,12 +143,12 @@ efi_main:
     MOVREL R1, const_4
     PUSH64 R1
 
-    MOVREL R1, const_5
-    PUSH64 R1
-
     ASMCALL DRAWPIXEL
 
-    MOVREL R1, const_6
+    MOVREL R1, const_1
+    PUSH64 R1
+
+    MOVREL R1, const_5
     PUSH64 R1
 
     MOVREL R1, const_2
@@ -102,60 +158,6 @@ efi_main:
     PUSH64 R1
 
     MOVREL R1, const_4
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    ASMCALL DRAWPIXEL
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, const_3
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    ASMCALL DRAWPIXEL
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, const_0
-    PUSH64 R1
-
-    MOVREL R1, const_3
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    ASMCALL DRAWPIXEL
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    MOVREL R1, const_6
-    PUSH64 R1
-
-    MOVREL R1, const_3
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    MOVREL R1, const_5
     PUSH64 R1
 
     ASMCALL DRAWPIXEL
@@ -165,16 +167,16 @@ loop_0:
     MOVREL R1, x
     PUSH64 R1
 
-    MOVREL R1, const_0
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    MOVREL R1, const_7
+    MOVREL R1, y
     PUSH64 R1
 
     MOVREL R1, const_4
+    PUSH64 R1
+
+    MOVREL R1, const_6
+    PUSH64 R1
+
+    MOVREL R1, const_3
     PUSH64 R1
 
     ASMCALL DRAWPIXEL
@@ -182,129 +184,31 @@ loop_0:
     MOVREL R1, x
     PUSH64 R1
 
-    MOVREL R1, const_1
+    MOVREL R1, const_7
     PUSH64 R1
 
     ASMCALL U64ADD
 
     POP64 R2
-    MOVREL R1, adder1
-    MOVq @R1, @R2
-
-    MOVREL R1, adder1
-    PUSH64 R1
-
-    POP64 R2
     MOVREL R1, x
-    MOVq @R1, @R2
+    MOVq @R1, R2
 
     MOVREL R1, x
     PUSH64 R1
 
-    MOVREL R1, const_0
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    MOVREL R1, const_7
+    MOVREL R1, y
     PUSH64 R1
 
     MOVREL R1, const_4
     PUSH64 R1
 
-    ASMCALL DRAWPIXEL
-
-    MOVREL R1, x
+    MOVREL R1, const_6
     PUSH64 R1
 
-    MOVREL R1, const_1
-    PUSH64 R1
-
-    ASMCALL U64ADD
-
-    POP64 R2
-    MOVREL R1, adder2
-    MOVq @R1, @R2
-
-    MOVREL R1, adder2
-    PUSH64 R1
-
-    POP64 R2
-    MOVREL R1, x
-    MOVq @R1, @R2
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, const_0
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    MOVREL R1, const_7
-    PUSH64 R1
-
-    MOVREL R1, const_4
+    MOVREL R1, const_3
     PUSH64 R1
 
     ASMCALL DRAWPIXEL
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, const_1
-    PUSH64 R1
-
-    ASMCALL U64ADD
-
-    POP64 R2
-    MOVREL R1, adder3
-    MOVq @R1, @R2
-
-    MOVREL R1, adder3
-    PUSH64 R1
-
-    POP64 R2
-    MOVREL R1, x
-    MOVq @R1, @R2
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, const_0
-    PUSH64 R1
-
-    MOVREL R1, const_5
-    PUSH64 R1
-
-    MOVREL R1, const_7
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    ASMCALL DRAWPIXEL
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, const_1
-    PUSH64 R1
-
-    ASMCALL U64ADD
-
-    POP64 R2
-    MOVREL R1, adder4
-    MOVq @R1, @R2
-
-    MOVREL R1, adder4
-    PUSH64 R1
-
-    POP64 R2
-    MOVREL R1, x
-    MOVq @R1, @R2
 
     JMP32 R0(loop_0)
 loop_0_break: PASS
@@ -334,17 +238,13 @@ section 'DATA' data readable writeable
     ;; Variables
     x: rb 8
     y: rb 8
-    adder1: rb 8
-    adder2: rb 8
-    adder3: rb 8
-    adder4: rb 8
 
     ;; Constants
-    const_3: dq 55
-    const_2: dq 1
-    const_1: dq 10
-    const_4: dq 255
-    const_5: dq 0
-    const_7: dq 155
     const_0: dq 64
-    const_6: dq 128
+    const_6: dq 155
+    const_2: dq 55
+    const_7: dq 10
+    const_1: dq 1
+    const_3: dq 255
+    const_5: dq 128
+    const_4: dq 0

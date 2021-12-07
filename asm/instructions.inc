@@ -192,6 +192,9 @@ U64ADD:
     POP64 R2  ;; Arg1
     POP64 R1  ;; Arg0
 
+    MOVq R1, @R1
+    MOVq R2, @R2
+
     ADD64 R1, R2
     PUSH64 R1
 
