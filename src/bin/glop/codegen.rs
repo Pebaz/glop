@@ -30,6 +30,7 @@ fn generate_push_argument(
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
     if_counter: &mut u16,
+    loop_counter: &mut u16,
 ) -> ()
 {
     match ast[node].get()
@@ -66,6 +67,7 @@ fn generate_push_argument(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
         }
 
@@ -88,6 +90,7 @@ fn generate_intrinsic(
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
     if_counter: &mut u16,
+    loop_counter: &mut u16,
 ) -> ()
 {
     let function_name = match ast[node].get()
@@ -108,6 +111,7 @@ fn generate_intrinsic(
             constants,
             loop_stack,
             if_counter,
+            loop_counter,
         );
     }
 
@@ -136,6 +140,7 @@ fn generate_loop(
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
     if_counter: &mut u16,
+    loop_counter: &mut u16,
 ) -> ()
 {
     match ast[node].get()
@@ -144,9 +149,9 @@ fn generate_loop(
         _ => panic!("Expected loop, got {:?}", node),
     }
 
-    let loop_counter = loop_stack[loop_stack.len() - 1].1;
     let loop_name = format!("loop_{}", loop_counter);
-    loop_stack.push((loop_name.clone(), loop_counter + 1));
+    loop_stack.push((loop_name.clone(), *loop_counter));
+    *loop_counter += 1;
 
     *section += &format!("{}:\n\n", loop_name);
 
@@ -162,6 +167,7 @@ fn generate_loop(
             constants,
             loop_stack,
             if_counter,
+            loop_counter,
         );
     }
 
@@ -181,6 +187,7 @@ fn generate_break(
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
     if_counter: &mut u16,
+    loop_counter: &mut u16,
 ) -> ()
 {
     let loop_name = &loop_stack[loop_stack.len() - 1].0;
@@ -198,6 +205,7 @@ fn generate_if_else(
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
     if_counter: &mut u16,
+    loop_counter: &mut u16,
 ) -> ()
 {
     /*
@@ -232,6 +240,7 @@ fn generate_if_else(
         constants,
         loop_stack,
         if_counter,
+        loop_counter,
     );
 
     *section += &format!("{}:  ;; UNUSED LABEL\n", if_name);
@@ -257,6 +266,7 @@ fn generate_if_else(
             constants,
             loop_stack,
             if_counter,
+            loop_counter,
         );
     }
 
@@ -275,6 +285,7 @@ fn generate_if_else(
             constants,
             loop_stack,
             if_counter,
+            loop_counter,
         );
     }
 
@@ -292,6 +303,7 @@ fn generate_statement(
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
     if_counter: &mut u16,
+    loop_counter: &mut u16,
 ) -> ()
 {
     match ast[node].get()
@@ -334,11 +346,11 @@ fn generate_statement(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
 
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
-            // TODO(pbz): Need to handle value vs address
 
             if value_is_address
             {
@@ -377,11 +389,11 @@ fn generate_statement(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
 
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
-            // TODO(pbz): Need to handle value vs address
 
             if value_is_address
             {
@@ -405,6 +417,7 @@ fn generate_statement(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
         }
 
@@ -419,6 +432,7 @@ fn generate_statement(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
         }
 
@@ -433,6 +447,7 @@ fn generate_statement(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
         }
 
@@ -447,6 +462,7 @@ fn generate_statement(
                 constants,
                 loop_stack,
                 if_counter,
+                loop_counter,
             );
         }
 
@@ -477,6 +493,7 @@ pub fn generate_efi_bytecode_asm(
 
     let ast = &mut ast;
     let mut variable_section = String::with_capacity(1024);
+    let mut loop_counter: &mut u16;
     let mut body_section = String::with_capacity(1024);
     let mut constants = HashMap::new();
     let mut variables = HashSet::new();
@@ -484,6 +501,8 @@ pub fn generate_efi_bytecode_asm(
 
     let mut loop_stack = Vec::with_capacity(8);
     loop_stack.push((String::from("PLACEHOLDER"), 0));
+
+    let mut loop_counter = 0u16;
 
     out_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 
@@ -498,6 +517,7 @@ pub fn generate_efi_bytecode_asm(
             &mut constants,
             &mut loop_stack,
             &mut if_counter,
+            &mut loop_counter,
         );
     }
 
