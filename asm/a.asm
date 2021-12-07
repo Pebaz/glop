@@ -338,12 +338,12 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
-    const_8: dq 100
-    const_2: dq 1
-    const_3: dq 55
-    const_1: dq 64
-    const_4: dq 255
-    const_5: dq 128
     const_6: dq 8
-    const_7: dq 10
     const_0: dq 0
+    const_2: dq 1
+    const_8: dq 100
+    const_4: dq 255
+    const_1: dq 64
+    const_3: dq 55
+    const_5: dq 128
+    const_7: dq 10

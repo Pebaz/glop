@@ -9,17 +9,6 @@ const POSTLUDE: &'static str = include_str!("../../../asm/postlude.inc");
 const CRATE_NAME: &'static str = env!("CARGO_PKG_NAME");
 const CRATE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-fn depth_first_search(ast: &Arena<AstNode>, node: NodeId, depth: usize)
-{
-    let tab = "    ".repeat(depth);
-    println!("{}{:?}", tab, ast[node].get());
-
-    for child in node.children(ast)
-    {
-        depth_first_search(ast, child, depth + 1);
-    }
-}
-
 /// Pushes a U64, Symbol Lookup, or Intrinsic Call to the stack.
 fn generate_push_argument(
     section: &mut String,
@@ -69,17 +58,6 @@ fn generate_push_argument(
                 if_counter,
                 loop_counter,
             );
-
-            // TODO(pbz): DRAWPIXEL EXPECTS ADDRESSES ONLY. PUSH POINTER TO R0?
-            // PUSH64 R1
-            // R0(0, +8)
-
-            // Convert value to address
-            // *section += &format!("    ;; Convert value to address\n");
-            // *section += &format!("    POP64 R2\n");
-            // *section += &format!("    MOVREL R1, fn_return_storage_u64\n");
-            // *section += &format!("    MOVq @R1, R2\n");
-            // *section += &format!("    PUSH64 R1\n\n");
         }
 
         ast_node @ _ => panic!(
@@ -129,19 +107,6 @@ fn generate_intrinsic(
     *section += &format!("    ASMCALL {}\n\n", function_name);
 }
 
-/*
-loop_1:  ;; Special blocks start with their name?
-    loop_2:  ;; Special blocks start with their name?
-        JMP32 R0(loop_2_break)  ;; Break the loop
-
-        JMP32 R0(loop_2)
-    loop_2_break: PASS
-
-    JMP32 R0(loop_1_break)  ;; Break the loop
-
-    JMP32 R0(loop_1)
-loop_1_break: PASS
-*/
 fn generate_loop(
     section: &mut String,
     variable_section: &mut String,
@@ -340,14 +305,6 @@ fn generate_statement(
                 &variable_name
             );
 
-            // let value_node = ast[ast[node].first_child().unwrap()].get();
-            // let value_is_address = match value_node
-            // {
-            //     AstNode::Lookup(_) => true,
-            //     AstNode::U64(_) => true,
-            //     _ => false,
-            // };
-
             generate_push_argument(
                 section,
                 variable_section,
@@ -362,14 +319,6 @@ fn generate_statement(
 
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
-
-            // if value_is_address
-            // {
-            //     *section += &format!(
-            //         "    MOVq R2, @R2  ;; Assign variable to variable\n"
-            //     );
-            // }
-
             *section += &format!("    MOVREL R1, {}\n", variable_name);
             *section += &format!("    MOVq @R1, @R2\n\n");
         }
@@ -383,14 +332,6 @@ fn generate_statement(
 
             let variable_name = variable_name.replace('-', "_");
 
-            // let value_node = ast[ast[node].first_child().unwrap()].get();
-            // let value_is_address = match value_node
-            // {
-            //     AstNode::Lookup(_) => true,
-            //     AstNode::U64(_) => true,
-            //     _ => false,
-            // };
-
             generate_push_argument(
                 section,
                 variable_section,
@@ -405,14 +346,6 @@ fn generate_statement(
 
             // The top of the stack now contains the value to assign
             *section += &format!("    POP64 R2\n");
-
-            // if value_is_address
-            // {
-            //     *section += &format!(
-            //         "    MOVq R2, @R2  ;; Assign variable to variable\n"
-            //     );
-            // }
-
             *section += &format!("    MOVREL R1, {}\n", variable_name);
             *section += &format!("    MOVq @R1, @R2\n\n");
         }
@@ -477,21 +410,7 @@ fn generate_statement(
             );
         }
 
-        _ =>
-        {
-            println!("\n-------------------\n");
-            println!("- CODE GENERATOR STATE -");
-
-            for variable in variables.iter()
-            {
-                println!("VARIABLE: {}", variable);
-            }
-
-            println!("\n-------------------\n");
-
-            // panic!("Unexpected AstNode: {:?}", ast[node].get());
-            return;
-        }
+        _ => unreachable!(),
     }
 }
 
@@ -546,14 +465,3 @@ pub fn generate_efi_bytecode_asm(
         ).unwrap();
     }
 }
-
-/*
-fn gen_if_statement(node: &AstNode)
-{
-    gen_argument(node.condition);
-
-    gen_block(node.truthy_block);
-
-    gen_block(node.falsey_block);
-}
-*/

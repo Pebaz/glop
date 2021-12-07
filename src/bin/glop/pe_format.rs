@@ -1,3 +1,4 @@
+// Unused as of now 12/7/21. Keeping around for later.
 // PE Spec: https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
 
 mod backend;

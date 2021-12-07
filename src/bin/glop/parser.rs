@@ -466,12 +466,6 @@ pub fn parse(tokens: Vec<Token>) -> (Arena<AstNode>, NodeId)
 fn emit_ast_node(ast: &Arena<AstNode>, node: NodeId, depth: usize)
 {
     let tab = "    ".repeat(depth);
-    // let parent = match ast[node].parent()
-    // {
-    //     Some(parent) => Some(ast[parent].get()),
-    //     None => None,
-    // };
-    // println!("{}{:?} -> {:?}", tab, ast[node].get(), parent);
     println!("{}{:?}", tab, ast[node].get());
 
     for child in node.children(ast)
