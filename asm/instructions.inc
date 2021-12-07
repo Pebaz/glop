@@ -124,8 +124,8 @@ DRAWPIXEL:
     MOVb @R5(EFI_GRAPHICS_OUTPUT_BLT_PIXEL.Red), @R1
 
     ;; Fetch memory pointed to by arg0 and arg1
-    POP64 R4
     POP64 R3
+    POP64 R4
 
     PUSHn R6(0, +6)
 
@@ -200,11 +200,11 @@ U64ADD:
 
 ;; u64-gte(a, b) -> return a >= b
 U64GTE:
-            POPn R2  ;; b
-            POPn R1  ;; a
-            MOVREL R1, literal_0
-            PUSH64 @R1
-            JMP32 R6(0, +6)
+            ; POPn R2  ;; b
+            ; POPn R1  ;; a
+            ; MOVREL R1, literal_0
+            ; PUSH64 @R1
+            ; JMP32 R6(0, +6)
 
     POPn R2  ;; b
     POPn R1  ;; a
@@ -222,4 +222,34 @@ U64GTE:
     U64GTE_falsey:
         XOR R1, R1
         PUSH64 R1
+        JMP32 R6(0, +6)
+
+
+;; u64-gte(a, b) -> return a >= b
+U64EQ:
+            ; POPn R2  ;; b
+            ; POPn R1  ;; a
+            ; MOVREL R1, literal_1
+            ; PUSH64 @R1
+            ; JMP32 R6(0, +6)
+
+    POP64 R2  ;; b
+    POP64 R1  ;; a
+    CMP64eq @R1, @R2
+
+    MOVREL R1, U64EQ_truthy
+    JMP32cs R1
+    MOVREL R1, U64EQ_falsey
+    JMP32cc R1
+
+    U64EQ_truthy:
+        MOVREL R1, literal_1
+        PUSH64 @R1
+        JMP32 R6(0, +6)
+
+    U64EQ_falsey:
+        ; XOR R1, R1
+        ; PUSH64 R1
+        MOVREL R1, literal_0
+        PUSH64 @R1
         JMP32 R6(0, +6)

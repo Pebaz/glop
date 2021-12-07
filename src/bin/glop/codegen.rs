@@ -236,10 +236,12 @@ fn generate_if_else(
 
     *section += &format!("{}:  ;; UNUSED LABEL\n", if_name);
     *section += &format!("    POP64 R1\n");
-    *section += &format!("    CMPI64eq R1, 0\n");
-    *section += &format!("    MOVREL R1, {}\n", false_name);
-    *section += &format!("    JMP32cs R1\n");
+    *section += &format!("    MOVREL R4, literal_1\n");
+    *section += &format!("    CMP64eq R1, @R4\n");
+    // *section += &format!("    CMPI64eq R1, 1\n");
     *section += &format!("    MOVREL R1, {}\n", true_name);
+    *section += &format!("    JMP32cs R1\n");
+    *section += &format!("    MOVREL R1, {}\n", false_name);
     *section += &format!("    JMP32cc R1\n");
 
     *section += &format!("{}:\n", true_name);
