@@ -164,10 +164,10 @@ efi_main:
 
 loop_0:
 
-    MOVREL R1, x
+    MOVREL R1, y
     PUSH64 R1
 
-    MOVREL R1, const_1
+    MOVREL R1, const_5
     PUSH64 R1
 
     ASMCALL U64GTE
@@ -202,61 +202,6 @@ if_0_truthy:
 
     JMP32 R0(if_0_end)
 if_0_falsey:
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, y
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    MOVREL R1, const_4
-    PUSH64 R1
-
-    ASMCALL DRAWPIXEL
-
-    MOVREL R1, x
-    PUSH64 R1
-
-    MOVREL R1, const_2
-    PUSH64 R1
-
-    ASMCALL U64ADD
-
-    POP64 R2
-    MOVREL R1, x
-    MOVq @R1, R2
-
-    JMP32 R0(if_0_end)
-if_0_end: PASS
-
-    JMP32 R0(loop_0)
-loop_0_break: PASS
-
-    MOVREL R1, const_0
-    PUSH64 R1
-
-    POP64 R2
-    MOVq R2, @R2  ;; Assign variable to variable
-    MOVREL R1, x
-    MOVq @R1, R2
-
-    MOVREL R1, y
-    PUSH64 R1
-
-    MOVREL R1, const_1
-    PUSH64 R1
-
-    ASMCALL U64ADD
-
-    POP64 R2
-    MOVREL R1, y
-    MOVq @R1, R2
-
 loop_1:
 
     MOVREL R1, x
@@ -276,10 +221,10 @@ if_1:  ;; UNUSED LABEL
     MOVREL R1, if_1_falsey
     JMP32cc R1
 if_1_truthy:
-    MOVREL R1, const_6
+    MOVREL R1, const_7
     PUSH64 R1
 
-    MOVREL R1, const_6
+    MOVREL R1, const_7
     PUSH64 R1
 
     MOVREL R1, const_4
@@ -292,6 +237,14 @@ if_1_truthy:
     PUSH64 R1
 
     ASMCALL DRAWPIXEL
+
+    MOVREL R1, const_0
+    PUSH64 R1
+
+    POP64 R2
+    MOVq R2, @R2  ;; Assign variable to variable
+    MOVREL R1, x
+    MOVq @R1, R2
 
     JMP32 R0(loop_1_break)
 
@@ -314,6 +267,9 @@ if_1_falsey:
 
     ASMCALL DRAWPIXEL
 
+    JMP32 R0(if_1_end)
+if_1_end: PASS
+
     MOVREL R1, x
     PUSH64 R1
 
@@ -326,11 +282,26 @@ if_1_falsey:
     MOVREL R1, x
     MOVq @R1, R2
 
-    JMP32 R0(if_1_end)
-if_1_end: PASS
-
     JMP32 R0(loop_1)
 loop_1_break: PASS
+
+    JMP32 R0(if_0_end)
+if_0_end: PASS
+
+    MOVREL R1, y
+    PUSH64 R1
+
+    MOVREL R1, const_2
+    PUSH64 R1
+
+    ASMCALL U64ADD
+
+    POP64 R2
+    MOVREL R1, y
+    MOVq @R1, R2
+
+    JMP32 R0(loop_0)
+loop_0_break: PASS
 
 
 
@@ -359,10 +330,11 @@ section 'DATA' data readable writeable
     y: rb 8
 
     ;; Constants
-    const_1: dq 64
-    const_4: dq 255
-    const_3: dq 55
-    const_6: dq 8
-    const_5: dq 128
-    const_0: dq 0
     const_2: dq 1
+    const_1: dq 64
+    const_5: dq 128
+    const_6: dq 8
+    const_7: dq 10
+    const_3: dq 55
+    const_4: dq 255
+    const_0: dq 0

@@ -1,9 +1,19 @@
+@clear-screen(),
+
 let x = 0,
-let y = 0,
+let y = 64,
+
+@draw-pixel(1, 1, 55, 255, 0),
+@draw-pixel(64, 1, 55, 255, 0),
+@draw-pixel(128, 1, 55, 255, 0),
+
+@draw-pixel(1, 1, 55, 255, 0),
+@draw-pixel(1, 64, 55, 255, 0),
+@draw-pixel(1, 128, 55, 255, 0),
 
 loop
 [
-    if @u64-gte(y, 64)
+    if @u64-gte(y, 128)
     [
         @draw-pixel(8, 8, 255, 0, 55),
         break,
@@ -14,18 +24,13 @@ loop
         [
             if @u64-gte(x, 64)
             [
+                @draw-pixel(10, 10, 255, 0, 55),
                 set x = 0,
                 break,
             ]
             else
             [
-                @draw-pixel(
-                    x,
-                    y,
-                    @u64-add(150, x),
-                    @u64-add(150, y),
-                    @u64-add(50, @u64-add(x, y)),
-                ),
+                @draw-pixel(x, y, 255, 255, 255),
             ]
 
             set x = @u64-add(x, 1),
