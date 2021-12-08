@@ -4,8 +4,8 @@ use std::fs::File;
 use indextree::{Arena, NodeId};
 use crate::parser::AstNode;
 
-const PRELUDE: &'static str = include_str!("../../../asm/prelude.inc");
-const POSTLUDE: &'static str = include_str!("../../../asm/postlude.inc");
+const PRELUDE: &'static str = include_str!("prelude.inc");
+const POSTLUDE: &'static str = include_str!("postlude.inc");
 const CRATE_NAME: &'static str = env!("CARGO_PKG_NAME");
 const CRATE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 

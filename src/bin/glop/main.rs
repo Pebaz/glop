@@ -1,8 +1,13 @@
+
+
+// TODO(pbz): Finalize the CLI
+
+
 mod lexer;
 mod parser;
 mod codegen;
 
-use std::io::Read;
+use std::io::{Read, Write};
 use logos::*;
 use fasmg_ebc_rs::assemble_ebc;
 use lexer::Token;
@@ -16,8 +21,16 @@ fn main()
     let mut source_code = String::with_capacity(2048);
     source_file.read_to_string(&mut source_code).unwrap();
 
-    let out_filename = std::env::args().skip(2).next().unwrap();
-    let mut output_file = std::fs::File::create(&out_filename).unwrap();
+    let temp_dir = std::path::Path::new(&std::env::temp_dir()).join(
+        std::env::var("CARGO_PKG_NAME").unwrap()
+    );
+    std::fs::create_dir_all(&temp_dir).unwrap();
+
+    let assembly_filename = temp_dir.join("a.asm");
+    let mut assembly_file = std::fs::File::create(&assembly_filename).unwrap();
+
+    let bin_filename = std::env::args().skip(2).next().unwrap();
+
     let mut lexer = Token::lexer(&source_code);
     let mut tokens = Vec::new();
 
@@ -36,7 +49,19 @@ fn main()
 
     let (ast, root) = parse(tokens);
 
-    generate_efi_bytecode_asm(output_file, ast, root);
+    {
+        generate_efi_bytecode_asm(assembly_file, ast, root);
+    }
 
-    assemble_ebc(&out_filename, "drive/EFI/BOOT/BOOTX64.efi");
+    // Make sure fasmg-ebc-rs can see the include file
+    {
+        let full_path = temp_dir.join("instructions.inc");
+        let mut file = std::fs::File::create(full_path).unwrap();
+        file.write_all(include_bytes!("instructions.inc")).unwrap();
+    }
+
+    assemble_ebc(
+        &assembly_filename.into_os_string().into_string().unwrap(),
+        &bin_filename
+    );
 }
