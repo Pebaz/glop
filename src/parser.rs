@@ -8,8 +8,6 @@ pub enum AstNode
 {
     Program,
 
-    Block,  // [Statements ...]
-
     IfElse,
 
     IfElseCondition,

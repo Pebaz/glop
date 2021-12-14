@@ -1,0 +1,26 @@
+Glop - Compiler targeting the Extensible Firmware Interface (EFI) Bytecode VM
+
+Usage:
+    $ glop <SOURCE_FILE.glp> <OUTPUT_FILE.efi>
+
+    [OPTIONS] <FILENAME>
+
+EXAMPLES:
+    $ glop hello-world.glp out.efi
+
+LANGUAGE TUTORIAL:
+
+(inside hello-world.glp)
+    let x-coordinate = 128,
+    let y-coordinate = 64,
+    let color-r = 255,
+    let color-g = 200,
+    let color-b = 0,
+
+    @draw-pixel(x-coordinate, y-coordinate, color-r, color-g, color-b),
+
+(compile with)
+    $ glop hello-world.glp drive/EFI/BOOT/BOOTX64.efi
+
+(run with)
+    $ qemu-system-x86_64 -bios misc/OVMF.fd -net none -drive format=raw,file=fat:rw:drive/

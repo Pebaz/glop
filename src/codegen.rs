@@ -156,14 +156,14 @@ fn generate_loop(
 
 fn generate_break(
     section: &mut String,
-    variable_section: &mut String,
-    ast: &Arena<AstNode>,
-    node: NodeId,
+    _variable_section: &mut String,
+    _ast: &Arena<AstNode>,
+    _node: NodeId,
     variables: &mut HashSet<String>,
     constants: &mut HashMap<u64, String>,
     loop_stack: &mut Vec<(String, u16)>,
-    if_counter: &mut u16,
-    loop_counter: &mut u16,
+    _if_counter: &mut u16,
+    _loop_counter: &mut u16,
 ) -> ()
 {
     let loop_name = &loop_stack[loop_stack.len() - 1].0;
@@ -423,16 +423,14 @@ pub fn generate_efi_bytecode_asm(
 
     let ast = &mut ast;
     let mut variable_section = String::with_capacity(1024);
-    let mut loop_counter: &mut u16;
     let mut body_section = String::with_capacity(1024);
     let mut constants = HashMap::new();
     let mut variables = HashSet::new();
     let mut if_counter = 0u16;
+    let mut loop_counter = 0u16;
 
     let mut loop_stack = Vec::with_capacity(8);
     loop_stack.push((String::from("PLACEHOLDER"), 0));
-
-    let mut loop_counter = 0u16;
 
     out_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 

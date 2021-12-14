@@ -1,8 +1,3 @@
-
-
-// TODO(pbz): Finalize the CLI
-
-
 mod lexer;
 mod parser;
 mod codegen;
@@ -16,7 +11,15 @@ use codegen::generate_efi_bytecode_asm;
 
 fn main()
 {
-    let filename = std::env::args().skip(1).next().unwrap();
+    let mut args = std::env::args().skip(1);
+
+    if args.len() != 2
+    {
+        return println!(include_str!("CLI.txt"));
+    }
+
+    let filename = args.next().unwrap();
+    let bin_filename = args.next().unwrap();
     let mut source_file = std::fs::File::open(filename).unwrap();
     let mut source_code = String::with_capacity(2048);
     source_file.read_to_string(&mut source_code).unwrap();
@@ -28,9 +31,6 @@ fn main()
 
     let assembly_filename = temp_dir.join("a.asm");
     let mut assembly_file = std::fs::File::create(&assembly_filename).unwrap();
-
-    let bin_filename = std::env::args().skip(2).next().unwrap();
-
     let mut lexer = Token::lexer(&source_code);
     let mut tokens = Vec::new();
 
