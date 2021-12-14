@@ -4,7 +4,7 @@
 
 # Glop
 
-Programming language that compiles to UEFI Bytecode.
+> Programming language that compiles to UEFI Bytecode.
 
 ### Drawing A Gradient Square
 
