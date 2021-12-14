@@ -122,22 +122,8 @@ fn generate_break(context: &mut CompilerContext, node: NodeId) -> ()
 }
 
 /// Condition argument must push something to compare.
-// TODO(pbz): How to tell if it's a variable or not?
 fn generate_if_else(context: &mut CompilerContext, node: NodeId) -> ()
 {
-    /*
-
-    if_1_truthy:
-        PUSHADDR string_if_1_truthy
-        ASMCALL EMITSTR
-        JMP32 R0(if_1_endif)
-    if_1_falsey:
-        PUSHADDR string_if_1_falsey
-        ASMCALL EMITSTR
-        JMP32 R0(if_1_endif)
-    if_1_endif: PASS
-    */
-
     let if_name = format!("if_{}", context.if_counter);
     let true_name = format!("{}_truthy", if_name);
     let false_name = format!("{}_falsey", if_name);
@@ -154,7 +140,6 @@ fn generate_if_else(context: &mut CompilerContext, node: NodeId) -> ()
     context.section += &format!("    POP64 R1\n");
     context.section += &format!("    MOVREL R4, literal_1\n");
     context.section += &format!("    CMP64eq R1, @R4\n");
-    // context.section += &format!("    CMPI64eq R1, 1\n");
     context.section += &format!("    MOVREL R1, {}\n", true_name);
     context.section += &format!("    JMP32cs R1\n");
     context.section += &format!("    MOVREL R1, {}\n", false_name);

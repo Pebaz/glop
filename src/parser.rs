@@ -3,6 +3,8 @@ use std::slice::Iter;
 use indextree::{Arena, NodeId};
 use crate::lexer::Token;
 
+const TRACE_EXECUTION_ENABLED: bool = false;
+
 #[derive(Debug)]
 pub enum AstNode
 {
@@ -221,7 +223,10 @@ pub fn parse_intrinsic_call(
 
         expect_call_close(tokens, ast, intrinsic_call);
 
-        println!("      INTRINSIC CALL: {:?}", symbol);
+        if TRACE_EXECUTION_ENABLED
+        {
+            println!("      INTRINSIC CALL: {:?}", symbol);
+        }
     }
     else
     {
@@ -235,7 +240,10 @@ pub fn parse_if(
     parent: NodeId
 ) -> ()
 {
-    println!("PARSE IF");
+    if TRACE_EXECUTION_ENABLED
+    {
+        println!("PARSE IF");
+    }
 
     let if_statement = ast.new_node(AstNode::IfElse);
     parent.append(if_statement, ast);
@@ -255,17 +263,28 @@ pub fn parse_if(
 
     while let Some(token) = tokens.peek()
     {
-        println!("    IF BLOCK PARSER STATE: {:?}", token);
+        if TRACE_EXECUTION_ENABLED
+        {
+            println!("    IF BLOCK PARSER STATE: {:?}", token);
+        }
 
         if let Token::BlockClose = token
         {
-            println!("HERE. Breaking out of if block");
+            if TRACE_EXECUTION_ENABLED
+            {
+                println!("HERE. Breaking out of if block");
+            }
+
             tokens.next();
             break;
         }
         else
         {
-            println!("    IF BLOCK STATEMENT: {:?}", token);
+            if TRACE_EXECUTION_ENABLED
+            {
+                println!("    IF BLOCK STATEMENT: {:?}", token);
+            }
+
             parse_statement(tokens, ast, truthy_block);
         }
     }
@@ -276,17 +295,28 @@ pub fn parse_if(
 
     while let Some(token) = tokens.peek()
     {
-        println!("    ELSE BLOCK PARSER STATE: {:?}", token);
+        if TRACE_EXECUTION_ENABLED
+        {
+            println!("    ELSE BLOCK PARSER STATE: {:?}", token);
+        }
 
         if let Token::BlockClose = token
         {
-            println!("HERE. Breaking out of else block");
+            if TRACE_EXECUTION_ENABLED
+            {
+                println!("HERE. Breaking out of else block");
+            }
+
             tokens.next();
             break;
         }
         else
         {
-            println!("    ELSE BLOCK STATEMENT: {:?}", token);
+            if TRACE_EXECUTION_ENABLED
+            {
+                println!("    ELSE BLOCK STATEMENT: {:?}", token);
+            }
+
             parse_statement(tokens, ast, falsey_block);
         }
     }
@@ -303,7 +333,10 @@ pub fn parse_block(
 
     while let Some(token) = tokens.peek()
     {
-        println!("  BLOCK PARSER STATE: {:?}", token);
+        if TRACE_EXECUTION_ENABLED
+        {
+            println!("  BLOCK PARSER STATE: {:?}", token);
+        }
 
         if let Token::BlockClose = token
         {
@@ -408,7 +441,8 @@ pub fn parse_statement(
 {
     if let Some(token) = tokens.next()
     {
-        println!("  STATEMENT: {:?}", token);
+        if TRACE_EXECUTION_ENABLED { println!("  STATEMENT: {:?}", token); }
+
         match token
         {
             Token::Intrinsic =>
@@ -439,8 +473,6 @@ pub fn parse_statement(
 
 pub fn parse(tokens: Vec<Token>) -> (Arena<AstNode>, NodeId)
 {
-    // println!("TOKENS: {:?}", tokens);
-
     let mut it = tokens.iter().peekable();
     it.peek();
 
@@ -449,14 +481,12 @@ pub fn parse(tokens: Vec<Token>) -> (Arena<AstNode>, NodeId)
 
     while let Some(token) = it.peek()
     {
-        println!("PARSER STATE: {:?}", token);
+        if TRACE_EXECUTION_ENABLED { println!("PARSER STATE: {:?}", token); }
 
         parse_statement(&mut it, &mut ast, *root);
     }
 
-    println!("\n---------------\n");
-
-    emit_ast_node(&ast, *root, 0);
+    if TRACE_EXECUTION_ENABLED { emit_ast_node(&ast, *root, 0); }
 
     (ast, *root)
 }
