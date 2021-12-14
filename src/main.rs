@@ -30,7 +30,7 @@ fn main()
     std::fs::create_dir_all(&temp_dir).unwrap();
 
     let assembly_filename = temp_dir.join("a.asm");
-    let mut assembly_file = std::fs::File::create(&assembly_filename).unwrap();
+    let assembly_file = std::fs::File::create(&assembly_filename).unwrap();
     let mut lexer = Token::lexer(&source_code);
     let mut tokens = Vec::new();
 

@@ -115,7 +115,7 @@ fn generate_loop(context: &mut CompilerContext, node: NodeId) -> ()
     context.loop_stack.pop().unwrap();
 }
 
-fn generate_break(context: &mut CompilerContext, node: NodeId) -> ()
+fn generate_break(context: &mut CompilerContext, _node: NodeId) -> ()
 {
     let loop_name = &context.loop_stack[context.loop_stack.len() - 1].0;
     context.section += &format!("    JMP32 R0({}_break)\n\n", loop_name);

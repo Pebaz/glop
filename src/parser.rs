@@ -42,7 +42,7 @@ pub struct ParserContext<'a>
     pub ast: &'a mut Arena<AstNode>
 }
 
-pub fn expect_call_open(context: &mut ParserContext, parent: NodeId) -> ()
+pub fn expect_call_open(context: &mut ParserContext, _parent: NodeId) -> ()
 {
     if let Some(token) = context.tokens.next()
     {
@@ -54,7 +54,7 @@ pub fn expect_call_open(context: &mut ParserContext, parent: NodeId) -> ()
     }
 }
 
-pub fn expect_call_close(context: &mut ParserContext, parent: NodeId) -> ()
+pub fn expect_call_close(context: &mut ParserContext, _parent: NodeId) -> ()
 {
     if let Some(token) = context.tokens.next()
     {
@@ -69,7 +69,7 @@ pub fn expect_call_close(context: &mut ParserContext, parent: NodeId) -> ()
     }
 }
 
-pub fn expect_comma(context: &mut ParserContext, parent: NodeId) -> ()
+pub fn expect_comma(context: &mut ParserContext, _parent: NodeId) -> ()
 {
     if let Some(token) = context.tokens.next()
     {
@@ -81,7 +81,7 @@ pub fn expect_comma(context: &mut ParserContext, parent: NodeId) -> ()
     }
 }
 
-pub fn expect_equal(context: &mut ParserContext, parent: NodeId) -> ()
+pub fn expect_equal(context: &mut ParserContext, _parent: NodeId) -> ()
 {
     if let Some(token) = context.tokens.next()
     {
@@ -93,7 +93,7 @@ pub fn expect_equal(context: &mut ParserContext, parent: NodeId) -> ()
     }
 }
 
-pub fn expect_block_open(context: &mut ParserContext, parent: NodeId) -> ()
+pub fn expect_block_open(context: &mut ParserContext, _parent: NodeId) -> ()
 {
     if let Some(token) = context.tokens.next()
     {
@@ -105,22 +105,7 @@ pub fn expect_block_open(context: &mut ParserContext, parent: NodeId) -> ()
     }
 }
 
-pub fn expect_block_close(context: &mut ParserContext, parent: NodeId) -> ()
-{
-    if let Some(token) = context.tokens.next()
-    {
-        match token
-        {
-            Token::BlockClose => return,
-            _ => panic!(
-                "PARSE ERROR: Expected closing block, found {:?}",
-                token
-            ),
-        }
-    }
-}
-
-pub fn expect_else(context: &mut ParserContext, parent: NodeId) -> ()
+pub fn expect_else(context: &mut ParserContext, _parent: NodeId) -> ()
 {
     if let Some(token) = context.tokens.next()
     {
@@ -178,7 +163,7 @@ pub fn parse_intrinsic_call(context: &mut ParserContext, parent: NodeId) -> ()
 
         while let Some(token) = context.tokens.peek()
         {
-            let ast_node = match token
+            let _ast_node = match token
             {
                 Token::Comma =>
                 {
