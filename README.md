@@ -178,7 +178,6 @@ could be added that would allow pretty cool new features.
     <img
         src="misc/screenshots/10-03-21-01 JUMPING TO HELLO WORLD INDEFINITELY.PNG"
         alt="Hello World screenshot"
-        width=75%
     >
 </p>
 
@@ -188,7 +187,6 @@ could be added that would allow pretty cool new features.
     <img
         src="misc/screenshots/11-04-2021-02 GREEN PIXEL.png"
         alt="First green pixel on screen"
-        width=75%
     >
 </p>
 
@@ -198,7 +196,6 @@ could be added that would allow pretty cool new features.
     <img
         src="misc/Natural Indexing.png"
         alt="Natural indexing tool output"
-        width=75%
     >
 </p>
 
