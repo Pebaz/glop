@@ -36,13 +36,15 @@ pub enum AstNode
     U64(u64),
 }
 
-pub fn expect_call_open(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub struct ParserContext<'a>
 {
-    if let Some(token) = tokens.next()
+    pub tokens: &'a mut Peekable<Iter<'a, Token<'a>>>,
+    pub ast: &'a mut Arena<AstNode>
+}
+
+pub fn expect_call_open(context: &mut ParserContext, parent: NodeId) -> ()
+{
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -52,13 +54,9 @@ pub fn expect_call_open(
     }
 }
 
-pub fn expect_call_close(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn expect_call_close(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -71,13 +69,9 @@ pub fn expect_call_close(
     }
 }
 
-pub fn expect_comma(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn expect_comma(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -87,13 +81,9 @@ pub fn expect_comma(
     }
 }
 
-pub fn expect_equal(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn expect_equal(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -103,13 +93,9 @@ pub fn expect_equal(
     }
 }
 
-pub fn expect_block_open(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn expect_block_open(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -119,13 +105,9 @@ pub fn expect_block_open(
     }
 }
 
-pub fn expect_block_close(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn expect_block_close(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -138,13 +120,9 @@ pub fn expect_block_close(
     }
 }
 
-pub fn expect_else(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn expect_else(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
@@ -158,28 +136,24 @@ pub fn expect_else(
 }
 
 /// U64, Intrinsic, Symbol
-fn parse_argument(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+fn parse_argument(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
             Token::U64(value) =>
             {
-                parent.append(ast.new_node(AstNode::U64(*value)), ast);
+                parent.append(context.ast.new_node(AstNode::U64(*value)), context.ast);
             }
 
-            Token::Intrinsic => parse_intrinsic_call(tokens, ast, parent),
+            Token::Intrinsic => parse_intrinsic_call(context, parent),
 
             Token::Symbol(symbol) =>
             {
                 parent.append(
-                    ast.new_node(AstNode::Lookup(symbol.to_string())),
-                    ast
+                    context.ast.new_node(AstNode::Lookup(symbol.to_string())),
+                    context.ast
                 );
             }
 
@@ -191,37 +165,33 @@ fn parse_argument(
     }
 }
 
-pub fn parse_intrinsic_call(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_intrinsic_call(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(Token::Symbol(symbol)) = tokens.next()
+    if let Some(Token::Symbol(symbol)) = context.tokens.next()
     {
-        let intrinsic_call = ast.new_node(
+        let intrinsic_call = context.ast.new_node(
             AstNode::Intrinsic(symbol.to_string())
         );
-        parent.append(intrinsic_call, ast);
+        parent.append(intrinsic_call, context.ast);
 
-        expect_call_open(tokens, ast, intrinsic_call);
+        expect_call_open(context, intrinsic_call);
 
-        while let Some(token) = tokens.peek()
+        while let Some(token) = context.tokens.peek()
         {
             let ast_node = match token
             {
                 Token::Comma =>
                 {
-                    tokens.next();
+                    context.tokens.next();
                 }
 
                 Token::CallClose => break,
 
-                _ => parse_argument(tokens, ast, intrinsic_call),
+                _ => parse_argument(context, intrinsic_call),
             };
         }
 
-        expect_call_close(tokens, ast, intrinsic_call);
+        expect_call_close(context, intrinsic_call);
 
         if TRACE_EXECUTION_ENABLED
         {
@@ -234,34 +204,30 @@ pub fn parse_intrinsic_call(
     }
 }
 
-pub fn parse_if(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_if(context: &mut ParserContext, parent: NodeId) -> ()
 {
     if TRACE_EXECUTION_ENABLED
     {
         println!("PARSE IF");
     }
 
-    let if_statement = ast.new_node(AstNode::IfElse);
-    parent.append(if_statement, ast);
+    let if_statement = context.ast.new_node(AstNode::IfElse);
+    parent.append(if_statement, context.ast);
 
-    let condition = ast.new_node(AstNode::IfElseCondition);
-    if_statement.append(condition, ast);
+    let condition = context.ast.new_node(AstNode::IfElseCondition);
+    if_statement.append(condition, context.ast);
 
-    let truthy_block = ast.new_node(AstNode::IfElseTruthyBlock);
-    if_statement.append(truthy_block, ast);
+    let truthy_block = context.ast.new_node(AstNode::IfElseTruthyBlock);
+    if_statement.append(truthy_block, context.ast);
 
-    let falsey_block = ast.new_node(AstNode::IfElseFalseyBlock);
-    if_statement.append(falsey_block, ast);
+    let falsey_block = context.ast.new_node(AstNode::IfElseFalseyBlock);
+    if_statement.append(falsey_block, context.ast);
 
-    parse_argument(tokens, ast, condition);
+    parse_argument(context, condition);
 
-    expect_block_open(tokens, ast, if_statement);
+    expect_block_open(context, if_statement);
 
-    while let Some(token) = tokens.peek()
+    while let Some(token) = context.tokens.peek()
     {
         if TRACE_EXECUTION_ENABLED
         {
@@ -275,7 +241,7 @@ pub fn parse_if(
                 println!("HERE. Breaking out of if block");
             }
 
-            tokens.next();
+            context.tokens.next();
             break;
         }
         else
@@ -285,15 +251,15 @@ pub fn parse_if(
                 println!("    IF BLOCK STATEMENT: {:?}", token);
             }
 
-            parse_statement(tokens, ast, truthy_block);
+            parse_statement(context, truthy_block);
         }
     }
 
-    expect_else(tokens, ast, if_statement);
+    expect_else(context, if_statement);
 
-    expect_block_open(tokens, ast, if_statement);
+    expect_block_open(context, if_statement);
 
-    while let Some(token) = tokens.peek()
+    while let Some(token) = context.tokens.peek()
     {
         if TRACE_EXECUTION_ENABLED
         {
@@ -307,7 +273,7 @@ pub fn parse_if(
                 println!("HERE. Breaking out of else block");
             }
 
-            tokens.next();
+            context.tokens.next();
             break;
         }
         else
@@ -317,21 +283,17 @@ pub fn parse_if(
                 println!("    ELSE BLOCK STATEMENT: {:?}", token);
             }
 
-            parse_statement(tokens, ast, falsey_block);
+            parse_statement(context, falsey_block);
         }
     }
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
-pub fn parse_block(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_block(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    expect_block_open(tokens, ast, parent);
+    expect_block_open(context, parent);
 
-    while let Some(token) = tokens.peek()
+    while let Some(token) = context.tokens.peek()
     {
         if TRACE_EXECUTION_ENABLED
         {
@@ -340,106 +302,86 @@ pub fn parse_block(
 
         if let Token::BlockClose = token
         {
-            tokens.next();
+            context.tokens.next();
             break;
         }
         else
         {
-            parse_statement(tokens, ast, parent);
+            parse_statement(context, parent);
         }
     }
 }
 
-pub fn parse_loop(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_loop(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    let loop_statement = ast.new_node(AstNode::Loop);
-    parent.append(loop_statement, ast);
+    let loop_statement = context.ast.new_node(AstNode::Loop);
+    parent.append(loop_statement, context.ast);
 
-    parse_block(tokens, ast, loop_statement);
+    parse_block(context, loop_statement);
 }
 
-pub fn parse_break(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_break(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    let break_statement = ast.new_node(AstNode::Break);
-    parent.append(break_statement, ast);
+    let break_statement = context.ast.new_node(AstNode::Break);
+    parent.append(break_statement, context.ast);
 
-    expect_comma(tokens, ast, break_statement);
+    expect_comma(context, break_statement);
 }
 
-pub fn parse_let(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_let(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
             Token::Symbol(symbol) =>
             {
-                let let_statement = ast.new_node(
+                let let_statement = context.ast.new_node(
                     AstNode::Let(symbol.to_string())
                 );
-                parent.append(let_statement, ast);
+                parent.append(let_statement, context.ast);
 
-                expect_equal(tokens, ast, let_statement);
+                expect_equal(context, let_statement);
 
-                parse_argument(tokens, ast, let_statement);
+                parse_argument(context, let_statement);
             }
 
             _ => panic!("Expected Symbol. Found: {:?}", token),
         }
     }
 
-    expect_comma(tokens, ast, parent);
+    expect_comma(context, parent);
 }
 
-pub fn parse_set(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_set(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         match token
         {
             Token::Symbol(symbol) =>
             {
-                let set_statement = ast.new_node(
+                let set_statement = context.ast.new_node(
                     AstNode::Set(symbol.to_string())
                 );
-                parent.append(set_statement, ast);
+                parent.append(set_statement, context.ast);
 
-                expect_equal(tokens, ast, set_statement);
+                expect_equal(context, set_statement);
 
-                parse_argument(tokens, ast, set_statement);
+                parse_argument(context, set_statement);
             }
 
             _ => panic!("Expected Symbol. Found: {:?}", token),
         }
     }
 
-    expect_comma(tokens, ast, parent);
+    expect_comma(context, parent);
 }
 
 /// Intrinsic, If+Else, Loop, Break, Let, Set
-pub fn parse_statement(
-    tokens: &mut Peekable<Iter<Token>>,
-    ast: &mut Arena<AstNode>,
-    parent: NodeId
-) -> ()
+pub fn parse_statement(context: &mut ParserContext, parent: NodeId) -> ()
 {
-    if let Some(token) = tokens.next()
+    if let Some(token) = context.tokens.next()
     {
         if TRACE_EXECUTION_ENABLED { println!("  STATEMENT: {:?}", token); }
 
@@ -447,21 +389,21 @@ pub fn parse_statement(
         {
             Token::Intrinsic =>
             {
-                parse_intrinsic_call(tokens, ast, parent);
+                parse_intrinsic_call(context, parent);
 
                 // Top-level statement, expect a comma.
-                expect_comma(tokens, ast, parent);
+                expect_comma(context, parent);
             }
 
-            Token::If => parse_if(tokens, ast, parent),
+            Token::If => parse_if(context, parent),
 
-            Token::Loop => parse_loop(tokens, ast, parent),
+            Token::Loop => parse_loop(context, parent),
 
-            Token::Break => parse_break(tokens, ast, parent),
+            Token::Break => parse_break(context, parent),
 
-            Token::Let => parse_let(tokens, ast, parent),
+            Token::Let => parse_let(context, parent),
 
-            Token::Set => parse_set(tokens, ast, parent),
+            Token::Set => parse_set(context, parent),
 
             _ =>
             {
@@ -477,18 +419,24 @@ pub fn parse(tokens: Vec<Token>) -> (Arena<AstNode>, NodeId)
     it.peek();
 
     let mut ast = Arena::new();
-    let root = &mut ast.new_node(AstNode::Program);
+    let root = ast.new_node(AstNode::Program);
 
-    while let Some(token) = it.peek()
+    let mut context = ParserContext
+    {
+        tokens: &mut it,
+        ast: &mut ast,
+    };
+
+    while let Some(token) = context.tokens.peek()
     {
         if TRACE_EXECUTION_ENABLED { println!("PARSER STATE: {:?}", token); }
 
-        parse_statement(&mut it, &mut ast, *root);
+        parse_statement(&mut context, root);
     }
 
-    if TRACE_EXECUTION_ENABLED { emit_ast_node(&ast, *root, 0); }
+    if TRACE_EXECUTION_ENABLED { emit_ast_node(&ast, root, 0); }
 
-    (ast, *root)
+    (ast, root)
 }
 
 fn emit_ast_node(ast: &Arena<AstNode>, node: NodeId, depth: usize)
