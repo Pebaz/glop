@@ -82,7 +82,6 @@ Result when run:
     <img
         src="misc/screenshots/12-07-2021-01 FINISHED PROJECT - GLOP PROGRAM RUNNING CORRECTLY .png"
         alt="Hello world program with purple square with gradient"
-        width=75%
     >
 </p>
 
