@@ -194,7 +194,10 @@ fn generate_statement(context: &mut CompilerContext, node: NodeId) -> ()
                 &variable_name
             );
 
-            generate_push_argument(context, context.ast[node].first_child().unwrap());
+            generate_push_argument(
+                context,
+                context.ast[node].first_child().unwrap()
+            );
 
             // The top of the stack now contains the value to assign
             context.section += &format!("    POP64 R2\n");
@@ -289,7 +292,9 @@ pub fn generate_efi_bytecode_asm(
     out_file.write_fmt(format_args!("{}", context.section)).unwrap();
     out_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
     out_file.write_fmt(format_args!("    ;; Variables\n")).unwrap();
-    out_file.write_fmt(format_args!("{}\n", context.variable_section)).unwrap();
+    out_file.write_fmt(
+        format_args!("{}\n", context.variable_section)
+    ).unwrap();
     out_file.write_fmt(format_args!("    ;; Constants\n")).unwrap();
 
     for (constant, name) in context.constants.iter()

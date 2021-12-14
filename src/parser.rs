@@ -129,7 +129,10 @@ fn parse_argument(context: &mut ParserContext, parent: NodeId) -> ()
         {
             Token::U64(value) =>
             {
-                parent.append(context.ast.new_node(AstNode::U64(*value)), context.ast);
+                parent.append(
+                    context.ast.new_node(AstNode::U64(*value)),
+                    context.ast
+                );
             }
 
             Token::Intrinsic => parse_intrinsic_call(context, parent),
