@@ -9,6 +9,18 @@ const POSTLUDE: &'static str = include_str!("postlude.inc");
 const CRATE_NAME: &'static str = env!("CARGO_PKG_NAME");
 const CRATE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
+struct CompilerContext<'a>
+{
+    section: String,
+    variable_section: String,
+    ast: &'a mut Arena<AstNode>,
+    variables: HashSet<String>,
+    constants: HashMap<u64, String>,
+    loop_stack: Vec<(String, u16)>,
+    if_counter: u16,
+    loop_counter: u16,
+}
+
 /// Pushes a U64, Symbol Lookup, or Intrinsic Call to the stack.
 fn generate_push_argument(
     section: &mut String,
@@ -414,6 +426,144 @@ fn generate_statement(
     }
 }
 
+
+// fn generate_statement2(context: &mut CompilerContext, node: NodeId) -> ()
+// {
+//     match ast[node].get()
+//     {
+//         AstNode::Let(variable_name) =>
+//         {
+//             if context.variables.contains(variable_name)
+//             {
+//                 panic!(
+//                     "Duplicate variable declaration for {:?}. \
+//                     {} supports only a global scope as of v{}.",
+//                     variable_name,
+//                     CRATE_NAME,
+//                     CRATE_VERSION
+//                 );
+//             }
+//             context.variables.insert(variable_name.to_string());
+
+//             let variable_name = variable_name.replace('-', "_");
+
+//             *context.variable_section += &format!(
+//                 "    {}: rb 8\n",
+//                 &variable_name
+//             );
+
+//             generate_push_argument2(
+//                 section,
+//                 variable_section,
+//                 ast,
+//                 ast[node].first_child().unwrap(),
+//                 variables,
+//                 constants,
+//                 loop_stack,
+//                 if_counter,
+//                 loop_counter,
+//             );
+
+//             // The top of the stack now contains the value to assign
+//             *section += &format!("    POP64 R2\n");
+//             *section += &format!("    MOVREL R1, {}\n", variable_name);
+//             *section += &format!("    MOVq @R1, @R2\n\n");
+//         }
+
+//         AstNode::Set(variable_name) =>
+//         {
+//             if !context.variables.contains(&variable_name)
+//             {
+//                 panic!("Undeclared variable {:?}.", variable_name);
+//             }
+
+//             let variable_name = variable_name.replace('-', "_");
+
+//             generate_push_argument(
+//                 section,
+//                 variable_section,
+//                 ast,
+//                 ast[node].first_child().unwrap(),
+//                 variables,
+//                 constants,
+//                 loop_stack,
+//                 if_counter,
+//                 loop_counter,
+//             );
+
+//             // The top of the stack now contains the value to assign
+//             *context.section += &format!("    POP64 R2\n");
+//             *context.section += &format!("    MOVREL R1, {}\n", variable_name);
+//             *context.section += &format!("    MOVq @R1, @R2\n\n");
+//         }
+
+//         AstNode::Intrinsic(_) =>
+//         {
+//             generate_intrinsic(
+//                 section,
+//                 variable_section,
+//                 ast,
+//                 node,
+//                 variables,
+//                 constants,
+//                 loop_stack,
+//                 if_counter,
+//                 loop_counter,
+//             );
+//         }
+
+//         AstNode::Loop =>
+//         {
+//             generate_loop(
+//                 section,
+//                 variable_section,
+//                 ast,
+//                 node,
+//                 variables,
+//                 constants,
+//                 loop_stack,
+//                 if_counter,
+//                 loop_counter,
+//             );
+//         }
+
+//         AstNode::Break =>
+//         {
+//             generate_break(
+//                 section,
+//                 variable_section,
+//                 ast,
+//                 node,
+//                 variables,
+//                 constants,
+//                 loop_stack,
+//                 if_counter,
+//                 loop_counter,
+//             );
+//         }
+
+//         AstNode::IfElse =>
+//         {
+//             generate_if_else(
+//                 section,
+//                 variable_section,
+//                 ast,
+//                 node,
+//                 variables,
+//                 constants,
+//                 loop_stack,
+//                 if_counter,
+//                 loop_counter,
+//             );
+//         }
+
+//         _ => unreachable!(),
+//     }
+// }
+
+
+fn test_func(compiler_context: &mut CompilerContext, node: NodeId) -> () { }
+
 pub fn generate_efi_bytecode_asm(
     mut out_file: File,
     mut ast: Arena<AstNode>,
@@ -434,29 +584,52 @@ pub fn generate_efi_bytecode_asm(
 
     out_file.write_fmt(format_args!("{}", PRELUDE)).unwrap();
 
-    for child in root.children(ast)
+    let mut context = CompilerContext
     {
-        generate_statement(
-            &mut body_section,
-            &mut variable_section,
-            ast,
-            child,
-            &mut variables,
-            &mut constants,
-            &mut loop_stack,
-            &mut if_counter,
-            &mut loop_counter,
-        );
+        section: body_section,
+        variable_section,
+        ast,
+        variables,
+        constants,
+        loop_stack,
+        if_counter,
+        loop_counter,
+    };
+
+    let children: Vec<NodeId> = root.children(context.ast).collect();
+
+    for child in children
+    {
+        test_func(&mut context, child);
+
+        // generate_statement2(&mut context, child);
+    }
+
+    for child in root.children(context.ast)
+    {
+        // test_func(&mut context, child);
+
+        // generate_statement(
+        //     &mut body_section,
+        //     &mut variable_section,
+        //     &ast,
+        //     child,
+        //     &mut variables,
+        //     &mut constants,
+        //     &mut loop_stack,
+        //     &mut if_counter,
+        //     &mut loop_counter,
+        // );
     }
 
     out_file.write_fmt(format_args!("    ;; Initialize Variables\n")).unwrap();
-    out_file.write_fmt(format_args!("{}", body_section)).unwrap();
+    out_file.write_fmt(format_args!("{}", context.section)).unwrap();
     out_file.write_fmt(format_args!("{}", POSTLUDE)).unwrap();
     out_file.write_fmt(format_args!("    ;; Variables\n")).unwrap();
-    out_file.write_fmt(format_args!("{}\n", variable_section)).unwrap();
+    out_file.write_fmt(format_args!("{}\n", context.variable_section)).unwrap();
     out_file.write_fmt(format_args!("    ;; Constants\n")).unwrap();
 
-    for (constant, name) in constants.iter()
+    for (constant, name) in context.constants.iter()
     {
         out_file.write_fmt(
             format_args!("    {}: dq {}\n", name, constant)
