@@ -1,3 +1,7 @@
+<p align=center>
+    <img src="misc/Glop.png" alt="Glop Programming Language Logo" width=60%>
+</p>
+
 # Glop
 
 Programming language that compiles to UEFI Bytecode.
@@ -6,7 +10,7 @@ Programming language that compiles to UEFI Bytecode.
 
 Simple algorithm to draw a square:
 
-```rust
+```zig
 @clear-screen(),
 
 let x = 0,
@@ -59,7 +63,7 @@ loop
 Compile it with:
 
 ```
-$ glop lang/goal3.glp drive\EFI\BOOT\BOOTX64.efi
+$ glop hello-world.glp drive/EFI/BOOT/BOOTX64.efi
 ```
 
 Run it with:
@@ -198,3 +202,7 @@ could be added that would allow pretty cool new features.
         width=75%
     >
 </p>
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/Pebaz/Glop.svg)](https://starchart.cc/Pebaz/Glop)
